@@ -1,33 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 150" width="320" height="150">
-  <circle cx="60" cy="46" r="40" fill="#e2725b" />
-  <circle cx="160" cy="46" r="40" fill="#eba15a" />
-  <circle cx="260" cy="46" r="40" fill="#7fb9a2" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 150" width="300" height="150">
+  <circle cx="52" cy="52" r="46" fill="#e2725b" />
+  <circle cx="150" cy="52" r="46" fill="#eba15a" />
+  <circle cx="248" cy="52" r="46" fill="#7fb9a2" />
 
-  <g stroke="#1a1a1a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="56" cy="18" r="6" fill="#1a1a1a" stroke="none" />
-    <path d="M56 26 L50 42 L64 48 L58 66" />
-    <path d="M50 42 L70 36" />
-    <path d="M58 66 L48 78" />
-    <path d="M58 66 L70 74" />
-    <path d="M64 48 L78 44" />
+  <g fill="#1a1a1a">
+    <circle cx="54" cy="26" r="8" />
+    <path d="M58 36 q6 2 10 8 q3 4 9 3 l1 6 q-9 2 -14 -4 l-3 -3 l-4 12 l8 12 q2 3 -1 5 q-3 1 -5 -2 l-9 -13 q-2 -3 -1 -6 l3 -9 l-10 6 l-2 12 q-1 4 -5 3 q-3 -1 -2 -5 l3 -15 q0 -3 3 -5 l16 -10 q3 -2 6 0 z" />
   </g>
 
-  <g stroke="#1a1a1a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="160" cy="18" r="6" fill="#1a1a1a" stroke="none" />
-    <path d="M160 26 L156 40 L170 44 L162 54" />
-    <circle cx="140" cy="70" r="14" />
-    <circle cx="182" cy="70" r="14" />
-    <path d="M140 70 L162 54 L182 70" />
-    <path d="M162 54 L156 40" />
+  <g fill="none" stroke="#1a1a1a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="130" cy="72" r="15" />
+    <circle cx="172" cy="72" r="15" />
+    <path d="M130 72 L150 72 L138 48 L162 48" />
+    <path d="M150 72 L162 48" />
+    <path d="M130 72 L142 50" />
+  </g>
+  <g fill="#1a1a1a">
+    <circle cx="150" cy="26" r="8" />
+    <path d="M150 34 q7 1 9 8 l4 12 q1 4 -3 5 q-4 1 -5 -3 l-4 -12 q-3 -8 -1 -10 z" />
+  </g>
+  <g fill="none" stroke="#1a1a1a" stroke-width="6" stroke-linecap="round">
+    <path d="M156 40 L142 50" />
+    <path d="M158 47 L162 48" />
   </g>
 
-  <g stroke="#1a1a1a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="240" cy="38" r="6" fill="#1a1a1a" stroke="none" />
-    <path d="M246 40 L266 34" />
-    <path d="M234 42 L220 50" />
-    <path d="M234 42 L244 54 L230 62" />
-    <path d="M208 64 Q220 58 232 64 T256 64 T280 64" />
+  <g fill="#1a1a1a">
+    <circle cx="228" cy="42" r="8" />
+    <path d="M234 46 q10 -1 18 -7 q3 -2 5 1 q2 3 -1 5 q-9 7 -21 7 q-4 0 -7 -2 l-8 -4 q2 5 -2 8 q-4 2 -12 4 q-4 1 -5 -3 q-1 -3 3 -5 q6 -1 8 -3 q1 -2 -1 -4 l-6 -5 q-3 -3 0 -6 q3 -2 6 0 l14 9 q3 2 7 4 z" />
+  </g>
+  <g fill="none" stroke="#1a1a1a" stroke-width="6" stroke-linecap="round">
+    <path d="M212 74 q9 -6 18 0 t18 0 t18 0" />
   </g>
 
-  <text x="160" y="128" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="30" fill="#1a1a1a">טריאתלון גל-און</text>
+  <text x="150" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="26" fill="#1a1a1a">טריאתלון גל-און</text>
 </svg>

@@ -7,6 +7,7 @@
     "home": "Home",
     "results": "Results",
     "register": "Register",
+    "competitors": "Competitors",
     "schedule": "Schedule",
     "login": "Staff Login",
     "logout": "Log out",
@@ -166,6 +167,22 @@
     "estimatedStart": "Estimated Start",
     "heat": "Heat",
     "competitors": "Competitors"
+  },
+  "competitors": {
+    "title": "Registered Competitors",
+    "subtitle": "Everyone signed up for this year's triathlon.",
+    "count": "{count} registered",
+    "none": "No one has registered yet.",
+    "name": "Name",
+    "age": "Age",
+    "type": "Type",
+    "single": "Solo",
+    "team": "Relay",
+    "legs": "Willing legs",
+    "legSwim": "Swim",
+    "legBike": "Bike",
+    "legRun": "Run",
+    "arrived": "Checked in"
   },
   "users": {
     "title": "Staff Accounts",

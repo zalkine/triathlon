@@ -15,6 +15,9 @@ export default async function PublicHeader() {
         <Link href="/register" className="hover:underline">
           {t('register')}
         </Link>
+        <Link href="/competitors" className="hover:underline">
+          {t('competitors')}
+        </Link>
         <Link href="/schedule" className="hover:underline">
           {t('schedule')}
         </Link>
