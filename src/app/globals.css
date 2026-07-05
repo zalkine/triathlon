@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'Segoe UI', 'Arial Hebrew', Arial, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}

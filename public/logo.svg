@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 150" width="320" height="150">
+  <circle cx="60" cy="46" r="40" fill="#e2725b" />
+  <circle cx="160" cy="46" r="40" fill="#eba15a" />
+  <circle cx="260" cy="46" r="40" fill="#7fb9a2" />
+
+  <g stroke="#1a1a1a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="56" cy="18" r="6" fill="#1a1a1a" stroke="none" />
+    <path d="M56 26 L50 42 L64 48 L58 66" />
+    <path d="M50 42 L70 36" />
+    <path d="M58 66 L48 78" />
+    <path d="M58 66 L70 74" />
+    <path d="M64 48 L78 44" />
+  </g>
+
+  <g stroke="#1a1a1a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="160" cy="18" r="6" fill="#1a1a1a" stroke="none" />
+    <path d="M160 26 L156 40 L170 44 L162 54" />
+    <circle cx="140" cy="70" r="14" />
+    <circle cx="182" cy="70" r="14" />
+    <path d="M140 70 L162 54 L182 70" />
+    <path d="M162 54 L156 40" />
+  </g>
+
+  <g stroke="#1a1a1a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="240" cy="38" r="6" fill="#1a1a1a" stroke="none" />
+    <path d="M246 40 L266 34" />
+    <path d="M234 42 L220 50" />
+    <path d="M234 42 L244 54 L230 62" />
+    <path d="M208 64 Q220 58 232 64 T256 64 T280 64" />
+  </g>
+
+  <text x="160" y="128" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="30" fill="#1a1a1a">טריאתלון גל-און</text>
+</svg>

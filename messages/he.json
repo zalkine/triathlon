@@ -1,0 +1,133 @@
+{
+  "brand": {
+    "name": "טריאתלון גל-און",
+    "tagline": "תוצאות ותזמון חי לטריאתלון הקהילתי"
+  },
+  "nav": {
+    "home": "בית",
+    "results": "תוצאות",
+    "login": "כניסת צוות",
+    "logout": "התנתקות",
+    "stations": "עמדות תזמון",
+    "manage": "ניהול תחרות",
+    "users": "משתמשי צוות"
+  },
+  "home": {
+    "welcome": "ברוכים הבאים לטריאתלון גל-און",
+    "subtitle": "תוצאות ותזמון חי לטריאתלון הקהילתי שלנו.",
+    "viewResults": "צפייה בתוצאות חי",
+    "staffLogin": "כניסת צוות"
+  },
+  "results": {
+    "title": "תוצאות",
+    "category": "קטגוריה",
+    "rank": "מקום",
+    "name": "שם",
+    "start": "התחלה",
+    "finish": "סיום",
+    "total": "זמן כולל",
+    "status": "סטטוס",
+    "notStarted": "טרם התחיל",
+    "inProgress": "במרוץ",
+    "finished": "סיים",
+    "noEntries": "אין עדיין מתחרים רשומים בקטגוריה זו.",
+    "selectCategory": "בחר/י קטגוריה",
+    "updatedLive": "מתעדכן בזמן אמת"
+  },
+  "login": {
+    "title": "כניסת צוות",
+    "username": "שם משתמש",
+    "password": "סיסמה",
+    "submit": "כניסה",
+    "error": "שם משתמש או סיסמה שגויים."
+  },
+  "stations": {
+    "title": "עמדות תזמון",
+    "subtitle": "בחר/י את העמדה בה את/ה עובד/ת.",
+    "start": "התחלה",
+    "swim": "סיום שחייה",
+    "bike": "סיום רכיבה",
+    "run": "ריצה / קו סיום",
+    "startDesc": "התחלת השעון עבור heat",
+    "swimDesc": "תיעוד זמני שחייה",
+    "bikeDesc": "תיעוד זמני רכיבה",
+    "runDesc": "תיעוד זמני סיום סופיים"
+  },
+  "stationStart": {
+    "title": "עמדת התחלה",
+    "heats": "היטים ממתינים להתחלה",
+    "noHeats": "אין היטים הממתינים להתחלה.",
+    "startNow": "התחל עכשיו",
+    "started": "התחיל בשעה {time}",
+    "confirm": "להתחיל את השעון של ה-heat הזה עכשיו?"
+  },
+  "stationStamp": {
+    "title": "תיעוד זמנים",
+    "search": "חיפוש מתחרה או קבוצה…",
+    "noEntries": "אין מתחרים ממתינים בעמדה זו.",
+    "tapToStamp": "הקש/י לתיעוד",
+    "stamped": "נרשם עבור {name} בשעה {time}",
+    "notStartedYet": "ה-heat עדיין לא התחיל"
+  },
+  "manage": {
+    "dashboard": "ניהול תחרות",
+    "newHeat": "היט חדש",
+    "heats": "היטים",
+    "noHeats": "אין עדיין היטים.",
+    "viewHeat": "פתח",
+    "createHeat": "יצירת היט",
+    "category": "קטגוריה",
+    "heatName": "שם ההיט",
+    "heatNamePlaceholder": "לדוגמה: היט 1",
+    "create": "צור",
+    "cancel": "ביטול",
+    "backToDashboard": "חזרה ללוח הבקרה",
+    "startTime": "שעת התחלה",
+    "notSet": "לא נקבע",
+    "edit": "עריכה",
+    "save": "שמירה",
+    "entries": "מתחרים / קבוצות",
+    "addEntry": "הוספת מתחרה / קבוצה",
+    "entryName": "שם",
+    "addMember": "הוספת חבר/ת קבוצה",
+    "memberName": "שם חבר/ת הקבוצה",
+    "leg": "מקטע",
+    "legSwim": "שחייה",
+    "legBike": "רכיבה",
+    "legRun": "ריצה",
+    "swimTime": "שחייה",
+    "bikeTime": "רכיבה",
+    "runTime": "סיום",
+    "remove": "הסרה",
+    "confirmDeleteEntry": "להסיר את המתחרה/הקבוצה וכל הזמנים שלהם?",
+    "confirmDeleteHeat": "למחוק את ההיט הזה ואת כל המתחרים בו? לא ניתן לבטל פעולה זו.",
+    "deleteHeat": "מחיקת היט",
+    "noValue": "—",
+    "clear": "נקה"
+  },
+  "users": {
+    "title": "משתמשי צוות",
+    "newUser": "חשבון חדש",
+    "username": "שם משתמש",
+    "password": "סיסמה",
+    "role": "תפקיד",
+    "admin": "מנהל/ת",
+    "timekeeper": "תוזמן/ת",
+    "create": "יצירת חשבון",
+    "delete": "מחיקה",
+    "confirmDelete": "למחוק את החשבון הזה?",
+    "existing": "חשבונות קיימים",
+    "createdAt": "נוצר בתאריך"
+  },
+  "common": {
+    "loading": "טוען…",
+    "save": "שמירה",
+    "cancel": "ביטול",
+    "delete": "מחיקה",
+    "edit": "עריכה",
+    "back": "חזרה",
+    "close": "סגירה",
+    "undo": "בטל",
+    "undone": "בוטל"
+  }
+}

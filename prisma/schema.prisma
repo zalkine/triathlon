@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite has no native enum support in Prisma; these fields hold string
+// values constrained in application code (see src/lib/constants.ts):
+// Role: "ADMIN" | "TIMEKEEPER"
+// EntryType: "SINGLE" | "TEAM"
+// Leg: "SWIM" | "BIKE" | "RUN"
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  role         String
+  createdAt    DateTime @default(now())
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  nameEn    String
+  nameHe    String
+  type      String
+  sortOrder Int
+  heats     Heat[]
+}
+
+model Heat {
+  id         String    @id @default(cuid())
+  categoryId String
+  category   Category  @relation(fields: [categoryId], references: [id])
+  name       String
+  startTime  DateTime?
+  createdAt  DateTime  @default(now())
+  entries    Entry[]
+
+  @@index([categoryId])
+}
+
+model Entry {
+  id        String    @id @default(cuid())
+  heatId    String
+  heat      Heat      @relation(fields: [heatId], references: [id], onDelete: Cascade)
+  name      String
+  swimTime  DateTime?
+  bikeTime  DateTime?
+  runTime   DateTime?
+  createdAt DateTime  @default(now())
+  members   Member[]
+
+  @@index([heatId])
+}
+
+model Member {
+  id      String  @id @default(cuid())
+  entryId String
+  entry   Entry   @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  name    String
+  leg     String?
+
+  @@index([entryId])
+}

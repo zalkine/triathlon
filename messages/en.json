@@ -1,0 +1,133 @@
+{
+  "brand": {
+    "name": "Gal-On Triathlon",
+    "tagline": "Community Triathlon Results & Timing"
+  },
+  "nav": {
+    "home": "Home",
+    "results": "Results",
+    "login": "Staff Login",
+    "logout": "Log out",
+    "stations": "Timing Stations",
+    "manage": "Manage Race",
+    "users": "Staff Accounts"
+  },
+  "home": {
+    "welcome": "Welcome to the Gal-On Triathlon",
+    "subtitle": "Live results and race timing for our community triathlon.",
+    "viewResults": "View Live Results",
+    "staffLogin": "Staff Login"
+  },
+  "results": {
+    "title": "Results",
+    "category": "Category",
+    "rank": "Rank",
+    "name": "Name",
+    "start": "Start",
+    "finish": "Finish",
+    "total": "Total Time",
+    "status": "Status",
+    "notStarted": "Not started",
+    "inProgress": "In progress",
+    "finished": "Finished",
+    "noEntries": "No competitors registered in this category yet.",
+    "selectCategory": "Select a category",
+    "updatedLive": "Updates live"
+  },
+  "login": {
+    "title": "Staff Login",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Log in",
+    "error": "Invalid username or password."
+  },
+  "stations": {
+    "title": "Timing Stations",
+    "subtitle": "Choose the station you're working at.",
+    "start": "Start",
+    "swim": "Swim Finish",
+    "bike": "Bike Finish",
+    "run": "Run / Finish Line",
+    "startDesc": "Start the clock for a heat",
+    "swimDesc": "Stamp swim-leg times",
+    "bikeDesc": "Stamp bike-leg times",
+    "runDesc": "Stamp final finish times"
+  },
+  "stationStart": {
+    "title": "Start Station",
+    "heats": "Heats waiting to start",
+    "noHeats": "No heats waiting to start.",
+    "startNow": "Start Now",
+    "started": "Started at {time}",
+    "confirm": "Start this heat's clock now?"
+  },
+  "stationStamp": {
+    "title": "Stamp Times",
+    "search": "Search competitor or team…",
+    "noEntries": "No competitors waiting at this station.",
+    "tapToStamp": "Tap to stamp",
+    "stamped": "Stamped {name} at {time}",
+    "notStartedYet": "Heat hasn't started yet"
+  },
+  "manage": {
+    "dashboard": "Race Management",
+    "newHeat": "New Heat",
+    "heats": "Heats",
+    "noHeats": "No heats yet.",
+    "viewHeat": "Open",
+    "createHeat": "Create Heat",
+    "category": "Category",
+    "heatName": "Heat name",
+    "heatNamePlaceholder": "e.g. Heat 1",
+    "create": "Create",
+    "cancel": "Cancel",
+    "backToDashboard": "Back to dashboard",
+    "startTime": "Start time",
+    "notSet": "Not set",
+    "edit": "Edit",
+    "save": "Save",
+    "entries": "Competitors / Teams",
+    "addEntry": "Add competitor / team",
+    "entryName": "Name",
+    "addMember": "Add member",
+    "memberName": "Member name",
+    "leg": "Leg",
+    "legSwim": "Swim",
+    "legBike": "Bike",
+    "legRun": "Run",
+    "swimTime": "Swim",
+    "bikeTime": "Bike",
+    "runTime": "Finish",
+    "remove": "Remove",
+    "confirmDeleteEntry": "Remove this competitor/team and all their times?",
+    "confirmDeleteHeat": "Delete this heat and all its entries? This cannot be undone.",
+    "deleteHeat": "Delete heat",
+    "noValue": "—",
+    "clear": "Clear"
+  },
+  "users": {
+    "title": "Staff Accounts",
+    "newUser": "New account",
+    "username": "Username",
+    "password": "Password",
+    "role": "Role",
+    "admin": "Admin",
+    "timekeeper": "Timekeeper",
+    "create": "Create account",
+    "delete": "Delete",
+    "confirmDelete": "Delete this account?",
+    "existing": "Existing accounts",
+    "createdAt": "Created"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "close": "Close",
+    "undo": "Undo",
+    "undone": "Undone"
+  }
+}
