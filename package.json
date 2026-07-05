@@ -9,7 +9,8 @@
     "lint": "next lint",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "vercel-build": "prisma migrate deploy && prisma db seed && next build"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

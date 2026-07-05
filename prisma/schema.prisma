@@ -3,12 +3,17 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Pooled connection used at runtime (e.g. Neon's pooled URL); on Vercel's
+  // serverless functions this must go through a connection pooler.
+  url       = env("DATABASE_URL")
+  // Direct (unpooled) connection used only for migrations, which can't run
+  // over a transaction pooler. Point it at the same DB's direct URL.
+  directUrl = env("DIRECT_URL")
 }
 
-// SQLite has no native enum support in Prisma; these fields hold string
-// values constrained in application code (see src/lib/constants.ts):
+// Role/type/leg are stored as plain strings (not Postgres enums) so the values
+// are constrained in one place, application code (see src/lib/constants.ts):
 // Role: "ADMIN" | "TIMEKEEPER"
 // EntryType: "SINGLE" | "TEAM"
 // Leg: "SWIM" | "BIKE" | "RUN"

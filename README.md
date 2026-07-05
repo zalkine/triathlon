@@ -12,25 +12,46 @@ Results-tracking and timing app for the Gal-On community triathlon. Bilingual (H
 
 Eight fixed categories (defined in `src/lib/constants.ts`): Professional / Intermediate / Children 6–9 / Children 9–12, each as **Singles** (one person does the whole triathlon) or **Groups** (a 3-person relay: one swimmer, one biker, one runner). During registration the category is derived automatically from the participant's age, chosen skill level, and solo/relay choice.
 
-## Getting started
+## Deploying to Vercel (recommended)
+
+This app is built to deploy to [Vercel](https://vercel.com) with a hosted Postgres database. No server to manage; it scales fine for ~600 users on the free tier.
+
+1. **Create a Postgres database.** The easiest is Vercel's built-in Postgres (powered by Neon): in your Vercel project, go to **Storage → Create Database → Postgres**. It automatically adds the connection env vars to the project. Alternatively create a free DB at [neon.tech](https://neon.tech) or [supabase.com](https://supabase.com) and copy its connection strings.
+2. **Import the repo into Vercel** (New Project → import `zalkine/triathlon`). Vercel auto-detects Next.js; no build settings to change — the `vercel-build` script handles migrations + seeding automatically.
+3. **Set these Environment Variables** in the Vercel project (Settings → Environment Variables):
+
+   | Variable | Value |
+   |---|---|
+   | `DATABASE_URL` | Postgres **pooled** connection string (Neon/Vercel provide this) |
+   | `DIRECT_URL` | Postgres **direct/unpooled** connection string (used only for migrations). If your provider gives only one URL, use the same value for both. |
+   | `AUTH_SECRET` | A long random string — generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+   | `SEED_ADMIN_USERNAME` | e.g. `admin` |
+   | `SEED_ADMIN_PASSWORD` | your chosen initial admin password |
+
+   > If you used Vercel's built-in Postgres, it may name the vars `POSTGRES_PRISMA_URL` (pooled) and `POSTGRES_URL_NON_POOLING` (direct). Just set `DATABASE_URL` = the pooled one and `DIRECT_URL` = the non-pooling one.
+4. **Deploy.** On each deploy Vercel runs `prisma migrate deploy && prisma db seed && next build`, which applies the schema and seeds the 8 categories + your admin account (idempotent — re-deploying never wipes data or resets a changed admin password).
+5. Open your `*.vercel.app` URL. **Log in at `/login` and change the admin password** via Staff Accounts before the event.
+
+## Running locally
+
+Local dev also uses Postgres. Point `.env` at any Postgres (a free Neon dev branch, or a local Docker one: `docker run -e POSTGRES_PASSWORD=pw -p 5432:5432 postgres`).
 
 ```bash
 npm install
-cp .env.example .env   # then edit AUTH_SECRET / SEED_ADMIN_PASSWORD
-npx prisma migrate dev
+cp .env.example .env   # fill in DATABASE_URL / DIRECT_URL / AUTH_SECRET / SEED_ADMIN_PASSWORD
+npx prisma migrate deploy
 npx prisma db seed
 npm run dev
 ```
 
-Open http://localhost:3000 — it redirects to `/he` (Hebrew) by default; switch to English via the header toggle.
-
-The seed script creates the 8 competition categories and one `ADMIN` account (`SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD` from `.env`, default `admin` / `changeme`). **Change the seeded admin password** (via `/staff/users` after first login, or by re-seeding with a new `SEED_ADMIN_PASSWORD`) before running a real event.
+Open http://localhost:3000 — it redirects to `/he` (Hebrew) by default; switch to English via the header toggle. Default login: `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD` from `.env`.
 
 ## Environment variables
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | SQLite file path (default `file:./dev.db`) |
+| `DATABASE_URL` | Postgres pooled connection string (runtime queries) |
+| `DIRECT_URL` | Postgres direct/unpooled connection string (migrations) |
 | `AUTH_SECRET` | Secret used to sign staff session tokens — use a long random string in production |
 | `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD` | Initial admin account created by `prisma db seed` |
 
@@ -54,5 +75,5 @@ Heats can also be created and populated manually from `/staff/manage` if you'd r
 
 ## Notes
 
-- The Prisma schema targets SQLite, which has no native enum support — role/type/leg fields are plain strings constrained by `src/lib/constants.ts`.
+- Role/type/leg fields are stored as plain strings constrained by `src/lib/constants.ts` (kept simple rather than DB enums).
 - `public/logo.svg` is a close recreation of the community's logo (chat-attached images aren't accessible as files to this tooling) — swap in the original artwork there for pixel-perfect branding.
