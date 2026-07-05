@@ -6,9 +6,12 @@
   "nav": {
     "home": "בית",
     "results": "תוצאות",
+    "register": "הרשמה",
+    "schedule": "לוח זמנים",
     "login": "כניסת צוות",
     "logout": "התנתקות",
     "stations": "עמדות תזמון",
+    "checkin": "רישום הגעה",
     "manage": "ניהול תחרות",
     "users": "משתמשי צוות"
   },
@@ -16,7 +19,9 @@
     "welcome": "ברוכים הבאים לטריאתלון גל-און",
     "subtitle": "תוצאות ותזמון חי לטריאתלון הקהילתי שלנו.",
     "viewResults": "צפייה בתוצאות חי",
-    "staffLogin": "כניסת צוות"
+    "staffLogin": "כניסת צוות",
+    "registerCta": "הרשמה לתחרות",
+    "scheduleCta": "לוח הזמנים"
   },
   "results": {
     "title": "תוצאות",
@@ -59,7 +64,8 @@
     "noHeats": "אין היטים הממתינים להתחלה.",
     "startNow": "התחל עכשיו",
     "started": "התחיל בשעה {time}",
-    "confirm": "להתחיל את השעון של ה-heat הזה עכשיו?"
+    "confirm": "להתחיל את השעון של ה-heat הזה עכשיו?",
+    "notActiveYet": "התחרות טרם הופעלה. יש לבדוק שוב לאחר שהמנהל/ת יפעיל/ה אותה."
   },
   "stationStamp": {
     "title": "תיעוד זמנים",
@@ -103,7 +109,63 @@
     "confirmDeleteHeat": "למחוק את ההיט הזה ואת כל המתחרים בו? לא ניתן לבטל פעולה זו.",
     "deleteHeat": "מחיקת היט",
     "noValue": "—",
-    "clear": "נקה"
+    "clear": "נקה",
+    "eventControls": "בקרת אירוע",
+    "registrationOpenLabel": "הרשמה",
+    "open": "פתוחה",
+    "closed": "סגורה",
+    "closeRegistration": "סגירת הרשמה",
+    "reopenRegistration": "פתיחת הרשמה מחדש",
+    "generateSchedule": "הרצת הגרלה ויצירת לוח זמנים",
+    "generateScheduleConfirm": "ליצור קבוצות, היטים ולוח זמנים מכל הנרשמים שהגיעו? ניתן להריץ שוב בבטחה עבור מי שטרם שובץ.",
+    "scheduleGeneratedAt": "לוח הזמנים נוצר בשעה {time}",
+    "activateCompetition": "הפעלת התחרות",
+    "activateConfirm": "להפעיל את התחרות? עמדות התזמון יהפכו לפעילות עבור כל התוזמנים.",
+    "competitionActiveLabel": "סטטוס התחרות",
+    "active": "פעילה",
+    "notActive": "טרם החלה",
+    "unassigned": "נרשמים ללא שיבוץ",
+    "unassignedNone": "כל מי שהגיע/ה שובץ/ה לקבוצה או להיט.",
+    "unassignedHint": "ניתן להוסיף את האנשים הללו לקבוצה קיימת ידנית למטה, או לרשום עוד הגעות ולהריץ את ההגרלה מחדש.",
+    "registrants": "נרשמים",
+    "checkedIn": "הגיעו",
+    "addToTeam": "הוספה לקבוצה"
+  },
+  "register": {
+    "title": "הרשמה לתחרות",
+    "name": "שם מלא",
+    "age": "גיל",
+    "modeLabel": "סוג השתתפות",
+    "single": "טריאתלון מלא (יחיד/ה)",
+    "team": "קבוצת שליחים (קבוצה של 3)",
+    "skillLevel": "רמה",
+    "professional": "מקצועני/ת",
+    "intermediate": "ביניים",
+    "kidsCategoryNote": "קטגוריה (לפי גיל): {category}",
+    "legsPrompt": "באיזה מקטע/ים תרצו להשתתף? (ניתן לבחור יותר מאחד — הקבוצות ייקבעו בהגרלה)",
+    "legSwim": "שחייה",
+    "legBike": "רכיבה",
+    "legRun": "ריצה",
+    "submit": "הרשמה",
+    "success": "נרשמת בהצלחה! נתראה באירוע.",
+    "registerAnother": "רישום משתתף/ת נוסף/ת",
+    "errorClosed": "ההרשמה סגורה כרגע.",
+    "errorInvalid": "יש לבדוק את הפרטים ולנסות שוב.",
+    "errorNoLeg": "יש לבחור לפחות מקטע אחד עבור קבוצת שליחים."
+  },
+  "checkin": {
+    "title": "רישום הגעה",
+    "search": "חיפוש לפי שם…",
+    "noResults": "לא נמצאו נרשמים תואמים.",
+    "markArrived": "סימון כהגיע/ה",
+    "arrived": "הגיע/ה"
+  },
+  "schedule": {
+    "title": "לוח הזמנים של התחרות",
+    "notGenerated": "לוח הזמנים טרם פורסם.",
+    "estimatedStart": "שעת התחלה משוערת",
+    "heat": "היט",
+    "competitors": "מתחרים"
   },
   "users": {
     "title": "משתמשי צוות",

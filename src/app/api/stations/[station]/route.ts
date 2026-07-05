@@ -7,6 +7,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sta
   if (!STATIONS.includes(station as (typeof STATIONS)[number]) || station === 'start') {
     return NextResponse.json({ error: 'invalid-station' }, { status: 400 });
   }
+  const settings = await prisma.eventSettings.findUnique({ where: { id: 'singleton' } });
+  if (!settings?.competitionActive) {
+    return NextResponse.json({ active: false, entries: [] });
+  }
+
   const field = STATION_FIELD[station as Exclude<(typeof STATIONS)[number], 'start'>];
 
   const entries = await prisma.entry.findMany({
@@ -16,6 +21,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sta
   });
 
   return NextResponse.json({
+    active: true,
     entries: entries.map((e) => ({
       id: e.id,
       name: e.name,

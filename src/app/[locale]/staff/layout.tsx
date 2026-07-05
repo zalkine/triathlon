@@ -27,6 +27,9 @@ export default async function StaffLayout({
           <Link href="/staff/stations" className="hover:underline">
             {t('stations')}
           </Link>
+          <Link href="/staff/checkin" className="hover:underline">
+            {t('checkin')}
+          </Link>
           {session?.role === 'ADMIN' && (
             <>
               <Link href="/staff/manage" className="hover:underline">

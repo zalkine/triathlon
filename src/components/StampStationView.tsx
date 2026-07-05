@@ -14,13 +14,18 @@ export default function StampStationView({ station }: { station: StampStation })
   const t = useTranslations('stationStamp');
   const tc = useTranslations('common');
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [active, setActive] = useState(true);
   const [query, setQuery] = useState('');
   const [toast, setToast] = useState<{ entryId: string; name: string; time: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/stations/${station}`, { cache: 'no-store' });
-    if (res.ok) setEntries((await res.json()).entries);
+    if (res.ok) {
+      const data = await res.json();
+      setEntries(data.entries);
+      setActive(data.active);
+    }
   }, [station]);
 
   useEffect(() => {
@@ -59,6 +64,10 @@ export default function StampStationView({ station }: { station: StampStation })
       }
     });
   };
+
+  if (!active) {
+    return <p className="text-ink-light">{t('notStartedYet')}</p>;
+  }
 
   return (
     <div className="space-y-4">

@@ -4,9 +4,13 @@ Results-tracking and timing app for the Gal-On community triathlon. Bilingual (H
 
 ## Who uses it
 
-- **Public**: view live, auto-ranked results at `/results` — no login required.
-- **Timekeepers**: log in and work a "station" (Start / Swim / Bike / Run), stamping times with one tap as competitors pass. Can't overwrite an already-stamped time (only a short "undo" window for a misclick).
-- **Admins**: everything a timekeeper can do, plus create heats, add/remove competitors and teams, manually correct any time, and manage staff accounts.
+- **Public**: register for the race, view the live schedule and auto-ranked results — no login required.
+- **Timekeepers**: log in and work a "station" (Check-In, or Start / Swim / Bike / Run timing), stamping times with one tap as competitors pass. Can't overwrite an already-stamped time (only a short "undo" window for a misclick).
+- **Admins**: everything a timekeeper can do, plus open/close registration, run the group-formation lottery, generate the schedule, activate the competition, create/edit heats, manually correct any time, and manage staff accounts.
+
+## Categories
+
+Eight fixed categories (defined in `src/lib/constants.ts`): Professional / Intermediate / Children 6–9 / Children 9–12, each as **Singles** (one person does the whole triathlon) or **Groups** (a 3-person relay: one swimmer, one biker, one runner). During registration the category is derived automatically from the participant's age, chosen skill level, and solo/relay choice.
 
 ## Getting started
 
@@ -30,14 +34,23 @@ The seed script creates the 8 competition categories and one `ADMIN` account (`S
 | `AUTH_SECRET` | Secret used to sign staff session tokens — use a long random string in production |
 | `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD` | Initial admin account created by `prisma db seed` |
 
-## Race-day flow
+## End-to-end flow
 
-1. An admin creates a **heat** per category (`/staff/manage/heats/new`) and adds the registered competitors/teams to it.
-2. Timekeepers log in and each picks their **station** (`/staff/stations`): one person works the Start line, one the pool/swim exit, one the bike-in, one the finish line.
-3. When a heat is ready to go, the Start-station timekeeper taps "Start Now" — this stamps the heat's start time.
-4. As competitors pass each station, that station's timekeeper searches for the name and taps to stamp the time.
-5. `/results` ranks competitors live within their category as soon as both a start and a finish time exist.
-6. If a time was mis-stamped, an admin can correct it directly on the heat's page (`/staff/manage/heats/[heatId]`).
+### Before the event — registration & lottery
+1. Participants **register** themselves at `/register`: name, age, whether they're doing the whole triathlon solo or joining a relay group, and — for a relay group — which leg(s) they're willing to swim/bike/run (multiple allowed). The category is derived automatically from age + skill level + solo/group.
+2. When registration closes, an admin **closes registration** and runs **"Run Lottery & Generate Schedule"** from the management dashboard (`/staff/manage`). This randomly forms complete swim+bike+run relay teams from the checked-in group registrants, places solo competitors, packs everyone into heats (max 8 per heat — the pool's lane capacity), and computes an estimated start time for every heat in race order.
+3. Anyone the lottery couldn't fit into a full team appears under **Unassigned Registrants**, where an admin can drop them onto an existing team's open leg. Admins can re-run the lottery at any time to place people who checked in later (already-placed people are left untouched).
+
+### On race day
+4. Participants arrive and a check-in volunteer marks them **arrived** at the Check-In station (`/staff/checkin`) — searchable by name. Only checked-in participants are included when the lottery/schedule runs.
+5. The published **schedule** is visible live to everyone at `/schedule`, showing every heat in order with its estimated start time.
+6. When everything's ready the admin taps **"Activate Competition"** — this turns the timing stations live for all timekeepers.
+7. Timekeepers each pick their **station** (`/staff/stations`): Start line, pool/swim exit, bike-in, finish line. When a heat is called, the Start-station timekeeper announces "on your marks… GO!" and taps **Start Now**, stamping the heat's start time and beginning the clock.
+8. As competitors reach each downstream station, that timekeeper searches for the name/team and taps to stamp the time. Finish-line stamps are the ones that determine the overall time.
+9. `/results` ranks competitors live within their category (fastest total time first) as soon as both a start and a finish time exist.
+10. If a time was mis-stamped, an admin can correct it directly on the heat's page (`/staff/manage/heats/[heatId]`).
+
+Heats can also be created and populated manually from `/staff/manage` if you'd rather not use self-registration + lottery for a given category.
 
 ## Notes
 

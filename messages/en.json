@@ -6,9 +6,12 @@
   "nav": {
     "home": "Home",
     "results": "Results",
+    "register": "Register",
+    "schedule": "Schedule",
     "login": "Staff Login",
     "logout": "Log out",
     "stations": "Timing Stations",
+    "checkin": "Check-In",
     "manage": "Manage Race",
     "users": "Staff Accounts"
   },
@@ -16,7 +19,9 @@
     "welcome": "Welcome to the Gal-On Triathlon",
     "subtitle": "Live results and race timing for our community triathlon.",
     "viewResults": "View Live Results",
-    "staffLogin": "Staff Login"
+    "staffLogin": "Staff Login",
+    "registerCta": "Register Now",
+    "scheduleCta": "Race Schedule"
   },
   "results": {
     "title": "Results",
@@ -59,7 +64,8 @@
     "noHeats": "No heats waiting to start.",
     "startNow": "Start Now",
     "started": "Started at {time}",
-    "confirm": "Start this heat's clock now?"
+    "confirm": "Start this heat's clock now?",
+    "notActiveYet": "The competition hasn't been activated yet. Check back once the admin starts it."
   },
   "stationStamp": {
     "title": "Stamp Times",
@@ -103,7 +109,63 @@
     "confirmDeleteHeat": "Delete this heat and all its entries? This cannot be undone.",
     "deleteHeat": "Delete heat",
     "noValue": "—",
-    "clear": "Clear"
+    "clear": "Clear",
+    "eventControls": "Event Controls",
+    "registrationOpenLabel": "Registration",
+    "open": "Open",
+    "closed": "Closed",
+    "closeRegistration": "Close Registration",
+    "reopenRegistration": "Reopen Registration",
+    "generateSchedule": "Run Lottery & Generate Schedule",
+    "generateScheduleConfirm": "Form teams, create heats, and generate the schedule from all checked-in registrants? Safe to re-run for anyone not yet placed.",
+    "scheduleGeneratedAt": "Schedule generated at {time}",
+    "activateCompetition": "Activate Competition",
+    "activateConfirm": "Activate the competition? Timing stations go live for all timekeepers.",
+    "competitionActiveLabel": "Competition status",
+    "active": "Active",
+    "notActive": "Not started",
+    "unassigned": "Unassigned Registrants",
+    "unassignedNone": "Everyone checked-in has been placed into a team or heat.",
+    "unassignedHint": "Add these people to an existing team manually below, or check in more people and re-run the lottery.",
+    "registrants": "Registrants",
+    "checkedIn": "Checked in",
+    "addToTeam": "Add to team"
+  },
+  "register": {
+    "title": "Race Registration",
+    "name": "Full name",
+    "age": "Age",
+    "modeLabel": "Participation type",
+    "single": "Entire Triathlon (Solo)",
+    "team": "Relay Team (Group of 3)",
+    "skillLevel": "Skill level",
+    "professional": "Professional",
+    "intermediate": "Intermediate",
+    "kidsCategoryNote": "Category (by age): {category}",
+    "legsPrompt": "Which leg(s) are you willing to do? (choose one or more — teams will be formed by lottery)",
+    "legSwim": "Swim",
+    "legBike": "Bike",
+    "legRun": "Run",
+    "submit": "Register",
+    "success": "You're registered! See you at the event.",
+    "registerAnother": "Register another participant",
+    "errorClosed": "Registration is currently closed.",
+    "errorInvalid": "Please check your details and try again.",
+    "errorNoLeg": "Please choose at least one leg for a relay team."
+  },
+  "checkin": {
+    "title": "Check-In",
+    "search": "Search by name…",
+    "noResults": "No matching registrants.",
+    "markArrived": "Mark Arrived",
+    "arrived": "Arrived"
+  },
+  "schedule": {
+    "title": "Race Schedule",
+    "notGenerated": "The schedule hasn't been published yet.",
+    "estimatedStart": "Estimated Start",
+    "heat": "Heat",
+    "competitors": "Competitors"
   },
   "users": {
     "title": "Staff Accounts",

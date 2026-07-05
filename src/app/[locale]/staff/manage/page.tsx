@@ -2,6 +2,8 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { prisma } from '@/lib/db';
 import { formatClock } from '@/lib/time';
+import EventControls from '@/components/EventControls';
+import UnassignedRegistrants from '@/components/UnassignedRegistrants';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +26,9 @@ export default async function ManageDashboardPage() {
           {t('newHeat')}
         </Link>
       </div>
+
+      <EventControls locale={locale} />
+      <UnassignedRegistrants locale={locale} />
 
       <div className="space-y-6">
         {categories.map((cat) => (

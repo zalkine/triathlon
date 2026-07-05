@@ -29,6 +29,9 @@ export async function stampHeatStart(heatId: string) {
   const session = await requireSession();
   if (session.role !== 'ADMIN' && session.role !== 'TIMEKEEPER') throw new Error('FORBIDDEN');
 
+  const settings = await prisma.eventSettings.findUnique({ where: { id: 'singleton' } });
+  if (!settings?.competitionActive) return { error: 'not-active' as const };
+
   const heat = await prisma.heat.findUnique({ where: { id: heatId } });
   if (!heat) throw new Error('Heat not found');
   if (heat.startTime) return { error: 'already-started' as const };

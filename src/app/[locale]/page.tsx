@@ -17,10 +17,22 @@ export default async function HomePage() {
         </div>
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Link
+            href="/register"
+            className="rounded-full bg-swim px-8 py-3 text-lg font-semibold text-ink shadow-sm transition hover:brightness-95"
+          >
+            {t('registerCta')}
+          </Link>
+          <Link
             href="/results"
             className="rounded-full bg-run px-8 py-3 text-lg font-semibold text-white shadow-sm transition hover:brightness-95"
           >
             {t('viewResults')}
+          </Link>
+          <Link
+            href="/schedule"
+            className="rounded-full bg-bike px-8 py-3 text-lg font-semibold text-ink shadow-sm transition hover:brightness-95"
+          >
+            {t('scheduleCta')}
           </Link>
           <Link
             href="/login"

@@ -22,13 +22,17 @@ export const CATEGORY_DEFINITIONS: Array<{
   nameHe: string;
   type: EntryType;
   sortOrder: number;
+  estDurationMinutes: number;
 }> = [
-  { key: 'PRO_SINGLE', nameEn: 'Professional – Singles', nameHe: 'מקצוענים - יחידים', type: 'SINGLE', sortOrder: 1 },
-  { key: 'PRO_TEAM', nameEn: 'Professional – Groups', nameHe: 'מקצוענים - קבוצות', type: 'TEAM', sortOrder: 2 },
-  { key: 'INTER_SINGLE', nameEn: 'Intermediate – Singles', nameHe: 'ביניים - יחידים', type: 'SINGLE', sortOrder: 3 },
-  { key: 'INTER_TEAM', nameEn: 'Intermediate – Groups', nameHe: 'ביניים - קבוצות', type: 'TEAM', sortOrder: 4 },
-  { key: 'KIDS_6_9_SINGLE', nameEn: 'Children – Singles 6-9', nameHe: 'ילדים - יחידים 6-9', type: 'SINGLE', sortOrder: 5 },
-  { key: 'KIDS_6_9_TEAM', nameEn: 'Children – Groups 6-9', nameHe: 'ילדים - קבוצות 6-9', type: 'TEAM', sortOrder: 6 },
-  { key: 'KIDS_9_12_SINGLE', nameEn: 'Children – Singles 9-12', nameHe: 'ילדים - יחידים 9-12', type: 'SINGLE', sortOrder: 7 },
-  { key: 'KIDS_9_12_TEAM', nameEn: 'Children – Groups 9-12', nameHe: 'ילדים - קבוצות 9-12', type: 'TEAM', sortOrder: 8 },
+  { key: 'PRO_SINGLE', nameEn: 'Professional – Singles', nameHe: 'מקצוענים - יחידים', type: 'SINGLE', sortOrder: 1, estDurationMinutes: 55 },
+  { key: 'PRO_TEAM', nameEn: 'Professional – Groups', nameHe: 'מקצוענים - קבוצות', type: 'TEAM', sortOrder: 2, estDurationMinutes: 55 },
+  { key: 'INTER_SINGLE', nameEn: 'Intermediate – Singles', nameHe: 'ביניים - יחידים', type: 'SINGLE', sortOrder: 3, estDurationMinutes: 65 },
+  { key: 'INTER_TEAM', nameEn: 'Intermediate – Groups', nameHe: 'ביניים - קבוצות', type: 'TEAM', sortOrder: 4, estDurationMinutes: 65 },
+  { key: 'KIDS_6_9_SINGLE', nameEn: 'Children – Singles 6-9', nameHe: 'ילדים - יחידים 6-9', type: 'SINGLE', sortOrder: 5, estDurationMinutes: 25 },
+  { key: 'KIDS_6_9_TEAM', nameEn: 'Children – Groups 6-9', nameHe: 'ילדים - קבוצות 6-9', type: 'TEAM', sortOrder: 6, estDurationMinutes: 25 },
+  { key: 'KIDS_9_12_SINGLE', nameEn: 'Children – Singles 9-12', nameHe: 'ילדים - יחידים 9-12', type: 'SINGLE', sortOrder: 7, estDurationMinutes: 35 },
+  { key: 'KIDS_9_12_TEAM', nameEn: 'Children – Groups 9-12', nameHe: 'ילדים - קבוצות 9-12', type: 'TEAM', sortOrder: 8, estDurationMinutes: 35 },
 ];
+
+// Max competitors/teams scheduled into a single heat (pool holds 8 lanes at once).
+export const HEAT_CAPACITY = 8;

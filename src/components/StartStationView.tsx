@@ -12,12 +12,17 @@ export default function StartStationView() {
   const t = useTranslations('stationStart');
   const tc = useTranslations('common');
   const [heats, setHeats] = useState<Heat[]>([]);
+  const [active, setActive] = useState(true);
   const [toast, setToast] = useState<{ heatId: string; name: string; time: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const load = useCallback(async () => {
     const res = await fetch('/api/stations/start', { cache: 'no-store' });
-    if (res.ok) setHeats((await res.json()).heats);
+    if (res.ok) {
+      const data = await res.json();
+      setHeats(data.heats);
+      setActive(data.active);
+    }
   }, []);
 
   useEffect(() => {
@@ -51,6 +56,10 @@ export default function StartStationView() {
       }
     });
   };
+
+  if (!active) {
+    return <p className="text-ink-light">{t('notActiveYet')}</p>;
+  }
 
   return (
     <div className="space-y-4">

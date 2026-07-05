@@ -11,7 +11,13 @@ export default async function PublicHeader() {
       <Link href="/">
         <Logo size="sm" />
       </Link>
-      <nav className="flex items-center gap-4 text-sm font-medium">
+      <nav className="flex flex-wrap items-center gap-4 text-sm font-medium">
+        <Link href="/register" className="hover:underline">
+          {t('register')}
+        </Link>
+        <Link href="/schedule" className="hover:underline">
+          {t('schedule')}
+        </Link>
         <Link href="/results" className="hover:underline">
           {t('results')}
         </Link>

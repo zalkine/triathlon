@@ -8,10 +8,22 @@ async function main() {
   for (const cat of CATEGORY_DEFINITIONS) {
     await prisma.category.upsert({
       where: { key: cat.key },
-      update: { nameEn: cat.nameEn, nameHe: cat.nameHe, type: cat.type, sortOrder: cat.sortOrder },
+      update: {
+        nameEn: cat.nameEn,
+        nameHe: cat.nameHe,
+        type: cat.type,
+        sortOrder: cat.sortOrder,
+        estDurationMinutes: cat.estDurationMinutes,
+      },
       create: cat,
     });
   }
+
+  await prisma.eventSettings.upsert({
+    where: { id: 'singleton' },
+    update: {},
+    create: { id: 'singleton' },
+  });
 
   const username = process.env.SEED_ADMIN_USERNAME || 'admin';
   const password = process.env.SEED_ADMIN_PASSWORD || 'changeme';
@@ -24,6 +36,7 @@ async function main() {
   });
 
   console.log(`Seeded ${CATEGORY_DEFINITIONS.length} categories.`);
+  console.log('Seeded event settings singleton.');
   console.log(`Seeded admin user "${username}" (password left unchanged if it already existed).`);
 }
 

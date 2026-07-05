@@ -22,47 +22,88 @@ model User {
 }
 
 model Category {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  nameEn    String
-  nameHe    String
-  type      String
-  sortOrder Int
-  heats     Heat[]
+  id                String       @id @default(cuid())
+  key               String       @unique
+  nameEn            String
+  nameHe            String
+  type              String
+  sortOrder         Int
+  estDurationMinutes Int         @default(45)
+  heats             Heat[]
+  registrants       Registrant[]
 }
 
 model Heat {
-  id         String    @id @default(cuid())
-  categoryId String
-  category   Category  @relation(fields: [categoryId], references: [id])
-  name       String
-  startTime  DateTime?
-  createdAt  DateTime  @default(now())
-  entries    Entry[]
+  id             String    @id @default(cuid())
+  categoryId     String
+  category       Category  @relation(fields: [categoryId], references: [id])
+  name           String
+  startTime      DateTime?
+  estimatedStart DateTime?
+  createdAt      DateTime  @default(now())
+  entries        Entry[]
 
   @@index([categoryId])
 }
 
 model Entry {
-  id        String    @id @default(cuid())
-  heatId    String
-  heat      Heat      @relation(fields: [heatId], references: [id], onDelete: Cascade)
-  name      String
-  swimTime  DateTime?
-  bikeTime  DateTime?
-  runTime   DateTime?
-  createdAt DateTime  @default(now())
-  members   Member[]
+  id          String       @id @default(cuid())
+  heatId      String
+  heat        Heat         @relation(fields: [heatId], references: [id], onDelete: Cascade)
+  name        String
+  swimTime    DateTime?
+  bikeTime    DateTime?
+  runTime     DateTime?
+  createdAt   DateTime     @default(now())
+  members     Member[]
+  registrants Registrant[]
 
   @@index([heatId])
 }
 
 model Member {
-  id      String  @id @default(cuid())
-  entryId String
-  entry   Entry   @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  name    String
-  leg     String?
+  id           String      @id @default(cuid())
+  entryId      String
+  entry        Entry       @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  name         String
+  leg          String?
+  registrantId String?
+  registrant   Registrant? @relation(fields: [registrantId], references: [id])
 
   @@index([entryId])
+  @@index([registrantId])
+}
+
+// mode: "SINGLE" | "TEAM" (mirrors Category.type); leg* flags are only
+// meaningful for TEAM mode, marking which leg(s) the registrant is willing
+// to do in the swim/bike/run lottery.
+model Registrant {
+  id          String    @id @default(cuid())
+  name        String
+  age         Int
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  mode        String
+  legSwim     Boolean   @default(false)
+  legBike     Boolean   @default(false)
+  legRun      Boolean   @default(false)
+  checkedIn   Boolean   @default(false)
+  checkedInAt DateTime?
+  entryId     String?
+  entry       Entry?    @relation(fields: [entryId], references: [id])
+  members     Member[]
+  createdAt   DateTime  @default(now())
+
+  @@index([categoryId])
+  @@index([entryId])
+}
+
+// Single-row table (id is always "singleton") holding global race-day state.
+model EventSettings {
+  id                  String    @id @default("singleton")
+  registrationOpen    Boolean   @default(true)
+  competitionActive   Boolean   @default(false)
+  raceStartTime       DateTime?
+  heatGapMinutes      Int       @default(3)
+  scheduleGeneratedAt DateTime?
 }
