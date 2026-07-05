@@ -8,8 +8,10 @@ datasource db {
   // serverless functions this must go through a connection pooler.
   url       = env("DATABASE_URL")
   // Direct (unpooled) connection used only for migrations, which can't run
-  // over a transaction pooler. Point it at the same DB's direct URL.
-  directUrl = env("DIRECT_URL")
+  // over a transaction pooler. Neon's Vercel integration provides this as
+  // DATABASE_URL_UNPOOLED. For other providers, set DATABASE_URL_UNPOOLED to
+  // the direct/unpooled connection string (or the same value as DATABASE_URL).
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 // Role/type/leg are stored as plain strings (not Postgres enums) so the values
