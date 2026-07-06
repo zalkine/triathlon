@@ -6,11 +6,20 @@ import AssignToTeamForm from './AssignToTeamForm';
 export default async function UnassignedRegistrants({ locale }: { locale: string }) {
   const t = await getTranslations('manage');
 
-  const leftovers = await prisma.registrant.findMany({
-    where: { checkedIn: true, entryId: null, category: { type: 'TEAM' } },
-    include: { category: true },
-    orderBy: { createdAt: 'asc' },
-  });
+  // "Available" people who are checked in but aren't in any group yet and
+  // haven't been manually placed into an entry.
+  const [available, allGroups] = await Promise.all([
+    prisma.registrant.findMany({
+      where: { checkedIn: true, entryId: null, groupPref: 'AVAILABLE', category: { type: 'TEAM' } },
+      include: { category: true },
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.group.findMany(),
+  ]);
+  const inGroup = new Set(
+    allGroups.flatMap((g) => [g.swimRegistrantId, g.bikeRegistrantId, g.runRegistrantId])
+  );
+  const leftovers = available.filter((r) => !inGroup.has(r.id));
 
   if (leftovers.length === 0) {
     return (

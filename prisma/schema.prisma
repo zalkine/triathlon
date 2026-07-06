@@ -38,6 +38,7 @@ model Category {
   estDurationMinutes Int         @default(45)
   heats             Heat[]
   registrants       Registrant[]
+  groups            Group[]
 }
 
 model Heat {
@@ -81,9 +82,13 @@ model Member {
   @@index([registrantId])
 }
 
-// mode: "SINGLE" | "TEAM" (mirrors Category.type); leg* flags are only
-// meaningful for TEAM mode, marking which leg(s) the registrant is willing
-// to do in the swim/bike/run lottery.
+// mode: "SINGLE" | "TEAM" (mirrors Category.type).
+// For TEAM registrants, groupPref is either:
+//   "AVAILABLE" - in the pool, pickable by captains / lottery; legSwim/Bike/Run
+//                 mark which legs they're willing to do.
+//   "HAS_GROUP" - a captain who formed their own group at registration.
+// A person can appear in several groups (multi-group allowed), so group
+// membership is tracked on Group (role id fields), not with a single FK here.
 model Registrant {
   id          String    @id @default(cuid())
   name        String
@@ -91,6 +96,7 @@ model Registrant {
   categoryId  String
   category    Category  @relation(fields: [categoryId], references: [id])
   mode        String
+  groupPref   String?
   legSwim     Boolean   @default(false)
   legBike     Boolean   @default(false)
   legRun      Boolean   @default(false)
@@ -105,6 +111,23 @@ model Registrant {
   @@index([entryId])
 }
 
+// A self-formed relay group. Each of the three roles references exactly one
+// registrant (a registrant may fill two of the three). Registrants are
+// referenced by id (not a Prisma relation) because one registrant can be
+// referenced by many groups. entryId is set once the group is scheduled.
+model Group {
+  id               String   @id @default(cuid())
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id])
+  swimRegistrantId String
+  bikeRegistrantId String
+  runRegistrantId  String
+  entryId          String?
+  createdAt        DateTime @default(now())
+
+  @@index([categoryId])
+}
+
 // Single-row table (id is always "singleton") holding global race-day state.
 model EventSettings {
   id                  String    @id @default("singleton")
@@ -113,4 +136,5 @@ model EventSettings {
   raceStartTime       DateTime?
   heatGapMinutes      Int       @default(3)
   scheduleGeneratedAt DateTime?
+  allowRandomGrouping Boolean   @default(true)
 }

@@ -3,17 +3,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
-type Competitor = {
+type Single = { name: string; age: number; checkedIn: boolean };
+type Group = { id: string; swim: string; bike: string; run: string };
+type Available = { name: string; age: number; legSwim: boolean; legBike: boolean; legRun: boolean; checkedIn: boolean };
+type Category = {
   id: string;
-  name: string;
-  age: number;
-  mode: string;
-  legSwim: boolean;
-  legBike: boolean;
-  legRun: boolean;
-  checkedIn: boolean;
+  nameEn: string;
+  nameHe: string;
+  type: string;
+  singles: Single[];
+  groups: Group[];
+  available: Available[];
 };
-type Category = { id: string; nameEn: string; nameHe: string; type: string; competitors: Competitor[] };
 
 export default function CompetitorsView() {
   const locale = useLocale();
@@ -35,41 +36,90 @@ export default function CompetitorsView() {
     return () => clearInterval(interval);
   }, [load]);
 
-  const total = categories.reduce((sum, c) => sum + c.competitors.length, 0);
-  const withPeople = categories.filter((c) => c.competitors.length > 0);
+  const catTotal = (c: Category) => c.singles.length + c.groups.length + c.available.length;
+  const total = categories.reduce((s, c) => s + catTotal(c), 0);
+  const shown = categories.filter((c) => catTotal(c) > 0);
 
-  const legs = (c: Competitor) =>
-    [c.legSwim && t('legSwim'), c.legBike && t('legBike'), c.legRun && t('legRun')].filter(Boolean).join(' · ');
+  const legsOf = (a: Available) =>
+    [a.legSwim && t('legSwim'), a.legBike && t('legBike'), a.legRun && t('legRun')].filter(Boolean).join(' · ');
 
-  if (loaded && total === 0) {
-    return <p className="text-ink-light">{t('none')}</p>;
-  }
+  const arrivedBadge = (
+    <span className="rounded-full bg-swim/30 px-2 py-0.5 text-xs font-medium text-swim-dark">{t('arrived')}</span>
+  );
+
+  if (loaded && total === 0) return <p className="text-ink-light">{t('none')}</p>;
 
   return (
     <div className="space-y-6">
       <p className="text-sm text-ink-light">{t('count', { count: total })}</p>
-      {withPeople.map((c) => (
+      {shown.map((c) => (
         <div key={c.id} className="rounded-2xl border border-ink/10 bg-white/70 p-5">
           <h2 className="mb-3 font-semibold">
             {locale === 'he' ? c.nameHe : c.nameEn}{' '}
-            <span className="text-sm font-normal text-ink-light">({c.competitors.length})</span>
+            <span className="text-sm font-normal text-ink-light">({catTotal(c)})</span>
           </h2>
-          <ul className="divide-y divide-ink/5">
-            {c.competitors.map((comp) => (
-              <li key={comp.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
-                <span className="font-medium">{comp.name}</span>
-                <span className="flex flex-wrap items-center gap-2 text-ink-light">
-                  <span>{t('age')}: {comp.age}</span>
-                  {c.type === 'TEAM' && legs(comp) && <span>· {legs(comp)}</span>}
-                  {comp.checkedIn && (
-                    <span className="rounded-full bg-swim/30 px-2 py-0.5 text-xs font-medium text-swim-dark">
-                      {t('arrived')}
+
+          {/* Solo competitors */}
+          {c.singles.length > 0 && (
+            <ul className="divide-y divide-ink/5">
+              {c.singles.map((s, i) => (
+                <li key={i} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                  <span className="font-medium">{s.name}</span>
+                  <span className="flex items-center gap-2 text-ink-light">
+                    <span>
+                      {t('age')}: {s.age}
                     </span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
+                    {s.checkedIn && arrivedBadge}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Formed groups */}
+          {c.groups.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-ink-light">{t('groups')}</h3>
+              <ul className="space-y-2">
+                {c.groups.map((g) => (
+                  <li key={g.id} className="rounded-xl bg-cream/60 p-3 text-sm">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      <span>
+                        <span className="text-ink-light">{t('roleSwim')}:</span> {g.swim}
+                      </span>
+                      <span>
+                        <span className="text-ink-light">{t('roleBike')}:</span> {g.bike}
+                      </span>
+                      <span>
+                        <span className="text-ink-light">{t('roleRun')}:</span> {g.run}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Available pool */}
+          {c.available.length > 0 && (
+            <div className="mt-3 space-y-2">
+              <h3 className="text-sm font-semibold text-ink-light">{t('availableTitle')}</h3>
+              <ul className="divide-y divide-ink/5">
+                {c.available.map((a, i) => (
+                  <li key={i} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                    <span className="font-medium">{a.name}</span>
+                    <span className="flex flex-wrap items-center gap-2 text-ink-light">
+                      <span>
+                        {t('age')}: {a.age}
+                      </span>
+                      {legsOf(a) && <span>· {legsOf(a)}</span>}
+                      {a.checkedIn && arrivedBadge}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       ))}
     </div>

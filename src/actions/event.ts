@@ -20,6 +20,13 @@ export async function activateCompetition(locale: string) {
   revalidatePath('/', 'layout');
 }
 
+export async function setAllowRandomGrouping(locale: string, allow: boolean) {
+  await requireRole('ADMIN');
+  await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { allowRandomGrouping: allow } });
+  revalidatePath(`/${locale}/staff/manage`);
+  revalidatePath(`/${locale}/register`);
+}
+
 function legsFor(r: { legSwim: boolean; legBike: boolean; legRun: boolean }): Leg[] {
   const legs: Leg[] = [];
   if (r.legSwim) legs.push('SWIM');
@@ -29,58 +36,89 @@ function legsFor(r: { legSwim: boolean; legBike: boolean; legRun: boolean }): Le
 }
 
 /**
- * Runs the swim/bike/run lottery for TEAM categories, places SINGLE-mode
- * registrants directly, packs everyone into new heats (capacity HEAT_CAPACITY),
- * and recomputes estimated start times for every heat in race order. Safe to
- * re-run: only checked-in registrants not yet placed in an entry are touched,
- * so a later run just schedules whoever checked in since the last run.
+ * Turns registrations into a runnable schedule for every category:
+ *  - TEAM: self-formed groups are scheduled as-is; if random grouping is on, the
+ *    lottery forms extra groups from checked-in "available" people not already in
+ *    any group. Every group (formed or lottery) becomes one heat entry.
+ *  - SINGLE: each checked-in solo competitor becomes one heat entry.
+ * Then every heat gets an estimated start time in race order. Safe to re-run:
+ * already-scheduled groups (group.entryId set) and already-placed singles
+ * (registrant.entryId set) are skipped, so a later run only adds new arrivals.
  */
 export async function generateSchedule(locale: string) {
   await requireRole('ADMIN');
 
+  const settings = await prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } });
   const categories = await prisma.category.findMany({ orderBy: { sortOrder: 'asc' } });
   const raceStartTime = new Date(Date.now() + 5 * 60_000);
 
   for (const category of categories) {
-    const pending = await prisma.registrant.findMany({
-      where: { categoryId: category.id, checkedIn: true, entryId: null },
-    });
-    if (pending.length === 0) continue;
-
     const existingHeatCount = await prisma.heat.count({ where: { categoryId: category.id } });
 
     if (category.type === 'TEAM') {
-      const candidates: LotteryCandidate[] = pending.map((r) => ({
-        registrantId: r.id,
-        name: r.name,
-        legs: legsFor(r),
-      }));
-      const { teams } = runLottery(candidates);
-      if (teams.length === 0) continue;
+      // 1. Optionally lottery available people (not already in any group) into new groups.
+      if (settings.allowRandomGrouping) {
+        const existingGroups = await prisma.group.findMany({ where: { categoryId: category.id } });
+        const inGroup = new Set(
+          existingGroups.flatMap((g) => [g.swimRegistrantId, g.bikeRegistrantId, g.runRegistrantId])
+        );
+        const pool = (
+          await prisma.registrant.findMany({
+            where: { categoryId: category.id, groupPref: 'AVAILABLE', checkedIn: true },
+          })
+        ).filter((r) => !inGroup.has(r.id));
 
-      const heatChunks = chunk(teams, HEAT_CAPACITY);
+        const candidates: LotteryCandidate[] = pool.map((r) => ({ registrantId: r.id, name: r.name, legs: legsFor(r) }));
+        const { teams } = runLottery(candidates);
+        for (const team of teams) {
+          await prisma.group.create({
+            data: {
+              categoryId: category.id,
+              swimRegistrantId: team.swim.registrantId,
+              bikeRegistrantId: team.bike.registrantId,
+              runRegistrantId: team.run.registrantId,
+            },
+          });
+        }
+      }
+
+      // 2. Schedule every group in this category that isn't placed in a heat yet.
+      const unscheduled = await prisma.group.findMany({
+        where: { categoryId: category.id, entryId: null },
+        orderBy: { createdAt: 'asc' },
+      });
+      if (unscheduled.length === 0) continue;
+
+      const regs = await prisma.registrant.findMany({ where: { categoryId: category.id } });
+      const nameOf = new Map(regs.map((r) => [r.id, r.name]));
+
+      const heatChunks = chunk(unscheduled, HEAT_CAPACITY);
       for (let i = 0; i < heatChunks.length; i++) {
         const heat = await prisma.heat.create({
           data: { categoryId: category.id, name: `Heat ${existingHeatCount + i + 1}` },
         });
-        for (const team of heatChunks[i]) {
-          const entry = await prisma.entry.create({
-            data: { heatId: heat.id, name: [team.swim.name, team.bike.name, team.run.name].join(' / ') },
-          });
+        for (const group of heatChunks[i]) {
+          const swimName = nameOf.get(group.swimRegistrantId) ?? '?';
+          const bikeName = nameOf.get(group.bikeRegistrantId) ?? '?';
+          const runName = nameOf.get(group.runRegistrantId) ?? '?';
+          const memberNames = [...new Set([swimName, bikeName, runName])].join(' / ');
+          const entry = await prisma.entry.create({ data: { heatId: heat.id, name: memberNames } });
           await prisma.member.createMany({
             data: [
-              { entryId: entry.id, name: team.swim.name, leg: 'SWIM', registrantId: team.swim.registrantId },
-              { entryId: entry.id, name: team.bike.name, leg: 'BIKE', registrantId: team.bike.registrantId },
-              { entryId: entry.id, name: team.run.name, leg: 'RUN', registrantId: team.run.registrantId },
+              { entryId: entry.id, name: swimName, leg: 'SWIM', registrantId: group.swimRegistrantId },
+              { entryId: entry.id, name: bikeName, leg: 'BIKE', registrantId: group.bikeRegistrantId },
+              { entryId: entry.id, name: runName, leg: 'RUN', registrantId: group.runRegistrantId },
             ],
           });
-          await prisma.registrant.updateMany({
-            where: { id: { in: [team.swim.registrantId, team.bike.registrantId, team.run.registrantId] } },
-            data: { entryId: entry.id },
-          });
+          await prisma.group.update({ where: { id: group.id }, data: { entryId: entry.id } });
         }
       }
     } else {
+      const pending = await prisma.registrant.findMany({
+        where: { categoryId: category.id, checkedIn: true, entryId: null },
+      });
+      if (pending.length === 0) continue;
+
       const heatChunks = chunk(pending, HEAT_CAPACITY);
       for (let i = 0; i < heatChunks.length; i++) {
         const heat = await prisma.heat.create({
@@ -93,8 +131,6 @@ export async function generateSchedule(locale: string) {
       }
     }
   }
-
-  const settings = await prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } });
 
   const allHeatsByCategory = await Promise.all(
     categories.map((category) =>
