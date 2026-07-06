@@ -11,6 +11,7 @@ type Category = {
   nameEn: string;
   nameHe: string;
   type: string;
+  count: number;
   singles: Single[];
   groups: Group[];
   available: Available[];
@@ -36,9 +37,11 @@ export default function CompetitorsView() {
     return () => clearInterval(interval);
   }, [load]);
 
-  const catTotal = (c: Category) => c.singles.length + c.groups.length + c.available.length;
+  // Count real people (headcount), so the total matches the check-in list — a
+  // relay team of three counts as three, not one.
+  const catTotal = (c: Category) => c.count;
   const total = categories.reduce((s, c) => s + catTotal(c), 0);
-  const shown = categories.filter((c) => catTotal(c) > 0);
+  const shown = categories.filter((c) => catTotal(c) > 0 || c.singles.length + c.groups.length + c.available.length > 0);
 
   const legsOf = (a: Available) =>
     [a.legSwim && t('legSwim'), a.legBike && t('legBike'), a.legRun && t('legRun')].filter(Boolean).join(' · ');

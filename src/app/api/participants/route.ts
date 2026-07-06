@@ -19,6 +19,9 @@ export async function GET() {
         nameEn: c.nameEn,
         nameHe: c.nameHe,
         type: c.type,
+        // Headcount of real people in this category (matches the check-in list).
+        // A relay team is several people, so this is *not* singles+groups+available.
+        count: c.registrants.length,
         // SINGLE categories: every registrant is a solo competitor.
         singles:
           c.type === 'SINGLE'
