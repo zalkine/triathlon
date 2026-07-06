@@ -111,17 +111,19 @@ model Registrant {
   @@index([entryId])
 }
 
-// A self-formed relay group. Each of the three roles references exactly one
-// registrant (a registrant may fill two of the three). Registrants are
-// referenced by id (not a Prisma relation) because one registrant can be
-// referenced by many groups. entryId is set once the group is scheduled.
+// A self-formed relay group. Each of the three roles references at most one
+// registrant (a registrant may fill two of the three). A role id may be null:
+// an "open" leg the first member left as "will be added later", to be filled
+// when a teammate registers and joins the group. Registrants are referenced by
+// id (not a Prisma relation) because one registrant can be referenced by many
+// groups. entryId is set once the group is scheduled.
 model Group {
   id               String   @id @default(cuid())
   categoryId       String
   category         Category @relation(fields: [categoryId], references: [id])
-  swimRegistrantId String
-  bikeRegistrantId String
-  runRegistrantId  String
+  swimRegistrantId String?
+  bikeRegistrantId String?
+  runRegistrantId  String?
   entryId          String?
   createdAt        DateTime @default(now())
 

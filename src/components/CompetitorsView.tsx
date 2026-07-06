@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
 type Single = { name: string; age: number; checkedIn: boolean };
-type Group = { id: string; swim: string; bike: string; run: string };
+type Group = { id: string; swim: string | null; bike: string | null; run: string | null };
 type Available = { name: string; age: number; legSwim: boolean; legBike: boolean; legRun: boolean; checkedIn: boolean };
 type Category = {
   id: string;
@@ -85,13 +85,16 @@ export default function CompetitorsView() {
                   <li key={g.id} className="rounded-xl bg-cream/60 p-3 text-sm">
                     <div className="flex flex-wrap gap-x-4 gap-y-1">
                       <span>
-                        <span className="text-ink-light">{t('roleSwim')}:</span> {g.swim}
+                        <span className="text-ink-light">{t('roleSwim')}:</span>{' '}
+                        {g.swim ?? <span className="italic text-ink-light">{t('openSlot')}</span>}
                       </span>
                       <span>
-                        <span className="text-ink-light">{t('roleBike')}:</span> {g.bike}
+                        <span className="text-ink-light">{t('roleBike')}:</span>{' '}
+                        {g.bike ?? <span className="italic text-ink-light">{t('openSlot')}</span>}
                       </span>
                       <span>
-                        <span className="text-ink-light">{t('roleRun')}:</span> {g.run}
+                        <span className="text-ink-light">{t('roleRun')}:</span>{' '}
+                        {g.run ?? <span className="italic text-ink-light">{t('openSlot')}</span>}
                       </span>
                     </div>
                   </li>
