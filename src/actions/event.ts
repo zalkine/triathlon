@@ -64,7 +64,8 @@ export async function generateSchedule(locale: string) {
         );
         const pool = (
           await prisma.registrant.findMany({
-            where: { categoryId: category.id, groupPref: 'AVAILABLE', checkedIn: true },
+            // not HAS_GROUP also picks up legacy null-groupPref registrants.
+            where: { categoryId: category.id, groupPref: { not: 'HAS_GROUP' }, checkedIn: true },
           })
         ).filter((r) => !inGroup.has(r.id));
 
@@ -98,17 +99,29 @@ export async function generateSchedule(locale: string) {
           data: { categoryId: category.id, name: `Heat ${existingHeatCount + i + 1}` },
         });
         for (const group of heatChunks[i]) {
-          const swimName = nameOf.get(group.swimRegistrantId) ?? '?';
-          const bikeName = nameOf.get(group.bikeRegistrantId) ?? '?';
-          const runName = nameOf.get(group.runRegistrantId) ?? '?';
-          const memberNames = [...new Set([swimName, bikeName, runName])].join(' / ');
+          // An open (unfilled) leg becomes a placeholder member the admin can
+          // fix up later; only real names go into the entry label.
+          const legMembers = (
+            [
+              ['SWIM', group.swimRegistrantId],
+              ['BIKE', group.bikeRegistrantId],
+              ['RUN', group.runRegistrantId],
+            ] as const
+          ).map(([leg, registrantId]) => ({
+            leg,
+            registrantId,
+            name: registrantId ? nameOf.get(registrantId) ?? '?' : '—',
+          }));
+          const memberNames =
+            [...new Set(legMembers.filter((m) => m.registrantId).map((m) => m.name))].join(' / ') || '—';
           const entry = await prisma.entry.create({ data: { heatId: heat.id, name: memberNames } });
           await prisma.member.createMany({
-            data: [
-              { entryId: entry.id, name: swimName, leg: 'SWIM', registrantId: group.swimRegistrantId },
-              { entryId: entry.id, name: bikeName, leg: 'BIKE', registrantId: group.bikeRegistrantId },
-              { entryId: entry.id, name: runName, leg: 'RUN', registrantId: group.runRegistrantId },
-            ],
+            data: legMembers.map((m) => ({
+              entryId: entry.id,
+              name: m.name,
+              leg: m.leg,
+              registrantId: m.registrantId,
+            })),
           });
           await prisma.group.update({ where: { id: group.id }, data: { entryId: entry.id } });
         }

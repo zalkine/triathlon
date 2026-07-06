@@ -10,7 +10,8 @@ export default async function UnassignedRegistrants({ locale }: { locale: string
   // haven't been manually placed into an entry.
   const [available, allGroups] = await Promise.all([
     prisma.registrant.findMany({
-      where: { checkedIn: true, entryId: null, groupPref: 'AVAILABLE', category: { type: 'TEAM' } },
+      // Not HAS_GROUP (captains own their group) also catches legacy null-groupPref rows.
+      where: { checkedIn: true, entryId: null, groupPref: { not: 'HAS_GROUP' }, category: { type: 'TEAM' } },
       include: { category: true },
       orderBy: { createdAt: 'asc' },
     }),

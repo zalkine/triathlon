@@ -24,18 +24,21 @@ export async function GET() {
           c.type === 'SINGLE'
             ? c.registrants.map((r) => ({ name: r.name, age: r.age, checkedIn: r.checkedIn }))
             : [],
-        // TEAM categories: formed groups (self-formed or lottery) with role names.
+        // TEAM categories: formed groups (self-formed or lottery) with role
+        // names; an open leg ("will be added later") comes back as null.
         groups: c.groups.map((g) => ({
           id: g.id,
-          swim: nameOf.get(g.swimRegistrantId) ?? '?',
-          bike: nameOf.get(g.bikeRegistrantId) ?? '?',
-          run: nameOf.get(g.runRegistrantId) ?? '?',
+          swim: g.swimRegistrantId ? nameOf.get(g.swimRegistrantId) ?? '?' : null,
+          bike: g.bikeRegistrantId ? nameOf.get(g.bikeRegistrantId) ?? '?' : null,
+          run: g.runRegistrantId ? nameOf.get(g.runRegistrantId) ?? '?' : null,
         })),
-        // TEAM categories: people available to join a group, not yet in any group.
+        // TEAM categories: people available to join a group, not yet in any
+        // group. Anyone who isn't a self-formed-group captain counts here,
+        // including legacy rows with a null groupPref (never hide a registrant).
         available:
           c.type === 'TEAM'
             ? c.registrants
-                .filter((r) => r.groupPref === 'AVAILABLE' && !inGroup.has(r.id))
+                .filter((r) => r.groupPref !== 'HAS_GROUP' && !inGroup.has(r.id))
                 .map((r) => ({
                   name: r.name,
                   age: r.age,

@@ -57,7 +57,40 @@ export async function registerAction(
     return { success: true };
   }
 
-  // groupChoice === 'HAS_GROUP': captain picks available teammates and assigns the three roles.
+  // groupChoice === 'HAS_GROUP': either JOIN an open group a teammate already
+  // started, or CREATE a (possibly still-open) group and take a leg in it.
+  const groupMode = String(formData.get('groupMode') || 'CREATE');
+
+  if (groupMode === 'JOIN') {
+    const joinGroupId = String(formData.get('joinGroupId') || '');
+    const joinLeg = String(formData.get('joinLeg') || '');
+    const legField = { SWIM: 'swimRegistrantId', BIKE: 'bikeRegistrantId', RUN: 'runRegistrantId' }[joinLeg];
+    if (!joinGroupId || !legField) return { error: 'join-leg' };
+
+    const group = await prisma.group.findUnique({ where: { id: joinGroupId } });
+    if (!group || group.categoryId !== category.id) return { error: 'invalid' };
+    // The chosen leg must still be open right now.
+    if ((group as Record<string, unknown>)[legField] != null) return { error: 'join-taken' };
+
+    const joiner = await prisma.registrant.create({
+      data: { name, age, categoryId: category.id, mode: 'TEAM', groupPref: 'HAS_GROUP' },
+    });
+    // Fill the leg only if it's still open (guards against two people grabbing
+    // the same leg at once); count===0 means someone beat us to it.
+    const filled = await prisma.group.updateMany({
+      where: { id: group.id, [legField]: null },
+      data: { [legField]: joiner.id },
+    });
+    if (filled.count === 0) {
+      await prisma.registrant.delete({ where: { id: joiner.id } });
+      return { error: 'join-taken' };
+    }
+    revalidatePath('/', 'layout');
+    return { success: true };
+  }
+
+  // groupMode === 'CREATE': captain assigns the three roles. Each role is
+  // "CAPTAIN", a picked teammate id, or "LATER" (an open leg filled later).
   let teammateIds: string[] = [];
   try {
     teammateIds = JSON.parse(String(formData.get('teammateIds') || '[]'));
@@ -66,11 +99,13 @@ export async function registerAction(
   }
   teammateIds = [...new Set(teammateIds.filter((id) => typeof id === 'string'))].slice(0, 2);
 
-  // Role assignment: each role is "CAPTAIN" or a teammate id.
   const roleSwim = String(formData.get('roleSwim') || '');
   const roleBike = String(formData.get('roleBike') || '');
   const roleRun = String(formData.get('roleRun') || '');
+  // Every leg must be explicitly set to a person or to "will be added later".
   if (!roleSwim || !roleBike || !roleRun) return { error: 'roles-incomplete' };
+  // The captain registers themselves, so they must take at least one leg.
+  if (![roleSwim, roleBike, roleRun].includes('CAPTAIN')) return { error: 'captain-role' };
 
   // Validate teammates are real, same category, and available (pickable, multi-group ok).
   const teammates = teammateIds.length
@@ -83,24 +118,24 @@ export async function registerAction(
     return { error: 'bad-teammate' };
   }
 
-  // Create the captain, then resolve role ids (CAPTAIN -> captain.id).
+  // Create the captain, then resolve role ids (CAPTAIN -> captain.id, LATER -> null).
   const captain = await prisma.registrant.create({
     data: { name, age, categoryId: category.id, mode: 'TEAM', groupPref: 'HAS_GROUP' },
   });
 
   const memberIds = new Set([captain.id, ...teammateIds]);
-  const resolve = (v: string) => (v === 'CAPTAIN' ? captain.id : v);
+  const resolve = (v: string): string | null => (v === 'LATER' ? null : v === 'CAPTAIN' ? captain.id : v);
   const swimId = resolve(roleSwim);
   const bikeId = resolve(roleBike);
   const runId = resolve(roleRun);
 
-  // Every role must map to a group member, at least two distinct people must be
-  // used (nobody does all three), and every picked teammate must hold a role.
-  const usedIds = [swimId, bikeId, runId];
-  const distinct = new Set(usedIds);
-  const everyRoleIsMember = usedIds.every((id) => memberIds.has(id));
-  const everyTeammateUsed = teammateIds.every((id) => distinct.has(id));
-  if (!everyRoleIsMember || distinct.size < 2 || !everyTeammateUsed) {
+  // Every filled role must map to a group member, no one may hold all three
+  // legs, and every picked teammate must hold a role.
+  const filledIds = [swimId, bikeId, runId].filter((id): id is string => id != null);
+  const everyRoleIsMember = filledIds.every((id) => memberIds.has(id));
+  const nobodyDoesAllThree = new Set(filledIds).size >= (filledIds.length === 3 ? 2 : 1);
+  const everyTeammateUsed = teammateIds.every((id) => filledIds.includes(id));
+  if (!everyRoleIsMember || !nobodyDoesAllThree || !everyTeammateUsed) {
     // Roll back the captain we just created so a bad submit doesn't leave a stray.
     await prisma.registrant.delete({ where: { id: captain.id } });
     return { error: 'roles-invalid' };
