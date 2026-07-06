@@ -15,7 +15,7 @@ export async function generateMetadata({
   return {
     title: t('name'),
     description: t('tagline'),
-    icons: { icon: '/logo.svg' },
+    icons: { icon: '/favicon.png' },
   };
 }
 
