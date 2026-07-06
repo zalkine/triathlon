@@ -22,7 +22,12 @@
     "viewResults": "View Live Results",
     "staffLogin": "Staff Login",
     "registerCta": "Register Now",
-    "scheduleCta": "Race Schedule"
+    "scheduleCta": "Race Schedule",
+    "saveTheDate": "SAVE THE DATE",
+    "tagline1": "When sport meets the community",
+    "date": "19.9",
+    "tagline2": "It's finally back",
+    "comingSoon": "More details and registration soon"
   },
   "results": {
     "title": "Results",
