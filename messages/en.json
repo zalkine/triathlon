@@ -184,6 +184,16 @@
     "errorJoinTaken": "That leg was just taken. Please pick another group or leg.",
     "errorBadTeammate": "One of the teammates is no longer available. Please re-pick."
   },
+  "testdata": {
+    "title": "QC / Test Data",
+    "hint": "For pre-launch testing only. Generate fake competitors, then reset before opening real registration.",
+    "generate": "Add 100 test competitors",
+    "reset": "Reset all competition data",
+    "resetConfirm": "Delete ALL registrants, groups, heats and times? This cannot be undone.",
+    "added": "Added {count} test competitors.",
+    "resetDone": "All competition data cleared.",
+    "failed": "Something went wrong."
+  },
   "checkin": {
     "title": "Check-In",
     "search": "Search by name…",
