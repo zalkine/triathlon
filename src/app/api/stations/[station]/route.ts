@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { STATION_FIELD, STATIONS } from '@/lib/constants';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(_request: Request, { params }: { params: Promise<{ station: string }> }) {
   const { station } = await params;
   if (!STATIONS.includes(station as (typeof STATIONS)[number]) || station === 'start') {

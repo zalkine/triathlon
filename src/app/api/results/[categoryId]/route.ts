@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getCategoryResults } from '@/lib/ranking';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(_request: Request, { params }: { params: Promise<{ categoryId: string }> }) {
   const { categoryId } = await params;
   const result = await getCategoryResults(categoryId);
