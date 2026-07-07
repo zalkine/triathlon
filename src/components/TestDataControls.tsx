@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
-import { generateTestCompetitors, resetCompetitionData } from '@/actions/testdata';
+import { generateTestCompetitors, resetCompetitionData, resetResultsAndTiming } from '@/actions/testdata';
 
 export default function TestDataControls({ locale }: { locale: string }) {
   const t = useTranslations('testdata');
@@ -26,6 +26,20 @@ export default function TestDataControls({ locale }: { locale: string }) {
           className="rounded-full bg-ink px-5 py-2 text-sm font-semibold text-cream hover:brightness-110 disabled:opacity-60"
         >
           {t('generate')}
+        </button>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => {
+            if (!window.confirm(t('resetResultsConfirm'))) return;
+            startTransition(async () => {
+              await resetResultsAndTiming(locale);
+              setMsg(t('resetResultsDone'));
+            });
+          }}
+          className="rounded-full border border-ink/40 px-5 py-2 text-sm font-semibold text-ink hover:bg-ink/5 disabled:opacity-60"
+        >
+          {t('resetResults')}
         </button>
         <button
           type="button"

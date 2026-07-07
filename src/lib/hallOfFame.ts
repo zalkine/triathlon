@@ -85,23 +85,29 @@ export type Medalist = { name: string; gold: number; silver: number; bronze: num
 
 // Personal medal table across all years, from the individual (solo) races only —
 // team podiums can't be reliably attributed to each member. Medals are assigned
-// by finishing time (1st/2nd/3rd) within each year+category, matching the rest
-// of the page (source rank numbers have occasional typos). Names are matched
-// exactly as they appear on the sheets, so a person spelled two ways counts twice.
+// by finishing time within each year+category, matching the rest of the page
+// (source rank numbers have occasional typos). Ties share a medal: two athletes
+// with the same time both take that place's medal. Names are matched exactly as
+// they appear on the sheets, so a person spelled two ways counts twice.
 export function medalTable(): Medalist[] {
   const tally = new Map<string, { gold: number; silver: number; bronze: number }>();
   for (const year of years()) {
     for (const family of FAMILY_ORDER) {
-      const podium = HISTORICAL_RESULTS.filter((r) => r.year === year && r.family === family && !r.isTeam)
-        .sort((a, b) => a.seconds - b.seconds)
-        .slice(0, 3);
-      podium.forEach((r, i) => {
+      const rows = HISTORICAL_RESULTS.filter((r) => r.year === year && r.family === family && !r.isTeam).sort(
+        (a, b) => a.seconds - b.seconds
+      );
+      // Medal is decided by the *distinct* time: the 1st/2nd/3rd fastest times
+      // earn gold/silver/bronze, and everyone on a medal time shares it.
+      const medalTimes = [...new Set(rows.map((r) => r.seconds))].slice(0, 3);
+      for (const r of rows) {
+        const place = medalTimes.indexOf(r.seconds);
+        if (place < 0) continue;
         const t = tally.get(r.name) ?? { gold: 0, silver: 0, bronze: 0 };
-        if (i === 0) t.gold++;
-        else if (i === 1) t.silver++;
+        if (place === 0) t.gold++;
+        else if (place === 1) t.silver++;
         else t.bronze++;
         tally.set(r.name, t);
-      });
+      }
     }
   }
   return [...tally.entries()]

@@ -67,3 +67,24 @@ export async function resetCompetitionData(locale: string) {
   revalidatePath('/', 'layout');
   return { ok: true as const };
 }
+
+// Clears only the race itself — heats, the schedule, and every timing stamp —
+// while keeping the registered competitors, their teams, and their check-ins.
+// Groups are un-scheduled (entryId cleared) so the schedule can be generated
+// and started again. For re-running a competition-start demo without having to
+// re-register everyone.
+export async function resetResultsAndTiming(locale: string) {
+  await requireRole('ADMIN');
+  await prisma.$transaction([
+    prisma.member.deleteMany(),
+    prisma.entry.deleteMany(), // also SET NULLs every registrant.entryId
+    prisma.heat.deleteMany(),
+    prisma.group.updateMany({ data: { entryId: null } }),
+  ]);
+  await prisma.eventSettings.update({
+    where: { id: 'singleton' },
+    data: { competitionActive: false, scheduleGeneratedAt: null, raceStartTime: null },
+  });
+  revalidatePath('/', 'layout');
+  return { ok: true as const };
+}
