@@ -220,6 +220,9 @@
     "generate": "Add 100 test competitors",
     "reset": "Reset all competition data",
     "resetConfirm": "Delete ALL registrants, groups, heats and times? This cannot be undone.",
+    "resetResults": "Reset results & timing (keep competitors)",
+    "resetResultsConfirm": "Clear all heats, the schedule and every timing stamp, but KEEP the registered competitors, their teams and check-ins? You can then generate the schedule and start again.",
+    "resetResultsDone": "Results and timing cleared — competitors kept.",
     "added": "Added {count} test competitors.",
     "resetDone": "All competition data cleared.",
     "failed": "Something went wrong."
