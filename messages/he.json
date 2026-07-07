@@ -41,7 +41,10 @@
     "records": "שיאי כל הזמנים",
     "champions": "אלופים לפי שנה",
     "medalists": "טבלת מדליות",
+    "medalsPersonal": "אישי",
+    "medalsWithGroups": "כולל מדליות קבוצתיות",
     "medalsNote": "מדליות לאורך השנים במקצי היחידים (מקום 1 / 2 / 3 בכל שנה וקטגוריה).",
+    "medalsWithGroupsNote": "כולל פודיום קבוצתי — כל חבר בקבוצה זוכה מקבל מדליה. קבוצות שלא ניתן היה לפצל את הרכבן במדויק אינן נכללות.",
     "athlete": "מתחרה",
     "total": "סה\"כ",
     "allResults": "כל התוצאות",
@@ -61,7 +64,8 @@
     "finished": "סיים",
     "noEntries": "אין עדיין מתחרים רשומים בקטגוריה זו.",
     "selectCategory": "בחר/י קטגוריה",
-    "updatedLive": "מתעדכן בזמן אמת"
+    "updatedLive": "מתעדכן בזמן אמת",
+    "hidden": "התוצאות החיות טרם פורסמו. בדקו שוב בקרוב."
   },
   "login": {
     "title": "כניסת צוות",
@@ -172,6 +176,11 @@
     "randomGroupingLabel": "שיבוץ אקראי",
     "enableRandomGrouping": "הפעל",
     "disableRandomGrouping": "בטל",
+    "publicResultsLabel": "תוצאות לציבור",
+    "shown": "מוצגות",
+    "hidden": "מוסתרות",
+    "hideResults": "הסתרה מהציבור",
+    "showResults": "הצגה לציבור",
     "generateSchedule": "הרצת הגרלה ויצירת לוח זמנים",
     "generateScheduleConfirm": "ליצור קבוצות, מקצים ולוח זמנים מכל הנרשמים שהגיעו? ניתן להריץ שוב בבטחה עבור מי שטרם שובץ.",
     "scheduleGeneratedAt": "לוח הזמנים נוצר בשעה {time}",

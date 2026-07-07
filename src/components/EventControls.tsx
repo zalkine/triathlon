@@ -1,6 +1,12 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
-import { setRegistrationOpen, generateSchedule, activateCompetition, setAllowRandomGrouping } from '@/actions/event';
+import {
+  setRegistrationOpen,
+  generateSchedule,
+  activateCompetition,
+  setAllowRandomGrouping,
+  setPublicResultsVisible,
+} from '@/actions/event';
 import { formatClock } from '@/lib/time';
 import ConfirmForm from './ConfirmForm';
 
@@ -10,6 +16,7 @@ export default async function EventControls({ locale }: { locale: string }) {
 
   const toggleRegistration = setRegistrationOpen.bind(null, locale, !settings.registrationOpen);
   const toggleRandomGrouping = setAllowRandomGrouping.bind(null, locale, !settings.allowRandomGrouping);
+  const togglePublicResults = setPublicResultsVisible.bind(null, locale, !settings.publicResultsVisible);
   const runGenerateSchedule = generateSchedule.bind(null, locale);
   const runActivateCompetition = activateCompetition.bind(null, locale);
 
@@ -33,6 +40,16 @@ export default async function EventControls({ locale }: { locale: string }) {
           <form action={toggleRandomGrouping}>
             <button type="submit" className="text-sm font-semibold underline">
               {settings.allowRandomGrouping ? t('disableRandomGrouping') : t('enableRandomGrouping')}
+            </button>
+          </form>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-ink-light">{t('publicResultsLabel')}:</span>
+          <span className="font-semibold">{settings.publicResultsVisible ? t('shown') : t('hidden')}</span>
+          <form action={togglePublicResults}>
+            <button type="submit" className="text-sm font-semibold underline">
+              {settings.publicResultsVisible ? t('hideResults') : t('showResults')}
             </button>
           </form>
         </div>
