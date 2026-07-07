@@ -58,7 +58,7 @@ export function rankEntries(entries: EntryInput[]): RankedEntry[] {
 export async function getCategoryResults(categoryId: string) {
   const category = await prisma.category.findUnique({
     where: { id: categoryId },
-    include: { heats: { include: { entries: true } } },
+    include: { heats: { include: { entries: { where: { scratched: false } } } } },
   });
   if (!category) return null;
 
