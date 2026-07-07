@@ -35,8 +35,12 @@
     "subtitle": "All-time records and champions of the Gal-On Triathlon.",
     "records": "All-Time Records",
     "champions": "Champions by Year",
+    "medalists": "Medal Table",
+    "medalsNote": "Career medals from the individual races (1st / 2nd / 3rd in each year and category).",
+    "athlete": "Athlete",
+    "total": "Total",
     "allResults": "All Results",
-    "sourceNote": "Records compiled from past years' result sheets. Spot a mistake? Let the staff know."
+    "sourceNote": "Records compiled from the 2018–2023 result sheets. Spot a mistake? Let the staff know."
   },
   "results": {
     "title": "Results",

@@ -7,6 +7,7 @@ import {
   familyLabel,
   formatHms,
   kindLabel,
+  medalTable,
   resultsFor,
   years,
 } from '@/lib/hallOfFame';
@@ -18,6 +19,7 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
   const records = courseRecords();
   const allYears = years();
   const bucketList = buckets();
+  const medalists = medalTable();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -69,6 +71,36 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
               </ul>
             </div>
           ))}
+        </section>
+
+        {/* Medal table */}
+        <section className="space-y-3">
+          <h2 className="text-xl font-bold">🏅 {t('medalists')}</h2>
+          <p className="text-sm text-ink-light">{t('medalsNote')}</p>
+          <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white/70 shadow-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-ink/10 text-ink-light">
+                  <th className="px-4 py-2 text-start font-medium">{t('athlete')}</th>
+                  <th className="px-3 py-2 text-center font-medium">🥇</th>
+                  <th className="px-3 py-2 text-center font-medium">🥈</th>
+                  <th className="px-3 py-2 text-center font-medium">🥉</th>
+                  <th className="px-4 py-2 text-center font-medium">{t('total')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {medalists.map((m) => (
+                  <tr key={m.name} className="border-b border-ink/5 last:border-0">
+                    <td className="px-4 py-2 font-medium">{m.name}</td>
+                    <td className="px-3 py-2 text-center tabular-nums">{m.gold || ''}</td>
+                    <td className="px-3 py-2 text-center tabular-nums">{m.silver || ''}</td>
+                    <td className="px-3 py-2 text-center tabular-nums">{m.bronze || ''}</td>
+                    <td className="px-4 py-2 text-center font-semibold tabular-nums">{m.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         {/* Full results, browsable */}
