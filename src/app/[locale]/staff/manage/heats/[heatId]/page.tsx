@@ -7,6 +7,7 @@ import { deleteHeat } from '@/actions/heats';
 import HeatStartTimeEditor from '@/components/HeatStartTimeEditor';
 import TimeFieldEditor from '@/components/TimeFieldEditor';
 import MembersEditor from '@/components/MembersEditor';
+import MoveEntryControl from '@/components/MoveEntryControl';
 import ConfirmForm from '@/components/ConfirmForm';
 
 export const dynamic = 'force-dynamic';
@@ -27,6 +28,19 @@ export default async function HeatDetailPage({
     },
   });
   if (!heat) notFound();
+
+  // Other heats (any category) as move targets for the on-the-spot fixups.
+  const otherHeats = await prisma.heat.findMany({
+    where: { id: { not: heatId } },
+    include: { category: true },
+    orderBy: [{ category: { sortOrder: 'asc' } }, { createdAt: 'asc' }],
+  });
+  const moveOptions = otherHeats.map((h) => ({
+    id: h.id,
+    name: h.name,
+    nameEn: h.category.nameEn,
+    nameHe: h.category.nameHe,
+  }));
 
   const createEntryAction = createEntry.bind(null, locale, heatId);
   const deleteHeatAction = deleteHeat.bind(null, locale, heatId);
@@ -88,9 +102,12 @@ export default async function HeatDetailPage({
                       <TimeFieldEditor heatId={heatId} entryId={entry.id} field="runTime" value={entry.runTime?.toISOString() ?? null} />
                     </td>
                     <td className="px-4 py-3">
-                      <ConfirmForm action={deleteEntryAction} confirmMessage={t('confirmDeleteEntry')}>
-                        <button className="text-sm text-run-dark underline">{t('remove')}</button>
-                      </ConfirmForm>
+                      <div className="flex flex-col items-start gap-2">
+                        <MoveEntryControl entryId={entry.id} heats={moveOptions} />
+                        <ConfirmForm action={deleteEntryAction} confirmMessage={t('confirmDeleteEntry')}>
+                          <button className="text-sm text-run-dark underline">{t('remove')}</button>
+                        </ConfirmForm>
+                      </div>
                     </td>
                   </tr>
                 );

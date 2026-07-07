@@ -9,10 +9,13 @@ export async function GET() {
     return NextResponse.json({ active: false, serverNow: new Date().toISOString(), heats: [] });
   }
 
-  const heats = await prisma.heat.findMany({
-    include: { category: true, entries: { include: { members: true }, orderBy: { createdAt: 'asc' } } },
-    orderBy: [{ estimatedStart: 'asc' }, { createdAt: 'asc' }],
-  });
+  const [heats, categories] = await Promise.all([
+    prisma.heat.findMany({
+      include: { category: true, entries: { include: { members: true }, orderBy: { createdAt: 'asc' } } },
+      orderBy: [{ estimatedStart: 'asc' }, { createdAt: 'asc' }],
+    }),
+    prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
+  ]);
 
   // Keep a heat on the board while it's actionable: not started yet (roster + GO),
   // or started but not every live competitor has finished (running stopwatch).
@@ -25,6 +28,15 @@ export async function GET() {
   return NextResponse.json({
     active: true,
     serverNow: new Date().toISOString(),
+    // Every heat (any category) — targets for moving a competitor between heats.
+    allHeats: heats.map((h) => ({
+      id: h.id,
+      name: h.name,
+      categoryNameEn: h.category.nameEn,
+      categoryNameHe: h.category.nameHe,
+    })),
+    // Categories — for creating a new heat on the spot.
+    categories: categories.map((c) => ({ id: c.id, nameEn: c.nameEn, nameHe: c.nameHe })),
     heats: board.map((h) => ({
       id: h.id,
       name: h.name,
