@@ -33,6 +33,11 @@
   "hof": {
     "title": "Hall of Fame",
     "subtitle": "All-time records and champions of the Gal-On Triathlon.",
+    "findCompetitor": "Find a Competitor",
+    "searchPlaceholder": "Search a name — see every race and result…",
+    "searchCount": "{count} results",
+    "place": "{place, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} place",
+    "specialAwards": "Special Awards",
     "records": "All-Time Records",
     "champions": "Champions by Year",
     "medalists": "Medal Table",
@@ -68,6 +73,8 @@
   "stations": {
     "title": "Timing Stations",
     "subtitle": "Choose the station you're working at.",
+    "checkin": "Check-In",
+    "checkinDesc": "Mark competitors arrived at the gathering area",
     "start": "Start",
     "swim": "Swim Finish",
     "bike": "Bike Finish",

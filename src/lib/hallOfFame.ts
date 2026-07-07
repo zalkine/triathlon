@@ -81,6 +81,27 @@ export function resultsFor(year: number, family: Family, isTeam: boolean): Histo
   );
 }
 
+// Every result annotated with its finishing place (tie-aware: equal times share
+// a place). Used by the competitor search so a person's whole history — solo and
+// team — is one flat, searchable list.
+export type AnnotatedResult = HistoricalResult & { place: number };
+
+export function annotatedResults(): AnnotatedResult[] {
+  const out: AnnotatedResult[] = [];
+  for (const year of years()) {
+    for (const family of FAMILY_ORDER) {
+      for (const isTeam of [false, true]) {
+        const rows = HISTORICAL_RESULTS.filter(
+          (r) => r.year === year && r.family === family && r.isTeam === isTeam
+        ).sort((a, b) => a.seconds - b.seconds);
+        const times = [...new Set(rows.map((r) => r.seconds))];
+        for (const r of rows) out.push({ ...r, place: times.indexOf(r.seconds) + 1 });
+      }
+    }
+  }
+  return out;
+}
+
 export type Medalist = { name: string; gold: number; silver: number; bronze: number; total: number };
 
 // Personal medal table across all years, from the individual (solo) races only —
