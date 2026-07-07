@@ -26,8 +26,8 @@ export const CATEGORY_DEFINITIONS: Array<{
 }> = [
   { key: 'PRO_SINGLE', nameEn: 'Professional – Singles', nameHe: 'מקצוענים - יחידים', type: 'SINGLE', sortOrder: 1, estDurationMinutes: 55 },
   { key: 'PRO_TEAM', nameEn: 'Professional – Groups', nameHe: 'מקצוענים - קבוצות', type: 'TEAM', sortOrder: 2, estDurationMinutes: 55 },
-  { key: 'INTER_SINGLE', nameEn: 'Intermediate – Singles', nameHe: 'ביניים - יחידים', type: 'SINGLE', sortOrder: 3, estDurationMinutes: 65 },
-  { key: 'INTER_TEAM', nameEn: 'Intermediate – Groups', nameHe: 'ביניים - קבוצות', type: 'TEAM', sortOrder: 4, estDurationMinutes: 65 },
+  { key: 'INTER_SINGLE', nameEn: 'Intermediate – Singles', nameHe: 'עממי - יחידים', type: 'SINGLE', sortOrder: 3, estDurationMinutes: 65 },
+  { key: 'INTER_TEAM', nameEn: 'Intermediate – Groups', nameHe: 'עממי - קבוצות', type: 'TEAM', sortOrder: 4, estDurationMinutes: 65 },
   { key: 'KIDS_6_9_SINGLE', nameEn: 'Children – Singles 6-9', nameHe: 'ילדים - יחידים 6-9', type: 'SINGLE', sortOrder: 5, estDurationMinutes: 25 },
   { key: 'KIDS_6_9_TEAM', nameEn: 'Children – Groups 6-9', nameHe: 'ילדים - קבוצות 6-9', type: 'TEAM', sortOrder: 6, estDurationMinutes: 25 },
   { key: 'KIDS_9_12_SINGLE', nameEn: 'Children – Singles 9-12', nameHe: 'ילדים - יחידים 9-12', type: 'SINGLE', sortOrder: 7, estDurationMinutes: 35 },

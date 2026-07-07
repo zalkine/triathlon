@@ -33,7 +33,7 @@ export default function RegisterForm({ action, categories }: { action: FormActio
 
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
-  const [skillLevel, setSkillLevel] = useState<'PRO' | 'INTER'>('PRO');
+  const [skillLevel, setSkillLevel] = useState<'PRO' | 'INTER' | 'KIDS'>('PRO');
   const [mode, setMode] = useState<'SINGLE' | 'TEAM'>('SINGLE');
 
   // available-pool willing legs
@@ -56,9 +56,23 @@ export default function RegisterForm({ action, categories }: { action: FormActio
   const [joinLeg, setJoinLeg] = useState('');
 
   const ageNum = Number(age);
-  const isKidAge = age !== '' && Number.isInteger(ageNum) && ageNum <= 12;
-  const bracket = age === '' || !Number.isInteger(ageNum) ? null : ageNum < 9 ? 'KIDS_6_9' : ageNum <= 12 ? 'KIDS_9_12' : skillLevel;
+  // Registration opens at 8. Young members (8–12) may enter any race — pro,
+  // intermediate, or their kids bracket; over-12 may only go pro/intermediate.
+  const validAge = age !== '' && Number.isInteger(ageNum) && ageNum >= 8;
+  const canPickKids = validAge && ageNum <= 12;
+  const bracket = !validAge
+    ? null
+    : skillLevel === 'KIDS'
+      ? ageNum < 9
+        ? 'KIDS_6_9'
+        : 'KIDS_9_12'
+      : skillLevel;
   const categoryKey = bracket ? `${bracket}_${mode}` : '';
+
+  // Drop back to a valid level if the age no longer permits the kids race.
+  useEffect(() => {
+    if (skillLevel === 'KIDS' && !canPickKids) setSkillLevel('PRO');
+  }, [canPickKids, skillLevel]);
 
   const categoryName = useMemo(() => {
     const match = categories.find((c) => c.key === categoryKey);
@@ -206,7 +220,7 @@ export default function RegisterForm({ action, categories }: { action: FormActio
           id="age"
           name="age"
           type="number"
-          min={3}
+          min={8}
           max={110}
           required
           value={age}
@@ -215,7 +229,7 @@ export default function RegisterForm({ action, categories }: { action: FormActio
         />
       </div>
 
-      {age !== '' && !isKidAge && (
+      {validAge && (
         <div>
           <label className="mb-1 block text-sm font-medium" htmlFor="skillLevel">
             {t('skillLevel')}
@@ -223,11 +237,12 @@ export default function RegisterForm({ action, categories }: { action: FormActio
           <select
             id="skillLevel"
             value={skillLevel}
-            onChange={(e) => setSkillLevel(e.target.value as 'PRO' | 'INTER')}
+            onChange={(e) => setSkillLevel(e.target.value as 'PRO' | 'INTER' | 'KIDS')}
             className="w-full rounded-lg border border-ink/20 px-4 py-2 focus:border-ink focus:outline-none"
           >
             <option value="PRO">{t('professional')}</option>
             <option value="INTER">{t('intermediate')}</option>
+            {canPickKids && <option value="KIDS">{t('kids')}</option>}
           </select>
         </div>
       )}

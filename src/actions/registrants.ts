@@ -18,10 +18,18 @@ export async function registerAction(
   const age = Number(formData.get('age'));
   const categoryKey = String(formData.get('categoryKey') || '');
 
-  if (!name || !Number.isInteger(age) || age < 3 || age > 110) return { error: 'invalid' };
+  if (!name || !Number.isInteger(age) || age < 8 || age > 110) return { error: 'invalid' };
 
   const category = await prisma.category.findUnique({ where: { key: categoryKey } });
   if (!category) return { error: 'invalid' };
+
+  // Enforce age eligibility: registration opens at 8. Young members (8–12) may
+  // enter pro, intermediate, or their own kids bracket; over-12 may only enter
+  // pro or intermediate.
+  const kidBracket = age < 9 ? 'KIDS_6_9' : 'KIDS_9_12';
+  const allowedBrackets = age <= 12 ? [kidBracket, 'PRO', 'INTER'] : ['PRO', 'INTER'];
+  const allowedKeys = allowedBrackets.map((b) => `${b}_${category.type}`);
+  if (!allowedKeys.includes(category.key)) return { error: 'invalid' };
 
   // Solo competitor: one registrant, done.
   if (category.type === 'SINGLE') {
