@@ -1,6 +1,7 @@
 // Historical results parsed from the 2018/2019/2021/2022/2023 sheets. Times
 // are total seconds. Team `members` is set when the roster could be split
-// reliably; used for commas + group medals. Records/medals by fastest time.
+// reliably (comma sheets, column parsing, or a hand-checked override); used for
+// commas + group medals. Records/medals by fastest time.
 export type Family = 'Elite' | 'Amateur' | 'Kids' | 'Seniors' | 'Open';
 export type HistoricalResult = {
   year: number; categoryHe: string; family: Family; isTeam: boolean;
@@ -136,7 +137,7 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2019, categoryHe: 'ילדים יחיד', family: 'Kids', isTeam: true, rank: 7, name: 'כפרי נבו, ניר, ודוד', seconds: 1263, members: ['כפרי נבו', 'ניר', 'ודוד'] },
   { year: 2019, categoryHe: 'ילדים יחיד', family: 'Kids', isTeam: false, rank: 8, name: 'גילי ברוג', seconds: 1504 },
   { year: 2019, categoryHe: 'ילדים קבוצתי  -בוגרים', family: 'Kids', isTeam: true, rank: 1, name: 'יובל מויאל, נדב מנור, יאיר פטרי', seconds: 502, members: ['יובל מויאל', 'נדב מנור', 'יאיר פטרי'] },
-  { year: 2019, categoryHe: 'ילדים קבוצתי  -בוגרים', family: 'Kids', isTeam: true, rank: 2, name: 'איתן גוטדינר ותבור חוצן', seconds: 576 },
+  { year: 2019, categoryHe: 'ילדים קבוצתי  -בוגרים', family: 'Kids', isTeam: true, rank: 2, name: 'איתן גוטדינר, תבור חוצן', seconds: 576, members: ['איתן גוטדינר', 'תבור חוצן'] },
   { year: 2019, categoryHe: 'ילדים קבוצתי  -בוגרים', family: 'Kids', isTeam: true, rank: 3, name: 'אורי עברון, יותם באום, עומר פטרי', seconds: 586, members: ['אורי עברון', 'יותם באום', 'עומר פטרי'] },
   { year: 2019, categoryHe: 'ילדים קבוצתי  -בוגרים', family: 'Kids', isTeam: true, rank: 4, name: 'אלונה עמית, מיקה ריבק, שירה מויאל', seconds: 633, members: ['אלונה עמית', 'מיקה ריבק', 'שירה מויאל'] },
   { year: 2019, categoryHe: 'ילדים קבוצתי  -בוגרים', family: 'Kids', isTeam: true, rank: 5, name: 'איתן זלקין, עידו שטיינמן, רום רחמוט', seconds: 667, members: ['איתן זלקין', 'עידו שטיינמן', 'רום רחמוט'] },
@@ -199,8 +200,8 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2021, categoryHe: 'ילדים יחידים', family: 'Kids', isTeam: false, rank: 9, name: 'דולב שפירא', seconds: 946 },
   { year: 2021, categoryHe: 'ילדים יחידים', family: 'Kids', isTeam: false, rank: 10, name: 'שני עמיתי', seconds: 1273 },
   { year: 2021, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 1, name: 'רום רחמוט, גוני ריבק, עומר גליקסמן', seconds: 543, members: ['רום רחמוט', 'גוני ריבק', 'עומר גליקסמן'] },
-  { year: 2021, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 2, name: 'לירי קריקון ורועי ססלר', seconds: 576 },
-  { year: 2021, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 3, name: 'גילי ואבישי ברוג', seconds: 605 },
+  { year: 2021, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 2, name: 'לירי קריקון, רועי ססלר', seconds: 576, members: ['לירי קריקון', 'רועי ססלר'] },
+  { year: 2021, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 3, name: 'גילי ברוג, אבישי ברוג', seconds: 605, members: ['גילי ברוג', 'אבישי ברוג'] },
   { year: 2021, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 4, name: 'סהר, יואב, אביתר צורף', seconds: 622, members: ['סהר', 'יואב', 'אביתר צורף'] },
   { year: 2021, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 5, name: 'איתן זלקין, יפתח באום, רני עברון', seconds: 656, members: ['איתן זלקין', 'יפתח באום', 'רני עברון'] },
   { year: 2021, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 6, name: 'ענבר אמיתי, אלה אייזנברג, יובל מייסלס', seconds: 696, members: ['ענבר אמיתי', 'אלה אייזנברג', 'יובל מייסלס'] },
@@ -221,9 +222,9 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: false, rank: 7, name: 'איתי שפירא', seconds: 3638 },
   { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: false, rank: 8, name: 'ארבל שפירא', seconds: 4436 },
   { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: false, rank: 9, name: 'דורי שפירא', seconds: 4437 },
-  { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 1, name: 'נדב מייסלס אלעד שושן אהוד רינות', seconds: 2300 },
-  { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 2, name: 'עומרי צורף תומר כהן גדי פלג', seconds: 2378 },
-  { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 3, name: 'תמיר גלעד נדב מנור אלדר דגן', seconds: 2827 },
+  { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 1, name: 'נדב מייסלס, אלעד שושן, אהוד רינות', seconds: 2300, members: ['נדב מייסלס', 'אלעד שושן', 'אהוד רינות'] },
+  { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 2, name: 'עומרי צורף, תומר כהן, גדי פלג', seconds: 2378, members: ['עומרי צורף', 'תומר כהן', 'גדי פלג'] },
+  { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 3, name: 'תמיר גלעד, נדב מנור, אלדר דגן', seconds: 2827, members: ['תמיר גלעד', 'נדב מנור', 'אלדר דגן'] },
   { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 4, name: 'סהר עמיתי מושי באום סהר עמיתי', seconds: 2948 },
   { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 5, name: 'שרית ברוג מתי ברק אלעד זלקין', seconds: 3198 },
   { year: 2022, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 6, name: 'גבע לבון נפתלי כלפא עידו רוימי', seconds: 3269 },
@@ -236,7 +237,7 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: false, rank: 4, name: 'מיכה פטרי', seconds: 2070 },
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 1, name: 'איתן זלקין, עומר פטרי, גל שמאי', seconds: 1206, members: ['איתן זלקין', 'עומר פטרי', 'גל שמאי'] },
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 2, name: 'לירי קריקון, רועי כלפה, רום רחמוט', seconds: 1236, members: ['לירי קריקון', 'רועי כלפה', 'רום רחמוט'] },
-  { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 3, name: 'אורי עברון בארי צורף אלדר דגן', seconds: 1284 },
+  { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 3, name: 'אורי עברון, בארי צורף, אלדר דגן', seconds: 1284, members: ['אורי עברון', 'בארי צורף', 'אלדר דגן'] },
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 4, name: 'דוד מופז רותם בן צבי עומר גליקסמן', seconds: 1308 },
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 5, name: 'רוני גליקסמן סטפן גליקסמן אור גליקסמן', seconds: 1426 },
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 6, name: 'רותם בן צבי הילה בן צבי דניאל בן צבי', seconds: 1441 },
@@ -251,9 +252,9 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: false, rank: 4, name: 'אבשלום ריבקין', seconds: 588 },
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: false, rank: 5, name: 'גילי בראודה', seconds: 607 },
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: false, rank: 6, name: 'רני רזיאל', seconds: 766 },
-  { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 1, name: 'יונתן ויטקו סהר רחמוט לירי קריקון', seconds: 445 },
-  { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 2, name: 'דולב שפירא אבישי ברוג איילון פלג', seconds: 483 },
-  { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 3, name: 'רותם פטרי גוני ריבק עמליה שמאי', seconds: 507 },
+  { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 1, name: 'יונתן ויטקו, סהר רחמוט, לירי קריקון', seconds: 445, members: ['יונתן ויטקו', 'סהר רחמוט', 'לירי קריקון'] },
+  { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 2, name: 'דולב שפירא, אבישי ברוג, איילון פלג', seconds: 483, members: ['דולב שפירא', 'אבישי ברוג', 'איילון פלג'] },
+  { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 3, name: 'רותם פטרי, גוני ריבק, עמליה שמאי', seconds: 507, members: ['רותם פטרי', 'גוני ריבק', 'עמליה שמאי'] },
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 4, name: 'יואב ביטון אופיר כפיר לביא חוצן', seconds: 515 },
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 4, name: 'יובל מייסלס אלה אייזנברג ענבר עמיתי', seconds: 516 },
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 6, name: 'יהל בן סימון עלמא גליקסמן גפן פיקס', seconds: 529 },
@@ -289,7 +290,7 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2023, categoryHe: 'עממי', family: 'Amateur', isTeam: false, rank: 2, name: 'עמוס שפירא', seconds: 2460 },
   { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 1, name: 'צחי עמיתי, סהר עמיתי, שני עמיתי', seconds: 1153, members: ['צחי עמיתי', 'סהר עמיתי', 'שני עמיתי'] },
   { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 2, name: 'איתן זלקין, אלעד זלקין, יונתן זלקין', seconds: 1310, members: ['איתן זלקין', 'אלעד זלקין', 'יונתן זלקין'] },
-  { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 3, name: 'רותם בן צבי דניאל בן צבי הילה בן צבי', seconds: 1460 },
+  { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 3, name: 'רותם בן צבי, דניאל בן צבי, הילה בן צבי', seconds: 1460, members: ['רותם בן צבי', 'דניאל בן צבי', 'הילה בן צבי'] },
   { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 4, name: 'עמיר ססלר רועי ססלר תמר ססלר', seconds: 1703 },
   { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 5, name: 'יפעת רז קבלו איליי קבלו הילה עמיתי רז', seconds: 1710 },
   { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 6, name: 'ינאי ויטקו יונתן ויטקו מאיה ויטקו', seconds: 1899 },
@@ -304,9 +305,9 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'Kids', isTeam: false, rank: 1, name: 'ים רינות', seconds: 713 },
   { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'Kids', isTeam: false, rank: 3, name: 'אסף כהן ארזוני', seconds: 731 },
   { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'Kids', isTeam: false, rank: 4, name: 'איל פיינמן', seconds: 1278 },
-  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 1, name: 'אבישי שושן עידו מנור כרמי אוחנה', seconds: 532 },
-  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 2, name: 'מיכאל זלקין ערבה פיקס יובל רז', seconds: 558 },
-  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 3, name: 'עתי עברון ליאו עברון נועם עברון', seconds: 563 },
+  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 1, name: 'אבישי שושן, עידו מנור, כרמי אוחנה', seconds: 532, members: ['אבישי שושן', 'עידו מנור', 'כרמי אוחנה'] },
+  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 2, name: 'מיכאל זלקין, ערבה פיקס, יובל רז', seconds: 558, members: ['מיכאל זלקין', 'ערבה פיקס', 'יובל רז'] },
+  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 3, name: 'עתי עברון, ליאו עברון, נועם עברון', seconds: 563, members: ['עתי עברון', 'ליאו עברון', 'נועם עברון'] },
   { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 4, name: 'נעמי כהן ארזוני מילה רזיאל גלי אברהם', seconds: 577 },
   { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 5, name: 'אבישי ביטון ארז רוימי נדב כלפא', seconds: 580 },
   { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 6, name: 'תהל דגן, ניצן כפיר, ינאי דגן', seconds: 614, members: ['תהל דגן', 'ניצן כפיר', 'ינאי דגן'] },
@@ -321,8 +322,6 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2023, categoryHe: 'ילדים קבוצתי ד-ו', family: 'Kids', isTeam: true, rank: 4, name: 'גאיה הולצמן, אלה בקר, הילי חיון', seconds: 664, members: ['גאיה הולצמן', 'אלה בקר', 'הילי חיון'] },
 ];
 
-// Special trophies (eldest/youngest/etc.) — not in the sheets. Fill from the
-// club's records; rendered in the Hall of Fame when non-empty.
 export type SpecialAward = { year: number; titleHe: string; titleEn: string; name: string; note?: string };
 
 export const SPECIAL_AWARDS: SpecialAward[] = [];
