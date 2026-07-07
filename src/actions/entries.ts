@@ -36,16 +36,57 @@ export async function removeMember(locale: string, heatId: string, memberId: str
 
 // Timing-station stamp: only succeeds if this leg's time isn't already set,
 // so a station can't accidentally overwrite an existing time.
-export async function stampEntryTime(entryId: string, station: Exclude<Station, 'start'>) {
+// `atMs` lets the finish-line timekeeper "fill in later" — record an arrival
+// that already happened (read off the clock) instead of the moment of tapping.
+// It must fall between the heat's start and now (small future skew allowed);
+// otherwise the tap time is used.
+export async function stampEntryTime(entryId: string, station: Exclude<Station, 'start'>, atMs?: number) {
   const session = await requireSession();
   if (session.role !== 'ADMIN' && session.role !== 'TIMEKEEPER') throw new Error('FORBIDDEN');
 
   const field = STATION_FIELD[station];
-  const entry = await prisma.entry.findUnique({ where: { id: entryId } });
+  const entry = await prisma.entry.findUnique({ where: { id: entryId }, include: { heat: true } });
   if (!entry) throw new Error('Entry not found');
   if (entry[field]) return { error: 'already-stamped' as const };
 
-  await prisma.entry.update({ where: { id: entryId }, data: { [field]: new Date() } });
+  const now = Date.now();
+  const startMs = entry.heat.startTime?.getTime() ?? 0;
+  const stampAt =
+    atMs && Number.isFinite(atMs) && atMs >= startMs && atMs <= now + 5_000 ? new Date(atMs) : new Date(now);
+
+  await prisma.entry.update({ where: { id: entryId }, data: { [field]: stampAt } });
+  revalidatePath('/', 'layout');
+  return { ok: true as const, at: stampAt.toISOString() };
+}
+
+// Start-line timekeeper: scratch (or un-scratch) a competitor/team from a heat —
+// a no-show or last-minute drop. Scratched entries are skipped by the timing
+// stations and left out of results.
+export async function setEntryScratched(entryId: string, scratched: boolean) {
+  const session = await requireSession();
+  if (session.role !== 'ADMIN' && session.role !== 'TIMEKEEPER') throw new Error('FORBIDDEN');
+  await prisma.entry.update({ where: { id: entryId }, data: { scratched } });
+  revalidatePath('/', 'layout');
+  return { ok: true as const };
+}
+
+// Start-line timekeeper: fix a name for a last-minute replacement.
+export async function renameEntry(entryId: string, name: string) {
+  const session = await requireSession();
+  if (session.role !== 'ADMIN' && session.role !== 'TIMEKEEPER') throw new Error('FORBIDDEN');
+  const trimmed = name.trim();
+  if (!trimmed) return { error: 'empty' as const };
+  await prisma.entry.update({ where: { id: entryId }, data: { name: trimmed } });
+  revalidatePath('/', 'layout');
+  return { ok: true as const };
+}
+
+export async function renameMember(memberId: string, name: string) {
+  const session = await requireSession();
+  if (session.role !== 'ADMIN' && session.role !== 'TIMEKEEPER') throw new Error('FORBIDDEN');
+  const trimmed = name.trim();
+  if (!trimmed) return { error: 'empty' as const };
+  await prisma.member.update({ where: { id: memberId }, data: { name: trimmed } });
   revalidatePath('/', 'layout');
   return { ok: true as const };
 }

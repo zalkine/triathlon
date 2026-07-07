@@ -62,6 +62,7 @@ model Entry {
   swimTime    DateTime?
   bikeTime    DateTime?
   runTime     DateTime?
+  scratched   Boolean      @default(false)
   createdAt   DateTime     @default(now())
   members     Member[]
   registrants Registrant[]
