@@ -197,6 +197,7 @@
     "skillLevel": "Skill level",
     "professional": "Professional",
     "intermediate": "Intermediate",
+    "kids": "Kids",
     "kidsCategoryNote": "Category (by age): {category}",
     "legsPrompt": "Which leg(s) are you willing to do? (choose one or more)",
     "legSwim": "Swim",
