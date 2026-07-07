@@ -1,7 +1,6 @@
 // Historical results parsed from the 2018/2019/2021/2022/2023 sheets. Times
 // are total seconds. Team `members` is set when the roster could be split
-// reliably (comma sheets, or verified column parsing); used for commas + group
-// medals. Records/medals are computed by fastest time. Regenerate from the PDFs.
+// reliably; used for commas + group medals. Records/medals by fastest time.
 export type Family = 'Elite' | 'Amateur' | 'Kids' | 'Seniors' | 'Open';
 export type HistoricalResult = {
   year: number; categoryHe: string; family: Family; isTeam: boolean;
@@ -236,7 +235,7 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: false, rank: 3, name: 'עמוס שפירא', seconds: 2062 },
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: false, rank: 4, name: 'מיכה פטרי', seconds: 2070 },
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 1, name: 'איתן זלקין, עומר פטרי, גל שמאי', seconds: 1206, members: ['איתן זלקין', 'עומר פטרי', 'גל שמאי'] },
-  { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 2, name: 'רום רחמוט רועי כלפה לירי קריקון', seconds: 1236 },
+  { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 2, name: 'לירי קריקון, רועי כלפה, רום רחמוט', seconds: 1236, members: ['לירי קריקון', 'רועי כלפה', 'רום רחמוט'] },
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 3, name: 'אורי עברון בארי צורף אלדר דגן', seconds: 1284 },
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 4, name: 'דוד מופז רותם בן צבי עומר גליקסמן', seconds: 1308 },
   { year: 2022, categoryHe: 'עממי', family: 'Amateur', isTeam: true, rank: 5, name: 'רוני גליקסמן סטפן גליקסמן אור גליקסמן', seconds: 1426 },
@@ -282,14 +281,14 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2023, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 4, name: 'ענבל שפירא, איתי שפירא, דורי שפירא', seconds: 2703, members: ['ענבל שפירא', 'איתי שפירא', 'דורי שפירא'] },
   { year: 2023, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 5, name: 'בני שמאי, אשר גנטק, אלון שמאי', seconds: 2772, members: ['בני שמאי', 'אשר גנטק', 'אלון שמאי'] },
   { year: 2023, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 6, name: 'יונתן שוורצמן מיכאל גליקסמן גבע לבון', seconds: 2961 },
-  { year: 2023, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 7, name: 'שרית ברוג מיכי ברוג ניר צורף', seconds: 3024 },
+  { year: 2023, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 7, name: 'ניר צורף, מיכי ברוג, שרית ברוג', seconds: 3024, members: ['ניר צורף', 'מיכי ברוג', 'שרית ברוג'] },
   { year: 2023, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 8, name: 'סטפן גליקסמן עומר גליקסמן ליאור גליקסמן', seconds: 3097 },
   { year: 2023, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 9, name: 'אלעד שושן, מוס ג;sopa&ייקובס, טל מייסלס', seconds: 3130, members: ['אלעד שושן', 'מוס ג;sopa&ייקובס', 'טל מייסלס'] },
   { year: 2023, categoryHe: 'מקצועי', family: 'Elite', isTeam: true, rank: 10, name: 'אלה קרים, יוסי גל, שני מקלאוד', seconds: 3552, members: ['אלה קרים', 'יוסי גל', 'שני מקלאוד'] },
   { year: 2023, categoryHe: 'עממי', family: 'Amateur', isTeam: false, rank: 1, name: 'מיכה פטרי', seconds: 1500 },
   { year: 2023, categoryHe: 'עממי', family: 'Amateur', isTeam: false, rank: 2, name: 'עמוס שפירא', seconds: 2460 },
   { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 1, name: 'צחי עמיתי, סהר עמיתי, שני עמיתי', seconds: 1153, members: ['צחי עמיתי', 'סהר עמיתי', 'שני עמיתי'] },
-  { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 2, name: 'יונתן זלקין אלעד זלקין איתן זלקין', seconds: 1310 },
+  { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 2, name: 'איתן זלקין, אלעד זלקין, יונתן זלקין', seconds: 1310, members: ['איתן זלקין', 'אלעד זלקין', 'יונתן זלקין'] },
   { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 3, name: 'רותם בן צבי דניאל בן צבי הילה בן צבי', seconds: 1460 },
   { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 4, name: 'עמיר ססלר רועי ססלר תמר ססלר', seconds: 1703 },
   { year: 2023, categoryHe: 'עממי משפחתי', family: 'Amateur', isTeam: true, rank: 5, name: 'יפעת רז קבלו איליי קבלו הילה עמיתי רז', seconds: 1710 },
