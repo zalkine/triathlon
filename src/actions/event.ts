@@ -27,6 +27,14 @@ export async function setAllowRandomGrouping(locale: string, allow: boolean) {
   revalidatePath(`/${locale}/register`);
 }
 
+// Whether the public Results page shows live rankings/times. Staff always see
+// results regardless; this only gates the public view.
+export async function setPublicResultsVisible(locale: string, visible: boolean) {
+  await requireRole('ADMIN');
+  await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { publicResultsVisible: visible } });
+  revalidatePath('/', 'layout');
+}
+
 function legsFor(r: { legSwim: boolean; legBike: boolean; legRun: boolean }): Leg[] {
   const legs: Leg[] = [];
   if (r.legSwim) legs.push('SWIM');

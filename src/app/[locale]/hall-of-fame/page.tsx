@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import PublicHeader from '@/components/PublicHeader';
 import CompetitorSearch from '@/components/CompetitorSearch';
+import MedalTable from '@/components/MedalTable';
 import { SPECIAL_AWARDS } from '@/data/historical';
 import {
   buckets,
@@ -9,7 +10,6 @@ import {
   familyLabel,
   formatHms,
   kindLabel,
-  medalTable,
   resultsFor,
   years,
 } from '@/lib/hallOfFame';
@@ -21,7 +21,6 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
   const records = courseRecords();
   const allYears = years();
   const bucketList = buckets();
-  const medalists = medalTable();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -68,12 +67,14 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
               <h3 className="mb-3 text-lg font-bold">{year}</h3>
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {championsFor(year).map((c) => (
-                  <li key={`${c.family}-${c.isTeam}`} className="flex items-baseline justify-between gap-3 text-sm">
-                    <span className="text-ink-light">
+                  <li key={`${c.family}-${c.isTeam}`} className="text-sm">
+                    <div className="text-xs text-ink-light">
                       {familyLabel(c.family, locale)} · {kindLabel(c.isTeam, locale)}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-end font-semibold">{c.name}</span>
-                    <span className="font-mono tabular-nums text-swim-dark">{formatHms(c.seconds)}</span>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="break-words font-semibold">{c.name}</span>
+                      <span className="shrink-0 font-mono tabular-nums text-swim-dark">{formatHms(c.seconds)}</span>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -101,35 +102,8 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
           </section>
         )}
 
-        {/* Medal table */}
-        <section className="space-y-3">
-          <h2 className="text-xl font-bold">🏅 {t('medalists')}</h2>
-          <p className="text-sm text-ink-light">{t('medalsNote')}</p>
-          <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white/70 shadow-sm">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-ink/10 text-ink-light">
-                  <th className="px-4 py-2 text-start font-medium">{t('athlete')}</th>
-                  <th className="px-3 py-2 text-center font-medium">🥇</th>
-                  <th className="px-3 py-2 text-center font-medium">🥈</th>
-                  <th className="px-3 py-2 text-center font-medium">🥉</th>
-                  <th className="px-4 py-2 text-center font-medium">{t('total')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {medalists.map((m) => (
-                  <tr key={m.name} className="border-b border-ink/5 last:border-0">
-                    <td className="px-4 py-2 font-medium">{m.name}</td>
-                    <td className="px-3 py-2 text-center tabular-nums">{m.gold || ''}</td>
-                    <td className="px-3 py-2 text-center tabular-nums">{m.silver || ''}</td>
-                    <td className="px-3 py-2 text-center tabular-nums">{m.bronze || ''}</td>
-                    <td className="px-4 py-2 text-center font-semibold tabular-nums">{m.total}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        {/* Medal table (Personal / including group medals) */}
+        <MedalTable />
 
         {/* Full results, browsable */}
         <section className="space-y-3">
@@ -149,9 +123,9 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
                       <ol className="divide-y divide-ink/5">
                         {rows.map((r, i) => (
                           <li key={i} className="flex items-baseline gap-3 py-1.5 text-sm">
-                            <span className="w-6 text-end font-mono text-ink-light">{i + 1}</span>
-                            <span className="min-w-0 flex-1 truncate font-medium">{r.name}</span>
-                            <span className="font-mono tabular-nums text-ink-light">{formatHms(r.seconds)}</span>
+                            <span className="w-6 shrink-0 text-end font-mono text-ink-light">{i + 1}</span>
+                            <span className="min-w-0 flex-1 break-words font-medium">{r.name}</span>
+                            <span className="shrink-0 font-mono tabular-nums text-ink-light">{formatHms(r.seconds)}</span>
                           </li>
                         ))}
                       </ol>

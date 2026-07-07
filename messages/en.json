@@ -41,7 +41,10 @@
     "records": "All-Time Records",
     "champions": "Champions by Year",
     "medalists": "Medal Table",
+    "medalsPersonal": "Personal",
+    "medalsWithGroups": "Incl. group medals",
     "medalsNote": "Career medals from the individual races (1st / 2nd / 3rd in each year and category).",
+    "medalsWithGroupsNote": "Includes team podiums — each member of a medal-winning team is credited. Teams whose roster couldn't be split reliably are not counted.",
     "athlete": "Athlete",
     "total": "Total",
     "allResults": "All Results",
@@ -61,7 +64,8 @@
     "finished": "Finished",
     "noEntries": "No competitors registered in this category yet.",
     "selectCategory": "Select a category",
-    "updatedLive": "Updates live"
+    "updatedLive": "Updates live",
+    "hidden": "Live results aren't published yet. Check back soon."
   },
   "login": {
     "title": "Staff Login",
@@ -172,6 +176,11 @@
     "randomGroupingLabel": "Random grouping",
     "enableRandomGrouping": "Enable",
     "disableRandomGrouping": "Disable",
+    "publicResultsLabel": "Public results",
+    "shown": "Shown",
+    "hidden": "Hidden",
+    "hideResults": "Hide from public",
+    "showResults": "Show to public",
     "generateSchedule": "Run Lottery & Generate Schedule",
     "generateScheduleConfirm": "Form teams, create heats, and generate the schedule from all checked-in registrants? Safe to re-run for anyone not yet placed.",
     "scheduleGeneratedAt": "Schedule generated at {time}",

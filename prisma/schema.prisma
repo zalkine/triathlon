@@ -140,4 +140,5 @@ model EventSettings {
   heatGapMinutes      Int       @default(3)
   scheduleGeneratedAt DateTime?
   allowRandomGrouping Boolean   @default(true)
+  publicResultsVisible Boolean  @default(true)
 }

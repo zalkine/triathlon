@@ -21,6 +21,7 @@ export default function ResultsView({ categories }: { categories: Category[] }) 
   const t = useTranslations('results');
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? '');
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [hidden, setHidden] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async (id: string) => {
@@ -28,7 +29,8 @@ export default function ResultsView({ categories }: { categories: Category[] }) 
     const res = await fetch(`/api/results/${id}`, { cache: 'no-store' });
     if (!res.ok) return;
     const data = await res.json();
-    setEntries(data.entries);
+    setHidden(!!data.hidden);
+    setEntries(data.entries ?? []);
     setLoading(false);
   }, []);
 
@@ -41,6 +43,14 @@ export default function ResultsView({ categories }: { categories: Category[] }) 
 
   const statusLabel = (status: Entry['status']) =>
     status === 'NOT_STARTED' ? t('notStarted') : status === 'IN_PROGRESS' ? t('inProgress') : t('finished');
+
+  if (hidden) {
+    return (
+      <div className="rounded-2xl border border-ink/10 bg-white/70 p-10 text-center text-ink-light">
+        {t('hidden')}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
