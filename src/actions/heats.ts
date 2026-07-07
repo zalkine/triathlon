@@ -24,6 +24,20 @@ export async function deleteHeat(locale: string, heatId: string) {
   redirect(`/${locale}/staff/manage`);
 }
 
+// Create an extra heat in a category on the spot (admin or start-line timekeeper),
+// e.g. when moving competitors around needs somewhere to put them. Auto-named
+// "Heat N". Returns the id so the caller can drop competitors into it.
+export async function createHeatForCategory(categoryId: string) {
+  const session = await requireSession();
+  if (session.role !== 'ADMIN' && session.role !== 'TIMEKEEPER') throw new Error('FORBIDDEN');
+  const category = await prisma.category.findUnique({ where: { id: categoryId } });
+  if (!category) return { error: 'no-category' as const };
+  const count = await prisma.heat.count({ where: { categoryId } });
+  const heat = await prisma.heat.create({ data: { categoryId, name: `Heat ${count + 1}` } });
+  revalidatePath('/', 'layout');
+  return { ok: true as const, heatId: heat.id };
+}
+
 // Used by the "Start" timing station: only succeeds if the heat hasn't started yet.
 // `atMs` is the moment the timekeeper actually pressed GO (captured on their
 // device). Passing it means a retry after a network blip still records the real

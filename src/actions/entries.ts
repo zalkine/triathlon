@@ -121,3 +121,48 @@ export async function setEntryTime(
   revalidatePath(`/${locale}/staff/manage/heats/${heatId}`);
   revalidatePath('/', 'layout');
 }
+
+// --- On-the-spot roster edits (admin or start-line timekeeper) --------------
+// Race-day fixups that override the registration/lottery: move a competitor to a
+// different heat (even a different race type), add someone who isn't placed, or
+// remove one. Available to ADMIN and TIMEKEEPER.
+
+async function requireStaff() {
+  const session = await requireSession();
+  if (session.role !== 'ADMIN' && session.role !== 'TIMEKEEPER') throw new Error('FORBIDDEN');
+}
+
+// Move an entry to another heat — including a heat in a different category, e.g.
+// a competitor who registered as Pro but is actually running Intermediate. Leg
+// times are cleared: they belonged to the old heat's clock, so the competitor
+// starts fresh in the new heat.
+export async function moveEntry(entryId: string, targetHeatId: string) {
+  await requireStaff();
+  const target = await prisma.heat.findUnique({ where: { id: targetHeatId } });
+  if (!target) return { error: 'no-heat' as const };
+  await prisma.entry.update({
+    where: { id: entryId },
+    data: { heatId: targetHeatId, swimTime: null, bikeTime: null, runTime: null },
+  });
+  revalidatePath('/', 'layout');
+  return { ok: true as const };
+}
+
+// Add a competitor/team to a heat on the spot (name only). Members can be added
+// afterwards from the admin heat page for a relay.
+export async function addRaceEntry(heatId: string, name: string) {
+  await requireStaff();
+  const trimmed = name.trim();
+  if (!trimmed) return { error: 'empty' as const };
+  const entry = await prisma.entry.create({ data: { heatId, name: trimmed } });
+  revalidatePath('/', 'layout');
+  return { ok: true as const, entryId: entry.id };
+}
+
+// Permanently remove an entry from the race (harder than "scratch").
+export async function removeRaceEntry(entryId: string) {
+  await requireStaff();
+  await prisma.entry.delete({ where: { id: entryId } });
+  revalidatePath('/', 'layout');
+  return { ok: true as const };
+}
