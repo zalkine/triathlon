@@ -1,6 +1,7 @@
 import { Link } from '@/i18n/navigation';
 
 const COLORS: Record<string, string> = {
+  checkin: 'bg-swim-dark text-white',
   start: 'bg-ink text-cream',
   swim: 'bg-swim text-ink',
   bike: 'bg-bike text-ink',

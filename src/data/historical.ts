@@ -320,3 +320,13 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2023, categoryHe: 'ילדים קבוצתי ד-ו', family: 'Kids', isTeam: true, rank: 3, name: 'רותם מרקדו איילה מרקדו איילה מרקדו', seconds: 660 },
   { year: 2023, categoryHe: 'ילדים קבוצתי ד-ו', family: 'Kids', isTeam: true, rank: 4, name: 'הילי חיון אלה בקר גאיה הולצמן', seconds: 664 },
 ];
+
+// Special trophies awarded over the years to individual candidates (e.g. eldest
+// / youngest competitor). Not present in the result sheets — fill in from the
+// club's records. Rendered in the Hall of Fame when non-empty.
+export type SpecialAward = { year: number; titleHe: string; titleEn: string; name: string; note?: string };
+
+export const SPECIAL_AWARDS: SpecialAward[] = [
+  // { year: 2023, titleHe: 'המתחרה המבוגר/ת ביותר', titleEn: 'Eldest competitor', name: '...' },
+  // { year: 2023, titleHe: 'המתחרה הצעיר/ה ביותר', titleEn: 'Youngest competitor', name: '...' },
+];

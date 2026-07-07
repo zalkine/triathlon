@@ -1,5 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import PublicHeader from '@/components/PublicHeader';
+import CompetitorSearch from '@/components/CompetitorSearch';
+import { SPECIAL_AWARDS } from '@/data/historical';
 import {
   buckets,
   championsFor,
@@ -29,6 +31,12 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
           <h1 className="text-3xl font-black">{t('title')}</h1>
           <p className="text-ink-light">{t('subtitle')}</p>
         </header>
+
+        {/* Search any competitor's full history (solo and team) */}
+        <section className="space-y-3">
+          <h2 className="text-xl font-bold">🔎 {t('findCompetitor')}</h2>
+          <CompetitorSearch />
+        </section>
 
         {/* All-time course records */}
         <section className="space-y-3">
@@ -72,6 +80,26 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
             </div>
           ))}
         </section>
+
+        {/* Special trophies (eldest / youngest / etc.) — only when we have data */}
+        {SPECIAL_AWARDS.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-xl font-bold">🏆 {t('specialAwards')}</h2>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {[...SPECIAL_AWARDS]
+                .sort((a, b) => b.year - a.year)
+                .map((a, i) => (
+                  <div key={i} className="rounded-xl border border-ink/10 bg-white/70 p-3 text-sm shadow-sm">
+                    <div className="text-xs text-ink-light">
+                      {a.year} · {locale === 'he' ? a.titleHe : a.titleEn}
+                    </div>
+                    <div className="font-semibold">{a.name}</div>
+                    {a.note && <div className="text-xs text-ink-light">{a.note}</div>}
+                  </div>
+                ))}
+            </div>
+          </section>
+        )}
 
         {/* Medal table */}
         <section className="space-y-3">

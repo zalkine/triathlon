@@ -11,6 +11,7 @@ export default async function StationsPage() {
         <p className="text-ink-light">{t('subtitle')}</p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <StationTile href="/staff/checkin" station="checkin" title={t('checkin')} desc={t('checkinDesc')} />
         <StationTile href="/staff/stations/start" station="start" title={t('start')} desc={t('startDesc')} />
         <StationTile href="/staff/stations/swim" station="swim" title={t('swim')} desc={t('swimDesc')} />
         <StationTile href="/staff/stations/bike" station="bike" title={t('bike')} desc={t('bikeDesc')} />
