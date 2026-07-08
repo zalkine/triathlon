@@ -7,7 +7,7 @@ import { checkInRegistrant, undoCheckIn } from '@/actions/registrants';
 type Registrant = {
   id: string;
   name: string;
-  age: number;
+  age: number | null;
   mode: string;
   categoryNameEn: string;
   categoryNameHe: string;
@@ -76,7 +76,8 @@ export default function CheckinView() {
             }`}
           >
             <span className="text-xs text-ink-light">
-              {locale === 'he' ? r.categoryNameHe : r.categoryNameEn} · {r.age}
+              {locale === 'he' ? r.categoryNameHe : r.categoryNameEn}
+              {r.age != null && ` · ${r.age}`}
             </span>
             <span className="text-lg font-bold">{r.name}</span>
             <span

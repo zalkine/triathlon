@@ -7,10 +7,11 @@ import type { RegisterState } from '@/actions/registrants';
 
 type FormAction = (prevState: RegisterState | undefined, formData: FormData) => Promise<RegisterState>;
 type CategoryInfo = { key: string; nameEn: string; nameHe: string };
-type Teammate = { id: string; name: string; age: number; legSwim: boolean; legBike: boolean; legRun: boolean };
+type Teammate = { id: string; name: string; legSwim: boolean; legBike: boolean; legRun: boolean };
 type OpenGroup = { id: string; swim: string | null; bike: string | null; run: string | null; openLegs: string[] };
 
 const LATER = 'LATER';
+const NEW = 'NEW';
 const legLabelKey = { SWIM: 'roleSwimLabel', BIKE: 'roleBikeLabel', RUN: 'roleRunLabel' } as const;
 
 function SubmitButton({ label }: { label: string }) {
@@ -45,34 +46,26 @@ export default function RegisterForm({ action, categories }: { action: FormActio
   const [groupChoice, setGroupChoice] = useState<'AVAILABLE' | 'HAS_GROUP'>('AVAILABLE');
   const [groupMode, setGroupMode] = useState<'CREATE' | 'JOIN'>('CREATE');
   const [pool, setPool] = useState<Teammate[]>([]);
-  const [selected, setSelected] = useState<string[]>([]);
+  // Each leg holds a "kind" (CAPTAIN | pool id | NEW | LATER | '') plus, when NEW,
+  // the typed teammate name.
   const [roleSwim, setRoleSwim] = useState('');
   const [roleBike, setRoleBike] = useState('');
   const [roleRun, setRoleRun] = useState('');
+  const [nameSwim, setNameSwim] = useState('');
+  const [nameBike, setNameBike] = useState('');
+  const [nameRun, setNameRun] = useState('');
 
   // "join an open group" flow
   const [openGroups, setOpenGroups] = useState<OpenGroup[]>([]);
   const [joinGroupId, setJoinGroupId] = useState('');
   const [joinLeg, setJoinLeg] = useState('');
 
+  // Age is only needed for the children's brackets (it splits 6–9 / 9–12).
+  const isKids = skillLevel === 'KIDS';
   const ageNum = Number(age);
-  // Registration opens at 8. Young members (8–12) may enter any race — pro,
-  // intermediate, or their kids bracket; over-12 may only go pro/intermediate.
-  const validAge = age !== '' && Number.isInteger(ageNum) && ageNum >= 8;
-  const canPickKids = validAge && ageNum <= 12;
-  const bracket = !validAge
-    ? null
-    : skillLevel === 'KIDS'
-      ? ageNum < 9
-        ? 'KIDS_6_9'
-        : 'KIDS_9_12'
-      : skillLevel;
+  const validKidsAge = age !== '' && Number.isInteger(ageNum) && ageNum >= 6 && ageNum <= 12;
+  const bracket = isKids ? (validKidsAge ? (ageNum < 9 ? 'KIDS_6_9' : 'KIDS_9_12') : null) : skillLevel;
   const categoryKey = bracket ? `${bracket}_${mode}` : '';
-
-  // Drop back to a valid level if the age no longer permits the kids race.
-  useEffect(() => {
-    if (skillLevel === 'KIDS' && !canPickKids) setSkillLevel('PRO');
-  }, [canPickKids, skillLevel]);
 
   const categoryName = useMemo(() => {
     const match = categories.find((c) => c.key === categoryKey);
@@ -117,6 +110,17 @@ export default function RegisterForm({ action, categories }: { action: FormActio
     };
   }, [formingGroup, categoryKey]);
 
+  // Reset the captain's leg assignments when the category changes: a pool
+  // teammate picked for the old category isn't valid for the new one.
+  useEffect(() => {
+    setRoleSwim('');
+    setRoleBike('');
+    setRoleRun('');
+    setNameSwim('');
+    setNameBike('');
+    setNameRun('');
+  }, [categoryKey]);
+
   // Clear a stale join selection if the group/leg is no longer offered.
   useEffect(() => {
     if (!openGroups.some((g) => g.id === joinGroupId && g.openLegs.includes(joinLeg))) {
@@ -126,29 +130,15 @@ export default function RegisterForm({ action, categories }: { action: FormActio
     if (openGroups.length === 0) setGroupMode('CREATE');
   }, [openGroups]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Options for the role dropdowns: me (captain) + picked teammates + "later".
+  // Options for the role dropdowns: me (captain), any registered available
+  // teammate, a teammate I'll name now, or "will be added later".
   const roleOptions = useMemo(() => {
     const opts = [{ value: 'CAPTAIN', label: `${t('me')}${name ? ` (${name})` : ''}` }];
-    for (const id of selected) {
-      const tm = pool.find((p) => p.id === id);
-      if (tm) opts.push({ value: id, label: tm.name });
-    }
+    for (const tm of pool) opts.push({ value: tm.id, label: tm.name });
+    opts.push({ value: NEW, label: t('roleNew') });
     opts.push({ value: LATER, label: t('roleLater') });
     return opts;
-  }, [selected, pool, name, t]);
-
-  const toggleTeammate = (id: string) => {
-    setSelected((prev) => {
-      if (prev.includes(id)) {
-        [roleSwim, roleBike, roleRun].forEach((r, i) => {
-          if (r === id) [setRoleSwim, setRoleBike, setRoleRun][i]('');
-        });
-        return prev.filter((x) => x !== id);
-      }
-      if (prev.length >= 2) return prev; // max 2 teammates (3 people total)
-      return [...prev, id];
-    });
-  };
+  }, [pool, name, t]);
 
   if (state?.success) {
     return (
@@ -190,10 +180,12 @@ export default function RegisterForm({ action, categories }: { action: FormActio
       <input type="hidden" name="categoryKey" value={categoryKey} readOnly />
       <input type="hidden" name="groupChoice" value={mode === 'TEAM' ? groupChoice : ''} readOnly />
       <input type="hidden" name="groupMode" value={formingGroup ? groupMode : ''} readOnly />
-      <input type="hidden" name="teammateIds" value={JSON.stringify(selected)} readOnly />
       <input type="hidden" name="roleSwim" value={roleSwim} readOnly />
       <input type="hidden" name="roleBike" value={roleBike} readOnly />
       <input type="hidden" name="roleRun" value={roleRun} readOnly />
+      <input type="hidden" name="roleSwimName" value={nameSwim} readOnly />
+      <input type="hidden" name="roleBikeName" value={nameBike} readOnly />
+      <input type="hidden" name="roleRunName" value={nameRun} readOnly />
       <input type="hidden" name="joinGroupId" value={joinGroupId} readOnly />
       <input type="hidden" name="joinLeg" value={joinLeg} readOnly />
 
@@ -213,37 +205,38 @@ export default function RegisterForm({ action, categories }: { action: FormActio
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium" htmlFor="age">
-          {t('age')}
+        <label className="mb-1 block text-sm font-medium" htmlFor="skillLevel">
+          {t('skillLevel')}
         </label>
-        <input
-          id="age"
-          name="age"
-          type="number"
-          min={8}
-          max={110}
-          required
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
+        <select
+          id="skillLevel"
+          value={skillLevel}
+          onChange={(e) => setSkillLevel(e.target.value as 'PRO' | 'INTER' | 'KIDS')}
           className="w-full rounded-lg border border-ink/20 px-4 py-2 focus:border-ink focus:outline-none"
-        />
+        >
+          <option value="PRO">{t('professional')}</option>
+          <option value="INTER">{t('intermediate')}</option>
+          <option value="KIDS">{t('kids')}</option>
+        </select>
       </div>
 
-      {validAge && (
+      {/* Age is asked only for the kids race, to place them in the 6–9 / 9–12 bracket. */}
+      {isKids && (
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="skillLevel">
-            {t('skillLevel')}
+          <label className="mb-1 block text-sm font-medium" htmlFor="age">
+            {t('age')}
           </label>
-          <select
-            id="skillLevel"
-            value={skillLevel}
-            onChange={(e) => setSkillLevel(e.target.value as 'PRO' | 'INTER' | 'KIDS')}
+          <input
+            id="age"
+            name="age"
+            type="number"
+            min={6}
+            max={12}
+            required
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
             className="w-full rounded-lg border border-ink/20 px-4 py-2 focus:border-ink focus:outline-none"
-          >
-            <option value="PRO">{t('professional')}</option>
-            <option value="INTER">{t('intermediate')}</option>
-            {canPickKids && <option value="KIDS">{t('kids')}</option>}
-          </select>
+          />
         </div>
       )}
 
@@ -343,40 +336,18 @@ export default function RegisterForm({ action, categories }: { action: FormActio
               )}
 
               {groupMode === 'CREATE' && (
-                <>
-                  <div>
-                    <p className="mb-2 text-sm">{t('pickTeammates')}</p>
-                    {pool.length === 0 ? (
-                      <p className="text-sm text-ink-light">{t('noTeammates')}</p>
-                    ) : (
-                      <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-ink/10 p-2">
-                        {pool.map((tm) => (
-                          <label key={tm.id} className="flex items-center gap-2 text-sm">
-                            <input
-                              type="checkbox"
-                              checked={selected.includes(tm.id)}
-                              disabled={!selected.includes(tm.id) && selected.length >= 2}
-                              onChange={() => toggleTeammate(tm.id)}
-                            />
-                            {tm.name}
-                            <span className="text-ink-light">· {tm.age}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="mb-2 text-sm">{t('assignRoles')}</p>
-                    <div className="space-y-2">
-                      {(
-                        [
-                          ['roleSwimLabel', roleSwim, setRoleSwim],
-                          ['roleBikeLabel', roleBike, setRoleBike],
-                          ['roleRunLabel', roleRun, setRoleRun],
-                        ] as const
-                      ).map(([labelKey, val, setter]) => (
-                        <div key={labelKey} className="flex items-center gap-2">
+                <div>
+                  <p className="mb-2 text-sm">{t('assignRoles')}</p>
+                  <div className="space-y-2">
+                    {(
+                      [
+                        ['roleSwimLabel', roleSwim, setRoleSwim, nameSwim, setNameSwim],
+                        ['roleBikeLabel', roleBike, setRoleBike, nameBike, setNameBike],
+                        ['roleRunLabel', roleRun, setRoleRun, nameRun, setNameRun],
+                      ] as const
+                    ).map(([labelKey, val, setter, nameVal, nameSetter]) => (
+                      <div key={labelKey} className="space-y-1">
+                        <div className="flex items-center gap-2">
                           <span className="w-20 text-sm">{t(labelKey)}</span>
                           <select
                             value={val}
@@ -391,10 +362,20 @@ export default function RegisterForm({ action, categories }: { action: FormActio
                             ))}
                           </select>
                         </div>
-                      ))}
-                    </div>
+                        {val === NEW && (
+                          <input
+                            type="text"
+                            value={nameVal}
+                            onChange={(e) => nameSetter(e.target.value)}
+                            placeholder={t('teammateNamePlaceholder')}
+                            className="ml-[calc(5rem+0.5rem)] w-[calc(100%-5.5rem)] rounded-lg border border-ink/20 px-3 py-1.5 text-sm focus:border-ink focus:outline-none"
+                          />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </>
+                  <p className="mt-2 text-xs text-ink-light">{t('createGroupHint')}</p>
+                </div>
               )}
             </div>
           )}

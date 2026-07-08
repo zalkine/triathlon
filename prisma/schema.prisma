@@ -93,7 +93,9 @@ model Member {
 model Registrant {
   id          String    @id @default(cuid())
   name        String
-  age         Int
+  // Age is collected only for the children's brackets (to split 6–9 / 9–12);
+  // professional and intermediate registrants leave it null.
+  age         Int?
   categoryId  String
   category    Category  @relation(fields: [categoryId], references: [id])
   mode        String

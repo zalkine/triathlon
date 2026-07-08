@@ -25,7 +25,7 @@ export async function GET() {
         // SINGLE categories: every registrant is a solo competitor.
         singles:
           c.type === 'SINGLE'
-            ? c.registrants.map((r) => ({ name: r.name, age: r.age, checkedIn: r.checkedIn }))
+            ? c.registrants.map((r) => ({ name: r.name, checkedIn: r.checkedIn }))
             : [],
         // TEAM categories: formed groups (self-formed or lottery) with role
         // names; an open leg ("will be added later") comes back as null.
@@ -44,7 +44,6 @@ export async function GET() {
                 .filter((r) => r.groupPref !== 'HAS_GROUP' && !inGroup.has(r.id))
                 .map((r) => ({
                   name: r.name,
-                  age: r.age,
                   legSwim: r.legSwim,
                   legBike: r.legBike,
                   legRun: r.legRun,

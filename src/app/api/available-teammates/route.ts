@@ -22,7 +22,6 @@ export async function GET(request: Request) {
     available: available.map((r) => ({
       id: r.id,
       name: r.name,
-      age: r.age,
       legSwim: r.legSwim,
       legBike: r.legBike,
       legRun: r.legRun,
