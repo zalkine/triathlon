@@ -183,7 +183,7 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2021, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 2, name: 'אלון שמאי, נדב מנור, יאיר פטרי', seconds: 1262, members: ['אלון שמאי', 'נדב מנור', 'יאיר פטרי'] },
   { year: 2021, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 3, name: 'איתן זלקין, בארי צורף, גל שמאי', seconds: 1270, members: ['איתן זלקין', 'בארי צורף', 'גל שמאי'] },
   { year: 2021, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 4, name: 'הילה בן צבי, דניאל בן צבי, רותם בן צבי', seconds: 1466, members: ['הילה בן צבי', 'דניאל בן צבי', 'רותם בן צבי'] },
-  { year: 2021, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 5, name: 'אנדריאה, עמליה, בני', seconds: 1530, members: ['אנדריאה', 'עמליה', 'בני'] },
+  { year: 2021, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 5, name: 'אנדריאה שמאי, עמליה שמאי, בני שמאי', seconds: 1530, members: ['אנדריאה שמאי', 'עמליה שמאי', 'בני שמאי'] },
   { year: 2021, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 6, name: 'עומר פטרי, יותם באום, אורי עברון', seconds: 1559, members: ['עומר פטרי', 'יותם באום', 'אורי עברון'] },
   { year: 2021, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 7, name: 'גילי בראודה, שחר ודותן', seconds: 1570, members: ['גילי בראודה', 'שחר ודותן'] },
   { year: 2021, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 8, name: 'אודי גליקסמן, תמר גליקסמן', seconds: 1645, members: ['אודי גליקסמן', 'תמר גליקסמן'] },
