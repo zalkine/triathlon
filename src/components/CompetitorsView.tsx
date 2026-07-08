@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
-type Single = { name: string; age: number; checkedIn: boolean };
+type Single = { name: string; checkedIn: boolean };
 type Group = { id: string; swim: string | null; bike: string | null; run: string | null };
-type Available = { name: string; age: number; legSwim: boolean; legBike: boolean; legRun: boolean; checkedIn: boolean };
+type Available = { name: string; legSwim: boolean; legBike: boolean; legRun: boolean; checkedIn: boolean };
 type Category = {
   id: string;
   nameEn: string;
@@ -68,12 +68,7 @@ export default function CompetitorsView() {
               {c.singles.map((s, i) => (
                 <li key={i} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
                   <span className="font-medium">{s.name}</span>
-                  <span className="flex items-center gap-2 text-ink-light">
-                    <span>
-                      {t('age')}: {s.age}
-                    </span>
-                    {s.checkedIn && arrivedBadge}
-                  </span>
+                  {s.checkedIn && <span className="flex items-center gap-2 text-ink-light">{arrivedBadge}</span>}
                 </li>
               ))}
             </ul>
@@ -115,10 +110,7 @@ export default function CompetitorsView() {
                   <li key={i} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
                     <span className="font-medium">{a.name}</span>
                     <span className="flex flex-wrap items-center gap-2 text-ink-light">
-                      <span>
-                        {t('age')}: {a.age}
-                      </span>
-                      {legsOf(a) && <span>· {legsOf(a)}</span>}
+                      {legsOf(a) && <span>{legsOf(a)}</span>}
                       {a.checkedIn && arrivedBadge}
                     </span>
                   </li>

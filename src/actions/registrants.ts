@@ -15,21 +15,26 @@ export async function registerAction(
   if (!settings?.registrationOpen) return { error: 'closed' };
 
   const name = String(formData.get('name') || '').trim();
-  const age = Number(formData.get('age'));
   const categoryKey = String(formData.get('categoryKey') || '');
 
-  if (!name || !Number.isInteger(age) || age < 8 || age > 110) return { error: 'invalid' };
+  if (!name) return { error: 'invalid' };
 
   const category = await prisma.category.findUnique({ where: { key: categoryKey } });
   if (!category) return { error: 'invalid' };
 
-  // Enforce age eligibility: registration opens at 8. Young members (8–12) may
-  // enter pro, intermediate, or their own kids bracket; over-12 may only enter
-  // pro or intermediate.
-  const kidBracket = age < 9 ? 'KIDS_6_9' : 'KIDS_9_12';
-  const allowedBrackets = age <= 12 ? [kidBracket, 'PRO', 'INTER'] : ['PRO', 'INTER'];
-  const allowedKeys = allowedBrackets.map((b) => `${b}_${category.type}`);
-  if (!allowedKeys.includes(category.key)) return { error: 'invalid' };
+  // Age is only collected for the children's brackets, where it decides the
+  // 6–9 vs 9–12 split. Professional and intermediate registrants have no age
+  // requirement, so their age stays null.
+  const isKids = category.key.startsWith('KIDS_');
+  let age: number | null = null;
+  if (isKids) {
+    const parsed = Number(formData.get('age'));
+    if (!Number.isInteger(parsed) || parsed < 6 || parsed > 12) return { error: 'invalid' };
+    age = parsed;
+    // The chosen kids bracket must match the age (6–8 → 6-9, 9–12 → 9-12).
+    const kidBracket = age < 9 ? 'KIDS_6_9' : 'KIDS_9_12';
+    if (category.key !== `${kidBracket}_${category.type}`) return { error: 'invalid' };
+  }
 
   // Solo competitor: one registrant, done.
   if (category.type === 'SINGLE') {
@@ -97,66 +102,74 @@ export async function registerAction(
     return { success: true };
   }
 
-  // groupMode === 'CREATE': captain assigns the three roles. Each role is
-  // "CAPTAIN", a picked teammate id, or "LATER" (an open leg filled later).
-  let teammateIds: string[] = [];
-  try {
-    teammateIds = JSON.parse(String(formData.get('teammateIds') || '[]'));
-  } catch {
-    return { error: 'invalid' };
-  }
-  teammateIds = [...new Set(teammateIds.filter((id) => typeof id === 'string'))].slice(0, 2);
+  // groupMode === 'CREATE': the captain assigns all three legs at once. Each leg
+  // is one of:
+  //   "CAPTAIN"     - the captain does this leg themselves
+  //   "LATER"       - an open leg, to be filled when a teammate registers
+  //   "NEW"         - a teammate the captain names now (registered on the spot),
+  //                   with the name in role{Swim,Bike,Run}Name
+  //   "<id>"        - an existing "available" registrant picked from the pool
+  const legInputs = (['SWIM', 'BIKE', 'RUN'] as const).map((leg) => {
+    const key = leg === 'SWIM' ? 'roleSwim' : leg === 'BIKE' ? 'roleBike' : 'roleRun';
+    return { leg, kind: String(formData.get(key) || ''), name: String(formData.get(`${key}Name`) || '').trim() };
+  });
 
-  const roleSwim = String(formData.get('roleSwim') || '');
-  const roleBike = String(formData.get('roleBike') || '');
-  const roleRun = String(formData.get('roleRun') || '');
   // Every leg must be explicitly set to a person or to "will be added later".
-  if (!roleSwim || !roleBike || !roleRun) return { error: 'roles-incomplete' };
+  if (legInputs.some((l) => !l.kind)) return { error: 'roles-incomplete' };
+  // A named teammate must actually have a name typed in.
+  if (legInputs.some((l) => l.kind === 'NEW' && !l.name)) return { error: 'roles-incomplete' };
   // The captain registers themselves, so they must take at least one leg.
-  if (![roleSwim, roleBike, roleRun].includes('CAPTAIN')) return { error: 'captain-role' };
+  if (!legInputs.some((l) => l.kind === 'CAPTAIN')) return { error: 'captain-role' };
+  // No single person may hold all three legs (CAPTAIN or the same pool teammate
+  // picked for every leg). Named ("NEW") teammates are always distinct people.
+  const kinds = legInputs.map((l) => l.kind);
+  if (kinds[0] === kinds[1] && kinds[1] === kinds[2] && kinds[0] !== 'NEW') return { error: 'roles-invalid' };
 
-  // Validate teammates are real, same category, and available (pickable, multi-group ok).
-  const teammates = teammateIds.length
-    ? await prisma.registrant.findMany({ where: { id: { in: teammateIds } } })
+  // Validate any picked-from-pool teammates are real, same category, and available.
+  const poolIds = [...new Set(kinds.filter((k) => !['CAPTAIN', 'LATER', 'NEW'].includes(k)))];
+  const teammates = poolIds.length
+    ? await prisma.registrant.findMany({ where: { id: { in: poolIds } } })
     : [];
   if (
-    teammates.length !== teammateIds.length ||
+    teammates.length !== poolIds.length ||
     teammates.some((t) => t.categoryId !== category.id || t.groupPref !== 'AVAILABLE')
   ) {
     return { error: 'bad-teammate' };
   }
 
-  // Create the captain, then resolve role ids (CAPTAIN -> captain.id, LATER -> null).
+  // Create the captain, then any named teammates. Track the rows we make so a
+  // later DB error can't leave stray registrants behind.
   const captain = await prisma.registrant.create({
     data: { name, age, categoryId: category.id, mode: 'TEAM', groupPref: 'HAS_GROUP' },
   });
+  const createdIds = [captain.id];
 
-  const memberIds = new Set([captain.id, ...teammateIds]);
-  const resolve = (v: string): string | null => (v === 'LATER' ? null : v === 'CAPTAIN' ? captain.id : v);
-  const swimId = resolve(roleSwim);
-  const bikeId = resolve(roleBike);
-  const runId = resolve(roleRun);
+  try {
+    const resolved: Record<'SWIM' | 'BIKE' | 'RUN', string | null> = { SWIM: null, BIKE: null, RUN: null };
+    for (const l of legInputs) {
+      if (l.kind === 'LATER') resolved[l.leg] = null;
+      else if (l.kind === 'CAPTAIN') resolved[l.leg] = captain.id;
+      else if (l.kind === 'NEW') {
+        const mate = await prisma.registrant.create({
+          data: { name: l.name, age: null, categoryId: category.id, mode: 'TEAM', groupPref: 'HAS_GROUP' },
+        });
+        createdIds.push(mate.id);
+        resolved[l.leg] = mate.id;
+      } else resolved[l.leg] = l.kind; // a validated pool id
+    }
 
-  // Every filled role must map to a group member, no one may hold all three
-  // legs, and every picked teammate must hold a role.
-  const filledIds = [swimId, bikeId, runId].filter((id): id is string => id != null);
-  const everyRoleIsMember = filledIds.every((id) => memberIds.has(id));
-  const nobodyDoesAllThree = new Set(filledIds).size >= (filledIds.length === 3 ? 2 : 1);
-  const everyTeammateUsed = teammateIds.every((id) => filledIds.includes(id));
-  if (!everyRoleIsMember || !nobodyDoesAllThree || !everyTeammateUsed) {
-    // Roll back the captain we just created so a bad submit doesn't leave a stray.
-    await prisma.registrant.delete({ where: { id: captain.id } });
-    return { error: 'roles-invalid' };
+    await prisma.group.create({
+      data: {
+        categoryId: category.id,
+        swimRegistrantId: resolved.SWIM,
+        bikeRegistrantId: resolved.BIKE,
+        runRegistrantId: resolved.RUN,
+      },
+    });
+  } catch (err) {
+    await prisma.registrant.deleteMany({ where: { id: { in: createdIds } } });
+    throw err;
   }
-
-  await prisma.group.create({
-    data: {
-      categoryId: category.id,
-      swimRegistrantId: swimId,
-      bikeRegistrantId: bikeId,
-      runRegistrantId: runId,
-    },
-  });
 
   revalidatePath('/', 'layout');
   return { success: true };
