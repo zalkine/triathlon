@@ -202,7 +202,22 @@
     "addRegistrant": "הוספת מתחרה",
     "noRegistrants": "אין עדיין מתחרים רשומים.",
     "confirmDeleteRegistrant": "להסיר את המתחרה? הוא/היא יוסר מכל קבוצה שהוא/היא חבר/ת בה.",
-    "deleteRegistrant": "מחיקה"
+    "deleteRegistrant": "מחיקה",
+    "schedulePublishedLabel": "לוח זמנים לציבור",
+    "publishSchedule": "פרסום לציבור",
+    "unpublishSchedule": "הסתרה מהציבור",
+    "unpublishScheduleConfirm": "להסתיר את לוח הזמנים מהציבור? המשתתפים לא יראו את רשימת המקצים עד שתפרסמו שוב.",
+    "preliminaryScheduleTitle": "לוח זמנים ראשוני",
+    "preliminaryScheduleHint": "הערכה המבוססת על הרשמות נוכחיות — מתעדכן עם כל הרשמה חדשה",
+    "raceStartTimeLabel": "שעת תחילת התחרות",
+    "heatGapLabel": "פער בין מקצים",
+    "heatGapUnit": "דק׳",
+    "estimatedWindow": "חלון אירוע משוער",
+    "prelim_registrants": "נרשמים",
+    "prelim_heats": "מקצים משוערים",
+    "prelim_timeWindow": "זמן משוער",
+    "totalHeats": "סה\"כ מקצים",
+    "noRegistrantsYet": "אין עדיין נרשמים — כאן יופיעו ספירות מקצים משוערות ככל שאנשים ירשמו."
   },
   "register": {
     "title": "הרשמה לתחרות",
