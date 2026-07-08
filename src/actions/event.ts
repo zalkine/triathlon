@@ -16,12 +16,11 @@ export async function openRegistration(locale: string) {
   revalidatePath('/', 'layout');
 }
 
-// Closing registration is permanent — there is no reopen action.
 export async function closeRegistration(locale: string) {
   await requireRole('ADMIN');
   await prisma.eventSettings.update({
     where: { id: 'singleton' },
-    data: { registrationOpen: false, registrationPermanentlyClosed: true },
+    data: { registrationOpen: false },
   });
   revalidatePath('/', 'layout');
 }

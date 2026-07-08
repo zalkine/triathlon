@@ -137,7 +137,6 @@ model Group {
 model EventSettings {
   id                           String    @id @default("singleton")
   registrationOpen             Boolean   @default(false)
-  registrationPermanentlyClosed Boolean  @default(false)
   competitionActive            Boolean   @default(false)
   raceStartTime                DateTime?
   heatGapMinutes               Int       @default(3)

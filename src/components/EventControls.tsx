@@ -27,12 +27,9 @@ export default async function EventControls({ locale }: { locale: string }) {
       <h2 className="mb-4 font-semibold">{t('eventControls')}</h2>
       <div className="flex flex-wrap items-center gap-6 text-sm">
 
-        {/* Registration — one-way: open once, close once, done. */}
         <div className="flex items-center gap-2">
           <span className="text-ink-light">{t('registrationOpenLabel')}:</span>
-          {settings.registrationPermanentlyClosed ? (
-            <span className="font-semibold text-run-dark">{t('registrationPermanentlyClosed')}</span>
-          ) : settings.registrationOpen ? (
+          {settings.registrationOpen ? (
             <>
               <span className="font-semibold text-swim-dark">{t('open')}</span>
               <ConfirmForm action={runCloseRegistration} confirmMessage={t('closeRegistrationConfirm')}>
@@ -47,14 +44,14 @@ export default async function EventControls({ locale }: { locale: string }) {
           ) : (
             <>
               <span className="font-semibold text-ink-light">{t('closed')}</span>
-              <form action={runOpenRegistration}>
+              <ConfirmForm action={runOpenRegistration} confirmMessage={t('openRegistrationConfirm')}>
                 <button
                   type="submit"
                   className="rounded-full bg-swim px-4 py-1 text-sm font-semibold text-ink hover:brightness-95"
                 >
                   {t('openRegistration')}
                 </button>
-              </form>
+              </ConfirmForm>
             </>
           )}
         </div>
