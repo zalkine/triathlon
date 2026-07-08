@@ -35,7 +35,7 @@ model Category {
   nameHe            String
   type              String
   sortOrder         Int
-  estDurationMinutes Int         @default(45)
+  estDurationMinutes Float       @default(45)
   heats             Heat[]
   registrants       Registrant[]
   groups            Group[]
@@ -139,7 +139,7 @@ model EventSettings {
   registrationOpen             Boolean   @default(false)
   competitionActive            Boolean   @default(false)
   raceStartTime                DateTime?
-  heatGapMinutes               Int       @default(3)
+  heatGapMinutes               Int       @default(2)
   scheduleGeneratedAt          DateTime?
   allowRandomGrouping          Boolean   @default(true)
   publicResultsVisible         Boolean   @default(true)

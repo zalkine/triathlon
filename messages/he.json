@@ -217,7 +217,11 @@
     "prelim_heats": "מקצים משוערים",
     "prelim_timeWindow": "זמן משוער",
     "totalHeats": "סה\"כ מקצים",
-    "noRegistrantsYet": "אין עדיין נרשמים — כאן יופיעו ספירות מקצים משוערות ככל שאנשים ירשמו."
+    "noRegistrantsYet": "אין עדיין נרשמים — כאן יופיעו ספירות מקצים משוערות ככל שאנשים ירשמו.",
+    "exportTitle": "הורדה (CSV)",
+    "exportCompetitors": "רשימת מתחרים",
+    "exportHeats": "רשימת מקצים",
+    "exportResults": "תוצאות (כולל זמני הקפה)"
   },
   "register": {
     "title": "הרשמה לתחרות",

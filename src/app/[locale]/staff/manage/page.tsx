@@ -7,6 +7,8 @@ import UnassignedRegistrants from '@/components/UnassignedRegistrants';
 import TestDataControls from '@/components/TestDataControls';
 import RegistrantsManager from '@/components/RegistrantsManager';
 import PreliminarySchedulePreview from '@/components/PreliminarySchedulePreview';
+import AutoGenerateHeats from '@/components/AutoGenerateHeats';
+import ExportButtons from '@/components/ExportButtons';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +19,15 @@ export default async function ManageDashboardPage() {
     orderBy: { sortOrder: 'asc' },
     include: { heats: { include: { _count: { select: { entries: true } } }, orderBy: { createdAt: 'asc' } } },
   });
+
+  // How many registrations can still be auto-placed into a heat: solo
+  // registrants and self-/lottery-formed groups that aren't scheduled yet.
+  // (Available team members without a group aren't directly placeable.)
+  const [unplacedSingles, unplacedGroups] = await Promise.all([
+    prisma.registrant.count({ where: { entryId: null, mode: 'SINGLE' } }),
+    prisma.group.count({ where: { entryId: null } }),
+  ]);
+  const placeableCount = unplacedSingles + unplacedGroups;
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -30,8 +41,11 @@ export default async function ManageDashboardPage() {
         </Link>
       </div>
 
+      <AutoGenerateHeats locale={locale} placeableCount={placeableCount} />
+
       <EventControls locale={locale} />
       <PreliminarySchedulePreview locale={locale} />
+      <ExportButtons />
       <TestDataControls locale={locale} />
       <RegistrantsManager locale={locale} />
       <UnassignedRegistrants locale={locale} />
