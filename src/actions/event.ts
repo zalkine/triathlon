@@ -77,12 +77,15 @@ function legsFor(r: { legSwim: boolean; legBike: boolean; legRun: boolean }): Le
 /**
  * Turns registrations into a runnable schedule for every category:
  *  - TEAM: self-formed groups are scheduled as-is; if random grouping is on, the
- *    lottery forms extra groups from checked-in "available" people not already in
- *    any group. Every group (formed or lottery) becomes one heat entry.
- *  - SINGLE: each checked-in solo competitor becomes one heat entry.
- * Then every heat gets an estimated start time in race order. Safe to re-run:
- * already-scheduled groups (group.entryId set) and already-placed singles
- * (registrant.entryId set) are skipped, so a later run only adds new arrivals.
+ *    lottery forms extra groups from "available" people not already in any group.
+ *    Every group (formed or lottery) becomes one heat entry.
+ *  - SINGLE: each registered solo competitor becomes one heat entry.
+ * This is the *preliminary* schedule built from registrations — check-in is a
+ * race-day step and is intentionally NOT required here, so the admin sees the
+ * full proposed heat list during registration. Then every heat gets an estimated
+ * start time in race order. Safe to re-run: already-scheduled groups
+ * (group.entryId set) and already-placed singles (registrant.entryId set) are
+ * skipped, so a later run only adds newly-registered people.
  */
 export async function generateSchedule(locale: string) {
   await requireRole('ADMIN');
@@ -108,7 +111,7 @@ export async function generateSchedule(locale: string) {
         const pool = (
           await prisma.registrant.findMany({
             // not HAS_GROUP also picks up legacy null-groupPref registrants.
-            where: { categoryId: category.id, groupPref: { not: 'HAS_GROUP' }, checkedIn: true },
+            where: { categoryId: category.id, groupPref: { not: 'HAS_GROUP' } },
           })
         ).filter((r) => !inGroup.has(r.id));
 
@@ -171,7 +174,7 @@ export async function generateSchedule(locale: string) {
       }
     } else {
       const pending = await prisma.registrant.findMany({
-        where: { categoryId: category.id, checkedIn: true, entryId: null },
+        where: { categoryId: category.id, entryId: null },
       });
       if (pending.length === 0) continue;
 

@@ -217,7 +217,11 @@
     "prelim_heats": "Est. heats",
     "prelim_timeWindow": "Est. time",
     "totalHeats": "Total heats",
-    "noRegistrantsYet": "No registrations yet — expected heat counts will appear here as people sign up."
+    "noRegistrantsYet": "No registrations yet — expected heat counts will appear here as people sign up.",
+    "exportTitle": "Download (CSV)",
+    "exportCompetitors": "Competitors list",
+    "exportHeats": "Heat list",
+    "exportResults": "Results (with lap times)"
   },
   "register": {
     "title": "Race Registration",
