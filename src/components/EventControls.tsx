@@ -1,7 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
 import {
-  setRegistrationOpen,
+  openRegistration,
+  closeRegistration,
   generateSchedule,
   activateCompetition,
   setAllowRandomGrouping,
@@ -14,7 +15,8 @@ export default async function EventControls({ locale }: { locale: string }) {
   const t = await getTranslations('manage');
   const settings = await prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } });
 
-  const toggleRegistration = setRegistrationOpen.bind(null, locale, !settings.registrationOpen);
+  const runOpenRegistration = openRegistration.bind(null, locale);
+  const runCloseRegistration = closeRegistration.bind(null, locale);
   const toggleRandomGrouping = setAllowRandomGrouping.bind(null, locale, !settings.allowRandomGrouping);
   const togglePublicResults = setPublicResultsVisible.bind(null, locale, !settings.publicResultsVisible);
   const runGenerateSchedule = generateSchedule.bind(null, locale);
@@ -24,14 +26,37 @@ export default async function EventControls({ locale }: { locale: string }) {
     <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
       <h2 className="mb-4 font-semibold">{t('eventControls')}</h2>
       <div className="flex flex-wrap items-center gap-6 text-sm">
+
+        {/* Registration — one-way: open once, close once, done. */}
         <div className="flex items-center gap-2">
           <span className="text-ink-light">{t('registrationOpenLabel')}:</span>
-          <span className="font-semibold">{settings.registrationOpen ? t('open') : t('closed')}</span>
-          <form action={toggleRegistration}>
-            <button type="submit" className="text-sm font-semibold underline">
-              {settings.registrationOpen ? t('closeRegistration') : t('reopenRegistration')}
-            </button>
-          </form>
+          {settings.registrationPermanentlyClosed ? (
+            <span className="font-semibold text-run-dark">{t('registrationPermanentlyClosed')}</span>
+          ) : settings.registrationOpen ? (
+            <>
+              <span className="font-semibold text-swim-dark">{t('open')}</span>
+              <ConfirmForm action={runCloseRegistration} confirmMessage={t('closeRegistrationConfirm')}>
+                <button
+                  type="submit"
+                  className="rounded-full bg-run px-4 py-1 text-sm font-semibold text-white hover:brightness-95"
+                >
+                  {t('closeRegistration')}
+                </button>
+              </ConfirmForm>
+            </>
+          ) : (
+            <>
+              <span className="font-semibold text-ink-light">{t('closed')}</span>
+              <form action={runOpenRegistration}>
+                <button
+                  type="submit"
+                  className="rounded-full bg-swim px-4 py-1 text-sm font-semibold text-ink hover:brightness-95"
+                >
+                  {t('openRegistration')}
+                </button>
+              </form>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-2">

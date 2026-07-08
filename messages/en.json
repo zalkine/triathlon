@@ -28,7 +28,8 @@
     "tagline1": "When sport meets the community",
     "date": "19.9",
     "tagline2": "It's finally back",
-    "comingSoon": "More details and registration soon"
+    "comingSoon": "More details and registration soon",
+    "hofSubtitle": "Records, champions & all-time results"
   },
   "hof": {
     "title": "Hall of Fame",
@@ -171,8 +172,10 @@
     "registrationOpenLabel": "Registration",
     "open": "Open",
     "closed": "Closed",
+    "openRegistration": "Open Registration",
     "closeRegistration": "Close Registration",
-    "reopenRegistration": "Reopen Registration",
+    "closeRegistrationConfirm": "Close registration permanently? Competitors will no longer be able to sign up and this cannot be undone.",
+    "registrationPermanentlyClosed": "Permanently closed",
     "randomGroupingLabel": "Random grouping",
     "enableRandomGrouping": "Enable",
     "disableRandomGrouping": "Disable",

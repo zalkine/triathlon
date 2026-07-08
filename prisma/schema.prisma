@@ -135,12 +135,13 @@ model Group {
 
 // Single-row table (id is always "singleton") holding global race-day state.
 model EventSettings {
-  id                  String    @id @default("singleton")
-  registrationOpen    Boolean   @default(true)
-  competitionActive   Boolean   @default(false)
-  raceStartTime       DateTime?
-  heatGapMinutes      Int       @default(3)
-  scheduleGeneratedAt DateTime?
-  allowRandomGrouping Boolean   @default(true)
-  publicResultsVisible Boolean  @default(true)
+  id                           String    @id @default("singleton")
+  registrationOpen             Boolean   @default(false)
+  registrationPermanentlyClosed Boolean  @default(false)
+  competitionActive            Boolean   @default(false)
+  raceStartTime                DateTime?
+  heatGapMinutes               Int       @default(3)
+  scheduleGeneratedAt          DateTime?
+  allowRandomGrouping          Boolean   @default(true)
+  publicResultsVisible         Boolean   @default(true)
 }

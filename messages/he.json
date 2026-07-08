@@ -28,7 +28,8 @@
     "tagline1": "כשהספורט פוגש את הקהילה",
     "date": "19.9",
     "tagline2": "סוף־סוף הוא חוזר",
-    "comingSoon": "פרטים נוספים והרשמה בקרוב"
+    "comingSoon": "פרטים נוספים והרשמה בקרוב",
+    "hofSubtitle": "שיאים, אלופים ותוצאות לאורך השנים"
   },
   "hof": {
     "title": "היכל התהילה",
@@ -171,8 +172,10 @@
     "registrationOpenLabel": "הרשמה",
     "open": "פתוחה",
     "closed": "סגורה",
+    "openRegistration": "פתיחת הרשמה",
     "closeRegistration": "סגירת הרשמה",
-    "reopenRegistration": "פתיחת הרשמה מחדש",
+    "closeRegistrationConfirm": "לסגור את ההרשמה לצמיתות? המשתתפים לא יוכלו להירשם עוד והפעולה אינה הפיכה.",
+    "registrationPermanentlyClosed": "סגורה לצמיתות",
     "randomGroupingLabel": "שיבוץ אקראי",
     "enableRandomGrouping": "הפעל",
     "disableRandomGrouping": "בטל",
