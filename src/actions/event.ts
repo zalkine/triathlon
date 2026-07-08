@@ -54,7 +54,10 @@ export async function setRaceStartTime(locale: string, formData: FormData) {
   await requireRole('ADMIN');
   const iso = formData.get('iso') as string;
   if (!iso) return;
-  await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { raceStartTime: new Date(iso) } });
+  // Race start is minute-precision; drop any seconds so estimated heat times stay clean.
+  const start = new Date(iso);
+  start.setSeconds(0, 0);
+  await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { raceStartTime: start } });
   revalidatePath(`/${locale}/staff/manage`);
 }
 

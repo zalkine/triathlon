@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
 import { HEAT_CAPACITY } from '@/lib/constants';
 import { chunk, computeEstimatedStarts } from '@/lib/schedule';
-import { formatClock, formatDateTimeInputValue } from '@/lib/time';
+import { formatClockHM, formatDateTimeInputValue } from '@/lib/time';
 import { setRaceStartTime, setHeatGapMinutes } from '@/actions/event';
 
 export default async function PreliminarySchedulePreview({ locale }: { locale: string }) {
@@ -81,8 +81,7 @@ export default async function PreliminarySchedulePreview({ locale }: { locale: s
             <input
               name="iso"
               type="datetime-local"
-              step="1"
-              defaultValue={formatDateTimeInputValue(settings.raceStartTime)}
+              defaultValue={formatDateTimeInputValue(settings.raceStartTime).slice(0, 16)}
               className="rounded-lg border border-ink/20 px-2 py-1 text-xs"
             />
             <button type="submit" className="text-xs font-semibold underline">{t('save')}</button>
@@ -107,7 +106,7 @@ export default async function PreliminarySchedulePreview({ locale }: { locale: s
           <div className="flex items-center gap-2">
             <span className="text-ink-light">{t('estimatedWindow')}:</span>
             <span className="font-semibold tabular-nums">
-              {formatClock(eventStart, locale)} – {formatClock(eventEnd, locale)}
+              {formatClockHM(eventStart, locale)} – {formatClockHM(eventEnd, locale)}
             </span>
           </div>
         )}
@@ -144,7 +143,7 @@ export default async function PreliminarySchedulePreview({ locale }: { locale: s
                     <td className="py-2 px-3 text-end tabular-nums">{block.heatCount}</td>
                     <td className="py-2 px-3 tabular-nums text-ink-light">
                       {firstStart && lastEnd
-                        ? `${formatClock(firstStart, locale)} – ${formatClock(lastEnd, locale)}`
+                        ? `${formatClockHM(firstStart, locale)} – ${formatClockHM(lastEnd, locale)}`
                         : '—'}
                     </td>
                   </tr>
