@@ -74,7 +74,7 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2018, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 6, name: 'שחר בראודה, נועם כהן, דקל יונקמן', seconds: 679, members: ['שחר בראודה', 'נועם כהן', 'דקל יונקמן'] },
   { year: 2018, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 7, name: 'אורי עברון, ליאור בן אהרון, עומר גליקסמן', seconds: 690, members: ['אורי עברון', 'ליאור בן אהרון', 'עומר גליקסמן'] },
   { year: 2018, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 8, name: 'אבישג ריבקין, גילי ברוג, ליאור כלפה', seconds: 720, members: ['אבישג ריבקין', 'גילי ברוג', 'ליאור כלפה'] },
-  { year: 2018, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 9, name: 'דניאל בן צבי, דניאל בן צבי, רותם בן צבי', seconds: 4740, members: ['דניאל בן צבי', 'דניאל בן צבי', 'רותם בן צבי'] },
+  { year: 2018, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 9, name: 'דניאל בן צבי, דניאל בן צבי, רותם בן צבי', seconds: 723, members: ['דניאל בן צבי', 'דניאל בן צבי', 'רותם בן צבי'] },
   { year: 2018, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 10, name: 'רני רזיאל, ינאי רזיאל, רני רזיאל', seconds: 725, members: ['רני רזיאל', 'ינאי רזיאל', 'רני רזיאל'] },
   { year: 2018, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 11, name: 'ליה, מאיה ויטקו, שני עמיתי', seconds: 753, members: ['ליה', 'מאיה ויטקו', 'שני עמיתי'] },
   { year: 2018, categoryHe: 'ילדים קבוצתי', family: 'Kids', isTeam: true, rank: 12, name: 'איתן גוטדינר, דניאל גוטדינר, איתן גוטדינר', seconds: 779, members: ['איתן גוטדינר', 'דניאל גוטדינר', 'איתן גוטדינר'] },
