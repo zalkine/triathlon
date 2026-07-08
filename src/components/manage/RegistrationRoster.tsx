@@ -3,11 +3,14 @@ import { prisma } from '@/lib/db';
 import ConfirmForm from '@/components/ConfirmForm';
 import RegistrantEditors from '@/components/RegistrantEditors';
 import { deleteRegistrant } from '@/actions/registrants';
+import GroupEditor from './GroupEditor';
+import AddToCategoryForm from './AddToCategoryForm';
+import UndoCheckinButton from './UndoCheckinButton';
 
 // Fully-editable version of the public competitors view: the same grouping
-// (solo / formed groups / available pool) but with inline rename, category
-// change and delete for every person. Available team members who aren't in any
-// group are flagged so the admin knows to place them.
+// (solo / formed groups / available pool) but with inline edit, category
+// change, delete, group editing and per-category add. Available team members
+// who aren't in any group are flagged so the admin knows to place them.
 export default async function RegistrationRoster({ locale }: { locale: string }) {
   const t = await getTranslations('manage');
   const tc = await getTranslations('competitors');
@@ -34,18 +37,18 @@ export default async function RegistrationRoster({ locale }: { locale: string })
     );
   };
 
-  const shown = categories.filter(
-    (c) => c.registrants.length > 0 || c.groups.length > 0
-  );
-
   if (total === 0) {
-    return <p className="text-sm text-ink-light">{t('noRegistrants')}</p>;
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-ink-light">{t('noRegistrants')}</p>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-ink-light">{t('allRegistrants')} · {tc('count', { count: total })}</p>
-      {shown.map((c) => {
+      {categories.map((c) => {
         const nameOf = new Map(c.registrants.map((r) => [r.id, r.name]));
         const inGroup = new Set(
           c.groups.flatMap((g) => [g.swimRegistrantId, g.bikeRegistrantId, g.runRegistrantId])
@@ -55,13 +58,18 @@ export default async function RegistrationRoster({ locale }: { locale: string })
           c.type === 'TEAM'
             ? c.registrants.filter((r) => r.groupPref !== 'HAS_GROUP' && !inGroup.has(r.id))
             : [];
+        const pool = available.map((r) => ({ id: r.id, name: r.name }));
+        const isKids = c.key.startsWith('KIDS_');
 
         return (
           <div key={c.id} className="rounded-2xl border border-ink/10 bg-white/70 p-5">
-            <h3 className="mb-3 font-semibold">
-              {locale === 'he' ? c.nameHe : c.nameEn}{' '}
-              <span className="text-sm font-normal text-ink-light">({c.registrants.length})</span>
-            </h3>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <h3 className="font-semibold">
+                {locale === 'he' ? c.nameHe : c.nameEn}{' '}
+                <span className="text-sm font-normal text-ink-light">({c.registrants.length})</span>
+              </h3>
+              <AddToCategoryForm categoryKey={c.key} type={c.type} isKids={isKids} />
+            </div>
 
             {/* Solo competitors */}
             {singles.length > 0 && (
@@ -75,7 +83,12 @@ export default async function RegistrationRoster({ locale }: { locale: string })
                         initialCategoryKey={c.key}
                         categories={catInfo}
                       />
-                      {r.checkedIn && <span className="text-xs text-swim-dark">✓ {tc('arrived')}</span>}
+                      {r.checkedIn && (
+                        <span className="mt-0.5 flex items-center gap-2 text-xs text-swim-dark">
+                          ✓ {tc('arrived')}
+                          <UndoCheckinButton registrantId={r.id} />
+                        </span>
+                      )}
                     </div>
                     <DeleteButton id={r.id} />
                   </li>
@@ -83,28 +96,22 @@ export default async function RegistrationRoster({ locale }: { locale: string })
               </ul>
             )}
 
-            {/* Formed groups */}
+            {/* Formed groups — editable */}
             {c.groups.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-sm font-semibold text-ink-light">{tc('groups')}</h4>
                 <ul className="space-y-2">
                   {c.groups.map((g) => (
-                    <li key={g.id} className="rounded-xl bg-cream/60 p-3 text-sm">
-                      <div className="flex flex-wrap gap-x-4 gap-y-1">
-                        {(
-                          [
-                            ['roleSwim', g.swimRegistrantId],
-                            ['roleBike', g.bikeRegistrantId],
-                            ['roleRun', g.runRegistrantId],
-                          ] as const
-                        ).map(([label, id]) => (
-                          <span key={label}>
-                            <span className="text-ink-light">{tc(label)}:</span>{' '}
-                            {id ? nameOf.get(id) ?? '?' : <span className="italic text-ink-light">{tc('openSlot')}</span>}
-                          </span>
-                        ))}
-                      </div>
-                    </li>
+                    <GroupEditor
+                      key={g.id}
+                      pool={pool}
+                      group={{
+                        id: g.id,
+                        SWIM: g.swimRegistrantId ? { registrantId: g.swimRegistrantId, name: nameOf.get(g.swimRegistrantId) ?? '?' } : null,
+                        BIKE: g.bikeRegistrantId ? { registrantId: g.bikeRegistrantId, name: nameOf.get(g.bikeRegistrantId) ?? '?' } : null,
+                        RUN: g.runRegistrantId ? { registrantId: g.runRegistrantId, name: nameOf.get(g.runRegistrantId) ?? '?' } : null,
+                      }}
+                    />
                   ))}
                 </ul>
               </div>
@@ -133,7 +140,12 @@ export default async function RegistrationRoster({ locale }: { locale: string })
                               ⚠ {t('notInGroup')}
                             </span>
                             {legs && <span className="text-ink-light">{legs}</span>}
-                            {r.checkedIn && <span className="text-swim-dark">✓ {tc('arrived')}</span>}
+                            {r.checkedIn && (
+                              <span className="flex items-center gap-2 text-swim-dark">
+                                ✓ {tc('arrived')}
+                                <UndoCheckinButton registrantId={r.id} />
+                              </span>
+                            )}
                           </div>
                         </div>
                         <DeleteButton id={r.id} />
@@ -142,6 +154,13 @@ export default async function RegistrationRoster({ locale }: { locale: string })
                   })}
                 </ul>
               </div>
+            )}
+
+            {c.type === 'SINGLE' && singles.length === 0 && (
+              <p className="text-sm text-ink-light">{t('noRegistrants')}</p>
+            )}
+            {c.type === 'TEAM' && c.groups.length === 0 && available.length === 0 && (
+              <p className="text-sm text-ink-light">{t('noRegistrants')}</p>
             )}
           </div>
         );

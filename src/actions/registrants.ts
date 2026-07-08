@@ -276,6 +276,41 @@ export async function updateRegistrantCategory(
   return { ok: true };
 }
 
+// Admin: edit a registrant's name and category in one go (used by the single
+// "Edit" control in the management roster). Moving category unlinks them from
+// any group in the old category, matching updateRegistrantCategory.
+export async function updateRegistrant(
+  registrantId: string,
+  formData: FormData
+): Promise<{ ok?: true; error?: string }> {
+  await requireRole('ADMIN');
+  const name = String(formData.get('name') || '').trim();
+  const categoryKey = String(formData.get('categoryKey') || '');
+  if (!name) return { error: 'empty' };
+  if (!/^[\p{L}\s\-']+$/u.test(name)) return { error: 'name-letters-only' };
+
+  const [category, registrant] = await Promise.all([
+    prisma.category.findUnique({ where: { key: categoryKey } }),
+    prisma.registrant.findUnique({ where: { id: registrantId } }),
+  ]);
+  if (!category || !registrant) return { error: 'invalid' };
+
+  const changingCategory = registrant.categoryId !== category.id;
+  if (changingCategory) {
+    await Promise.all([
+      prisma.group.updateMany({ where: { categoryId: registrant.categoryId, swimRegistrantId: registrantId }, data: { swimRegistrantId: null } }),
+      prisma.group.updateMany({ where: { categoryId: registrant.categoryId, bikeRegistrantId: registrantId }, data: { bikeRegistrantId: null } }),
+      prisma.group.updateMany({ where: { categoryId: registrant.categoryId, runRegistrantId: registrantId }, data: { runRegistrantId: null } }),
+    ]);
+  }
+  await prisma.registrant.update({
+    where: { id: registrantId },
+    data: { name, categoryId: category.id, ...(changingCategory ? { entryId: null } : {}) },
+  });
+  revalidatePath('/', 'layout');
+  return { ok: true };
+}
+
 // Admin: register a competitor even when public registration is closed.
 export async function adminAddRegistrant(
   _prevState: { error?: string; success?: boolean } | undefined,

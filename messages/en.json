@@ -285,7 +285,13 @@
     "infoUploadDone": "Uploaded ✓",
     "infoUploadNotConfigured": "Upload isn't set up — paste an image URL instead.",
     "infoUploadFailed": "Upload failed — try again or paste a URL.",
-    "infoViewPublic": "View public page"
+    "infoViewPublic": "View public page",
+    "legClear": "Clear",
+    "assign": "Assign",
+    "doneEditingGroup": "Done",
+    "confirmDeleteGroup": "Delete this group? Its members return to the available pool.",
+    "groupDelete": "Delete group",
+    "undoCheckin": "Cancel check-in"
   },
   "info": {
     "title": "Rules & Trails",

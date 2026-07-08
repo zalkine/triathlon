@@ -285,7 +285,13 @@
     "infoUploadDone": "הועלה ✓",
     "infoUploadNotConfigured": "העלאה אינה מוגדרת — הדביקו כתובת תמונה במקום.",
     "infoUploadFailed": "ההעלאה נכשלה — נסו שוב או הדביקו כתובת.",
-    "infoViewPublic": "צפייה בעמוד הציבורי"
+    "infoViewPublic": "צפייה בעמוד הציבורי",
+    "legClear": "פנה",
+    "assign": "שבץ",
+    "doneEditingGroup": "סיום עריכה",
+    "confirmDeleteGroup": "למחוק את הקבוצה? חבריה יחזרו למאגר הזמינים.",
+    "groupDelete": "מחיקת קבוצה",
+    "undoCheckin": "ביטול הגעה"
   },
   "info": {
     "title": "תקנון ומסלולים",
