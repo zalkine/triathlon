@@ -38,12 +38,32 @@ export async function setAllowRandomGrouping(locale: string, allow: boolean) {
   revalidatePath(`/${locale}/register`);
 }
 
-// Whether the public Results page shows live rankings/times. Staff always see
-// results regardless; this only gates the public view.
 export async function setPublicResultsVisible(locale: string, visible: boolean) {
   await requireRole('ADMIN');
   await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { publicResultsVisible: visible } });
   revalidatePath('/', 'layout');
+}
+
+export async function setSchedulePublished(locale: string, published: boolean) {
+  await requireRole('ADMIN');
+  await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { schedulePublished: published } });
+  revalidatePath('/', 'layout');
+}
+
+export async function setRaceStartTime(locale: string, formData: FormData) {
+  await requireRole('ADMIN');
+  const iso = formData.get('iso') as string;
+  if (!iso) return;
+  await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { raceStartTime: new Date(iso) } });
+  revalidatePath(`/${locale}/staff/manage`);
+}
+
+export async function setHeatGapMinutes(locale: string, formData: FormData) {
+  await requireRole('ADMIN');
+  const minutes = parseInt(formData.get('minutes') as string, 10);
+  if (isNaN(minutes) || minutes < 0) return;
+  await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { heatGapMinutes: minutes } });
+  revalidatePath(`/${locale}/staff/manage`);
 }
 
 function legsFor(r: { legSwim: boolean; legBike: boolean; legRun: boolean }): Leg[] {
@@ -69,7 +89,11 @@ export async function generateSchedule(locale: string) {
 
   const settings = await prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } });
   const categories = await prisma.category.findMany({ orderBy: { sortOrder: 'asc' } });
-  const raceStartTime = new Date(Date.now() + 5 * 60_000);
+  // Use the admin-configured start time if it's in the future; otherwise fall back to now+5 min.
+  const raceStartTime =
+    settings.raceStartTime && settings.raceStartTime > new Date()
+      ? settings.raceStartTime
+      : new Date(Date.now() + 5 * 60_000);
 
   for (const category of categories) {
     const existingHeatCount = await prisma.heat.count({ where: { categoryId: category.id } });

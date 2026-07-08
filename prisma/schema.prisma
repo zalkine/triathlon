@@ -143,4 +143,5 @@ model EventSettings {
   scheduleGeneratedAt          DateTime?
   allowRandomGrouping          Boolean   @default(true)
   publicResultsVisible         Boolean   @default(true)
+  schedulePublished            Boolean   @default(false)
 }

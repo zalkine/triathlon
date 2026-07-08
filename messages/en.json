@@ -202,7 +202,22 @@
     "addRegistrant": "Add Competitor",
     "noRegistrants": "No competitors registered yet.",
     "confirmDeleteRegistrant": "Remove this competitor? They will be unlinked from any group they belong to.",
-    "deleteRegistrant": "Delete"
+    "deleteRegistrant": "Delete",
+    "schedulePublishedLabel": "Public schedule",
+    "publishSchedule": "Publish to public",
+    "unpublishSchedule": "Hide from public",
+    "unpublishScheduleConfirm": "Hide the schedule from the public? Participants won't see the heat list until you publish again.",
+    "preliminaryScheduleTitle": "Preliminary Schedule",
+    "preliminaryScheduleHint": "Estimate based on current registrations — updates as people sign up",
+    "raceStartTimeLabel": "Race start",
+    "heatGapLabel": "Gap between heats",
+    "heatGapUnit": "min",
+    "estimatedWindow": "Est. event window",
+    "prelim_registrants": "Registered",
+    "prelim_heats": "Est. heats",
+    "prelim_timeWindow": "Est. time",
+    "totalHeats": "Total heats",
+    "noRegistrantsYet": "No registrations yet — expected heat counts will appear here as people sign up."
   },
   "register": {
     "title": "Race Registration",

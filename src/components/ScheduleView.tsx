@@ -13,10 +13,14 @@ export default function ScheduleView() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loaded, setLoaded] = useState(false);
 
+  const [published, setPublished] = useState(false);
+
   const load = useCallback(async () => {
     const res = await fetch('/api/schedule', { cache: 'no-store' });
     if (res.ok) {
-      setCategories((await res.json()).categories);
+      const data = await res.json();
+      setPublished(data.published ?? false);
+      setCategories(data.categories);
       setLoaded(true);
     }
   }, []);
@@ -29,7 +33,7 @@ export default function ScheduleView() {
 
   const hasAnyHeats = categories.some((c) => c.heats.length > 0);
 
-  if (loaded && !hasAnyHeats) {
+  if (loaded && (!published || !hasAnyHeats)) {
     return <p className="text-ink-light">{t('notGenerated')}</p>;
   }
 
