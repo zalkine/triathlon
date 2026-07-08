@@ -26,7 +26,7 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2018, categoryHe: 'מקצועי יחידים', family: 'Elite', isTeam: false, rank: 15, name: 'יפעת רז', seconds: 4372 },
   { year: 2018, categoryHe: 'מקצועי קבוצתי', family: 'Elite', isTeam: true, rank: 1, name: 'גלעד ברשד, מיכי ברוג, נדיב ברוג', seconds: 2578, members: ['גלעד ברשד', 'מיכי ברוג', 'נדיב ברוג'] },
   { year: 2018, categoryHe: 'מקצועי קבוצתי', family: 'Elite', isTeam: true, rank: 2, name: 'צחי עמיתי, גילי מרקדו, גבע לבון', seconds: 2629, members: ['צחי עמיתי', 'גילי מרקדו', 'גבע לבון'] },
-  { year: 2018, categoryHe: 'מקצועי קבוצתי', family: 'Elite', isTeam: true, rank: 3, name: 'דורי שפירא, יחיעם רזיאל, עומרי', seconds: 2666, members: ['דורי שפירא', 'יחיעם רזיאל', 'עומרי'] },
+  { year: 2018, categoryHe: 'מקצועי קבוצתי', family: 'Elite', isTeam: true, rank: 3, name: 'דורי שפירא, יחיעם רזיאל, עומרי לוץ', seconds: 2666, members: ['דורי שפירא', 'יחיעם רזיאל', 'עומרי לוץ'] },
   { year: 2018, categoryHe: 'מקצועי קבוצתי', family: 'Elite', isTeam: true, rank: 4, name: 'אנדריאה שמאי, מתי ברק, בני שמאי', seconds: 2668, members: ['אנדריאה שמאי', 'מתי ברק', 'בני שמאי'] },
   { year: 2018, categoryHe: 'מקצועי קבוצתי', family: 'Elite', isTeam: true, rank: 5, name: 'סטפן גליקסמן, אור גליקסמן, מיכאל גליקסמן', seconds: 2728, members: ['סטפן גליקסמן', 'אור גליקסמן', 'מיכאל גליקסמן'] },
   { year: 2018, categoryHe: 'מקצועי קבוצתי', family: 'Elite', isTeam: true, rank: 6, name: 'ינאי ויטקו, אושרי בן הרוש, עופרי שר', seconds: 2750, members: ['ינאי ויטקו', 'אושרי בן הרוש', 'עופרי שר'] },
