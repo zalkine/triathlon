@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { formatClock } from '@/lib/time';
+import { formatClockHM } from '@/lib/time';
 
 type Heat = { id: string; name: string; entryCount: number; estimatedStart: string | null; startTime: string | null };
 type Category = { id: string; nameEn: string; nameHe: string; heats: Heat[] };
@@ -55,9 +55,9 @@ export default function ScheduleView() {
                   </span>
                   <span className="tabular-nums font-semibold">
                     {h.startTime
-                      ? formatClock(new Date(h.startTime), locale)
+                      ? formatClockHM(new Date(h.startTime), locale)
                       : h.estimatedStart
-                        ? `${t('estimatedStart')}: ${formatClock(new Date(h.estimatedStart), locale)}`
+                        ? `${t('estimatedStart')}: ${formatClockHM(new Date(h.estimatedStart), locale)}`
                         : '—'}
                   </span>
                 </li>
