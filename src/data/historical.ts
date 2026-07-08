@@ -134,7 +134,7 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2019, categoryHe: 'ילדים יחיד', family: 'Kids', isTeam: false, rank: 4, name: 'בארי צורף', seconds: 665 },
   { year: 2019, categoryHe: 'ילדים יחיד', family: 'Kids', isTeam: false, rank: 5, name: 'יעלה ברוג', seconds: 708 },
   { year: 2019, categoryHe: 'ילדים יחיד', family: 'Kids', isTeam: false, rank: 6, name: 'דניאל בן צבי', seconds: 800 },
-  { year: 2019, categoryHe: 'ילדים יחיד', family: 'Kids', isTeam: true, rank: 7, name: 'כפרי נבו, ניר כפרי, דוד כפרי', seconds: 1263, members: ['כפרי נבו', 'ניר כפרי', 'דוד כפרי'] },
+  { year: 2019, categoryHe: 'ילדים יחיד', family: 'Kids', isTeam: false, rank: 7, name: 'כפרי נבו, ניר כפרי, דוד כפרי', seconds: 1263 },
   { year: 2019, categoryHe: 'ילדים יחיד', family: 'Kids', isTeam: false, rank: 8, name: 'גילי ברוג', seconds: 1504 },
   { year: 2019, categoryHe: 'ילדים קבוצתי  -בוגרים', family: 'Kids', isTeam: true, rank: 1, name: 'יובל מויאל, נדב מנור, יאיר פטרי', seconds: 502, members: ['יובל מויאל', 'נדב מנור', 'יאיר פטרי'] },
   { year: 2019, categoryHe: 'ילדים קבוצתי  -בוגרים', family: 'Kids', isTeam: true, rank: 2, name: 'איתן גוטדינר, תבור חוצן', seconds: 576, members: ['איתן גוטדינר', 'תבור חוצן'] },
