@@ -165,6 +165,9 @@ export default function RegisterForm({ action, categories }: { action: FormActio
       'bad-teammate': t('errorBadTeammate'),
       'join-leg': t('errorJoinLeg'),
       'join-taken': t('errorJoinTaken'),
+      'name-letters-only': t('errorNameLettersOnly'),
+      'duplicate': t('errorDuplicate'),
+      'leg-conflict': t('errorLegConflict'),
     })[e] ?? t('errorInvalid');
 
   const groupSummary = (g: OpenGroup) =>
