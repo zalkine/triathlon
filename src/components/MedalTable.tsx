@@ -1,15 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { medalTable } from '@/lib/hallOfFame';
+import { type Medalist } from '@/lib/hallOfFame';
 
-export default function MedalTable() {
+export default function MedalTable({ personal, withGroups }: { personal: Medalist[]; withGroups: Medalist[] }) {
   const t = useTranslations('hof');
   const [includeGroups, setIncludeGroups] = useState(false);
 
-  const personal = useMemo(() => medalTable(false), []);
-  const withGroups = useMemo(() => medalTable(true), []);
   const rows = includeGroups ? withGroups : personal;
 
   const Tab = ({ on, label }: { on: boolean; label: string }) => (

@@ -2,14 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { annotatedResults, familyLabel, formatHms, kindLabel } from '@/lib/hallOfFame';
-
-// Computed once for the whole page — every historical result with its place.
-const ALL = annotatedResults();
+import { familyLabel, formatHms, kindLabel, type AnnotatedResult } from '@/lib/hallOfFame';
 
 const medalEmoji = (place: number) => (place === 1 ? '🥇' : place === 2 ? '🥈' : place === 3 ? '🥉' : '');
 
-export default function CompetitorSearch() {
+export default function CompetitorSearch({ results }: { results: AnnotatedResult[] }) {
   const locale = useLocale();
   const t = useTranslations('hof');
   const [query, setQuery] = useState('');
@@ -17,8 +14,8 @@ export default function CompetitorSearch() {
   const q = query.trim();
   const matches = useMemo(() => {
     if (q.length < 2) return [];
-    return ALL.filter((r) => r.name.includes(q)).sort((a, b) => b.year - a.year || a.place - b.place);
-  }, [q]);
+    return results.filter((r) => r.name.includes(q)).sort((a, b) => b.year - a.year || a.place - b.place);
+  }, [q, results]);
 
   // Highlight the matched part of a (possibly multi-name) team string.
   const renderName = (name: string) => {

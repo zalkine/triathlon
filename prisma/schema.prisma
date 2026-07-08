@@ -144,4 +144,53 @@ model EventSettings {
   allowRandomGrouping          Boolean   @default(true)
   publicResultsVisible         Boolean   @default(true)
   schedulePublished            Boolean   @default(false)
+  // Admin sign-off on the timekeepers' results. The public results page stays
+  // hidden until results are BOTH approved and set visible, so provisional
+  // rankings are never shown before an admin has reviewed them.
+  resultsApproved              Boolean   @default(false)
+}
+
+// Editable contact directory shown to every competitor on the public info page:
+// the race doctor, security officer, head volunteer, etc. Managed by the admin
+// on the Staff tab.
+model Contact {
+  id        String   @id @default(cuid())
+  role      String
+  name      String
+  phone     String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+// Historical results for the Hall of Fame. Seeded once from the static
+// 2018–2023 sheets (see src/data/historical.ts) and thereafter fully editable
+// by the admin. `family` is one of Elite | Amateur | Kids | Seniors | Open and
+// `members` holds the split roster of a team (empty for solo results).
+model HistoricalResult {
+  id         String   @id @default(cuid())
+  year       Int
+  categoryHe String
+  family     String
+  isTeam     Boolean  @default(false)
+  rank       Int?
+  name       String
+  seconds    Int
+  members    String[]
+  createdAt  DateTime @default(now())
+
+  @@index([year])
+}
+
+// Editable content blocks for the public "Rules & Trails" / info page: rules,
+// trail descriptions, maps (as image URLs), and general information. Each
+// section has a bilingual title and body plus an optional image.
+model InfoSection {
+  id        String   @id @default(cuid())
+  titleEn   String   @default("")
+  titleHe   String   @default("")
+  bodyEn    String   @default("")
+  bodyHe    String   @default("")
+  imageUrl  String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
 }

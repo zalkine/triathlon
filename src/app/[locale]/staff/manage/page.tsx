@@ -1,80 +1,43 @@
 import { getLocale, getTranslations } from 'next-intl/server';
-import { Link } from '@/i18n/navigation';
-import { prisma } from '@/lib/db';
-import { formatClock } from '@/lib/time';
-import EventControls from '@/components/EventControls';
-import UnassignedRegistrants from '@/components/UnassignedRegistrants';
-import TestDataControls from '@/components/TestDataControls';
-import RegistrantsManager from '@/components/RegistrantsManager';
-import PreliminarySchedulePreview from '@/components/PreliminarySchedulePreview';
-import AutoGenerateHeats from '@/components/AutoGenerateHeats';
-import ExportButtons from '@/components/ExportButtons';
+import ManageTabs from '@/components/manage/ManageTabs';
+import { isManageTabKey, type ManageTabKey } from '@/components/manage/tabs';
+import RegistrationPanel from '@/components/manage/RegistrationPanel';
+import StaffPanel from '@/components/manage/StaffPanel';
+import HeatsPanel from '@/components/manage/HeatsPanel';
+import SchedulePanel from '@/components/manage/SchedulePanel';
+import ScoresPanel from '@/components/manage/ScoresPanel';
+import HofPanel from '@/components/manage/HofPanel';
+import InfoPanel from '@/components/manage/InfoPanel';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ManageDashboardPage() {
+export default async function ManageDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const t = await getTranslations('manage');
   const locale = await getLocale();
-  const categories = await prisma.category.findMany({
-    orderBy: { sortOrder: 'asc' },
-    include: { heats: { include: { _count: { select: { entries: true } } }, orderBy: { createdAt: 'asc' } } },
-  });
-
-  // How many registrations can still be auto-placed into a heat: solo
-  // registrants and self-/lottery-formed groups that aren't scheduled yet.
-  // (Available team members without a group aren't directly placeable.)
-  const [unplacedSingles, unplacedGroups] = await Promise.all([
-    prisma.registrant.count({ where: { entryId: null, mode: 'SINGLE' } }),
-    prisma.group.count({ where: { entryId: null } }),
-  ]);
-  const placeableCount = unplacedSingles + unplacedGroups;
+  const { tab } = await searchParams;
+  const active: ManageTabKey = isManageTabKey(tab) ? tab : 'registration';
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-5xl space-y-6">
+      <div>
         <h1 className="text-2xl font-bold">{t('dashboard')}</h1>
-        <Link
-          href="/staff/manage/heats/new"
-          className="rounded-full bg-ink px-5 py-2 text-sm font-semibold text-cream hover:brightness-110"
-        >
-          {t('newHeat')}
-        </Link>
+        <p className="text-sm text-ink-light">{t('dashboardSubtitle')}</p>
       </div>
 
-      <AutoGenerateHeats locale={locale} placeableCount={placeableCount} />
+      <ManageTabs active={active} />
 
-      <EventControls locale={locale} />
-      <PreliminarySchedulePreview locale={locale} />
-      <ExportButtons />
-      <TestDataControls locale={locale} />
-      <RegistrantsManager locale={locale} />
-      <UnassignedRegistrants locale={locale} />
-
-      <div className="space-y-6">
-        {categories.map((cat) => (
-          <div key={cat.id} className="rounded-2xl border border-ink/10 bg-white/70 p-5">
-            <h2 className="mb-3 font-semibold">{locale === 'he' ? cat.nameHe : cat.nameEn}</h2>
-            {cat.heats.length === 0 ? (
-              <p className="text-sm text-ink-light">{t('noHeats')}</p>
-            ) : (
-              <ul className="divide-y divide-ink/5">
-                {cat.heats.map((heat) => (
-                  <li key={heat.id} className="flex items-center justify-between py-2">
-                    <div>
-                      <span className="font-medium">{heat.name}</span>{' '}
-                      <span className="text-sm text-ink-light">
-                        · {heat._count.entries} · {heat.startTime ? formatClock(heat.startTime, locale) : t('notSet')}
-                      </span>
-                    </div>
-                    <Link href={`/staff/manage/heats/${heat.id}`} className="text-sm font-semibold underline">
-                      {t('viewHeat')}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
+      <div>
+        {active === 'registration' && <RegistrationPanel locale={locale} />}
+        {active === 'staff' && <StaffPanel locale={locale} />}
+        {active === 'heats' && <HeatsPanel locale={locale} />}
+        {active === 'schedule' && <SchedulePanel locale={locale} />}
+        {active === 'scores' && <ScoresPanel locale={locale} />}
+        {active === 'hof' && <HofPanel locale={locale} />}
+        {active === 'info' && <InfoPanel locale={locale} />}
       </div>
     </div>
   );

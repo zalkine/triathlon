@@ -50,6 +50,14 @@ export async function setSchedulePublished(locale: string, published: boolean) {
   revalidatePath('/', 'layout');
 }
 
+// Admin sign-off on the timekeepers' results. The public results page only
+// shows results once they are approved AND set visible.
+export async function setResultsApproved(locale: string, approved: boolean) {
+  await requireRole('ADMIN');
+  await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { resultsApproved: approved } });
+  revalidatePath('/', 'layout');
+}
+
 export async function setRaceStartTime(locale: string, formData: FormData) {
   await requireRole('ADMIN');
   const iso = formData.get('iso') as string;

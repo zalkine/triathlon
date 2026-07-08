@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { CATEGORY_DEFINITIONS } from '../src/lib/constants';
+import { HISTORICAL_RESULTS } from '../src/data/historical';
+import { DEFAULT_INFO_SECTIONS } from '../src/data/info';
 
 const prisma = new PrismaClient();
 
@@ -24,6 +26,34 @@ async function main() {
     update: {},
     create: { id: 'singleton' },
   });
+
+  // Seed the Hall of Fame from the static sheets exactly once. After that the
+  // table is the source of truth and fully editable by the admin, so we never
+  // overwrite it on subsequent seeds.
+  const hofCount = await prisma.historicalResult.count();
+  if (hofCount === 0) {
+    await prisma.historicalResult.createMany({
+      data: HISTORICAL_RESULTS.map((r) => ({
+        year: r.year,
+        categoryHe: r.categoryHe,
+        family: r.family,
+        isTeam: r.isTeam,
+        rank: r.rank,
+        name: r.name,
+        seconds: r.seconds,
+        members: r.members ?? [],
+      })),
+    });
+    console.log(`Seeded ${HISTORICAL_RESULTS.length} historical results.`);
+  }
+
+  // Seed starter Rules & Trails content once so the admin has editable blocks
+  // to work from. Never overwritten afterwards.
+  const infoCount = await prisma.infoSection.count();
+  if (infoCount === 0) {
+    await prisma.infoSection.createMany({ data: DEFAULT_INFO_SECTIONS });
+    console.log(`Seeded ${DEFAULT_INFO_SECTIONS.length} info sections.`);
+  }
 
   const username = process.env.SEED_ADMIN_USERNAME || 'admin';
   const password = process.env.SEED_ADMIN_PASSWORD || 'changeme';

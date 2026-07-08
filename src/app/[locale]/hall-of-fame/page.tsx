@@ -3,24 +3,33 @@ import PublicHeader from '@/components/PublicHeader';
 import CompetitorSearch from '@/components/CompetitorSearch';
 import MedalTable from '@/components/MedalTable';
 import { SPECIAL_AWARDS } from '@/data/historical';
+import { loadHofResults } from '@/lib/hofData';
 import {
+  annotatedResults,
   buckets,
   championsFor,
   courseRecords,
   familyLabel,
   formatHms,
   kindLabel,
+  medalTable,
   resultsFor,
   years,
 } from '@/lib/hallOfFame';
+
+export const dynamic = 'force-dynamic';
 
 export default async function HallOfFamePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations('hof');
 
-  const records = courseRecords();
-  const allYears = years();
-  const bucketList = buckets();
+  const results = await loadHofResults();
+  const records = courseRecords(results);
+  const allYears = years(results);
+  const bucketList = buckets(results);
+  const annotated = annotatedResults(results);
+  const medalsPersonal = medalTable(results, false);
+  const medalsWithGroups = medalTable(results, true);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -34,7 +43,7 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
         {/* Search any competitor's full history (solo and team) */}
         <section className="space-y-3">
           <h2 className="text-xl font-bold">🔎 {t('findCompetitor')}</h2>
-          <CompetitorSearch />
+          <CompetitorSearch results={annotated} />
         </section>
 
         {/* All-time course records */}
@@ -66,7 +75,7 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
             <div key={year} className="rounded-2xl border border-ink/10 bg-white/70 p-5 shadow-sm">
               <h3 className="mb-3 text-lg font-bold">{year}</h3>
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {championsFor(year).map((c) => (
+                {championsFor(results, year).map((c) => (
                   <li key={`${c.family}-${c.isTeam}`} className="text-sm">
                     <div className="text-xs text-ink-light">
                       {familyLabel(c.family, locale)} · {kindLabel(c.isTeam, locale)}
@@ -103,7 +112,7 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
         )}
 
         {/* Medal table (Personal / including group medals) */}
-        <MedalTable />
+        <MedalTable personal={medalsPersonal} withGroups={medalsWithGroups} />
 
         {/* Full results, browsable */}
         <section className="space-y-3">
@@ -113,7 +122,7 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
               <summary className="cursor-pointer text-lg font-bold">{year}</summary>
               <div className="mt-3 space-y-5">
                 {bucketList.map(({ family, isTeam }) => {
-                  const rows = resultsFor(year, family, isTeam);
+                  const rows = resultsFor(results, year, family, isTeam);
                   if (rows.length === 0) return null;
                   return (
                     <div key={`${family}-${isTeam}`}>

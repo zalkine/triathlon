@@ -34,14 +34,9 @@ export default async function StaffLayout({
             {t('competitors')}
           </Link>
           {session?.role === 'ADMIN' && (
-            <>
-              <Link href="/staff/manage" className="hover:underline">
-                {t('manage')}
-              </Link>
-              <Link href="/staff/users" className="hover:underline">
-                {t('users')}
-              </Link>
-            </>
+            <Link href="/staff/manage" className="hover:underline">
+              {t('manage')}
+            </Link>
           )}
           <Link href="/results" className="hover:underline">
             {t('results')}

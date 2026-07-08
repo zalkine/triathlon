@@ -8,13 +8,15 @@ export const dynamic = 'force-dynamic';
 export async function GET(_request: Request, { params }: { params: Promise<{ categoryId: string }> }) {
   const { categoryId } = await params;
 
-  // Staff always see results; the public sees them only when the admin has made
-  // them visible (rankings can be sensitive while timing is provisional).
+  // Staff always see results; the public sees them only once the admin has both
+  // approved the timekeepers' results and made them visible (rankings are
+  // sensitive while timing is provisional).
   const [settings, session] = await Promise.all([
     prisma.eventSettings.findUnique({ where: { id: 'singleton' } }),
     getSession(),
   ]);
-  if (settings && !settings.publicResultsVisible && !session) {
+  const publiclyVisible = !!settings?.publicResultsVisible && !!settings?.resultsApproved;
+  if (!publiclyVisible && !session) {
     return NextResponse.json({ hidden: true, entries: [] });
   }
 
