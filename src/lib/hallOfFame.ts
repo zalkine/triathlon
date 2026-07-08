@@ -104,16 +104,18 @@ export type AnnotatedResult = HofResult & { place: number };
 
 export function annotatedResults(results: HofResult[]): AnnotatedResult[] {
   const out: AnnotatedResult[] = [];
-  for (const year of years(results)) {
-    for (const family of FAMILY_ORDER) {
-      for (const isTeam of [false, true]) {
-        const rows = results
-          .filter((r) => r.year === year && r.family === family && r.isTeam === isTeam)
-          .sort((a, b) => a.seconds - b.seconds);
-        const times = [...new Set(rows.map((r) => r.seconds))];
-        for (const r of rows) out.push({ ...r, place: times.indexOf(r.seconds) + 1 });
-      }
-    }
+  // Rank within each distinct race, keyed by the exact category label — the
+  // ד-ו and א-ג kids races are separate competitions and must rank
+  // independently rather than be merged by the coarse family.
+  const bucketMap = new Map<string, HofResult[]>();
+  for (const r of results) {
+    const key = `${r.year}|${r.categoryHe}|${r.isTeam}`;
+    (bucketMap.get(key) ?? bucketMap.set(key, []).get(key)!).push(r);
+  }
+  for (const rows of bucketMap.values()) {
+    rows.sort((a, b) => a.seconds - b.seconds);
+    const times = [...new Set(rows.map((r) => r.seconds))];
+    for (const r of rows) out.push({ ...r, place: times.indexOf(r.seconds) + 1 });
   }
   return out;
 }
