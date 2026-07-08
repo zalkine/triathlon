@@ -5,6 +5,7 @@ import { formatClock } from '@/lib/time';
 import EventControls from '@/components/EventControls';
 import UnassignedRegistrants from '@/components/UnassignedRegistrants';
 import TestDataControls from '@/components/TestDataControls';
+import RegistrantsManager from '@/components/RegistrantsManager';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +31,7 @@ export default async function ManageDashboardPage() {
 
       <EventControls locale={locale} />
       <TestDataControls locale={locale} />
+      <RegistrantsManager locale={locale} />
       <UnassignedRegistrants locale={locale} />
 
       <div className="space-y-6">

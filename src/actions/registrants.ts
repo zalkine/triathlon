@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
-import { requireSession } from '@/lib/auth';
+import { requireRole, requireSession } from '@/lib/auth';
 
 export type RegisterState = { error?: string; success?: boolean };
 
@@ -18,9 +18,13 @@ export async function registerAction(
   const categoryKey = String(formData.get('categoryKey') || '');
 
   if (!name) return { error: 'invalid' };
+  if (!/^[\p{L}\s\-']+$/u.test(name)) return { error: 'name-letters-only' };
 
   const category = await prisma.category.findUnique({ where: { key: categoryKey } });
   if (!category) return { error: 'invalid' };
+
+  const dupRegistrant = await prisma.registrant.findFirst({ where: { name, categoryId: category.id } });
+  if (dupRegistrant) return { error: 'duplicate' };
 
   // Age is only collected for the children's brackets, where it decides the
   // 6–9 vs 9–12 split. Professional and intermediate registrants have no age
@@ -137,6 +141,27 @@ export async function registerAction(
     return { error: 'bad-teammate' };
   }
 
+  // Rule 1: NEW teammate names must contain only letters.
+  for (const l of legInputs) {
+    if (l.kind === 'NEW' && !/^[\p{L}\s\-']+$/u.test(l.name)) return { error: 'name-letters-only' };
+  }
+  // Rule 3: NEW teammate names cannot already exist in this category.
+  for (const l of legInputs) {
+    if (l.kind === 'NEW') {
+      const dup = await prisma.registrant.findFirst({ where: { name: l.name, categoryId: category.id } });
+      if (dup) return { error: 'duplicate' };
+    }
+  }
+  // Rule 2: a pool teammate cannot already be in a group doing the same leg in this category.
+  const legFieldMap = { SWIM: 'swimRegistrantId', BIKE: 'bikeRegistrantId', RUN: 'runRegistrantId' } as const;
+  for (const l of legInputs) {
+    if (!['CAPTAIN', 'LATER', 'NEW'].includes(l.kind)) {
+      const legField = legFieldMap[l.leg];
+      const conflict = await prisma.group.findFirst({ where: { categoryId: category.id, [legField]: l.kind } });
+      if (conflict) return { error: 'leg-conflict' };
+    }
+  }
+
   // Create the captain, then any named teammates. Track the rows we make so a
   // later DB error can't leave stray registrants behind.
   const captain = await prisma.registrant.create({
@@ -198,4 +223,93 @@ export async function undoCheckIn(registrantId: string) {
   });
   revalidatePath('/', 'layout');
   return { ok: true as const };
+}
+
+// Admin: remove a registrant and unlink them from any groups / timing members.
+export async function deleteRegistrant(registrantId: string, _formData: FormData) {
+  await requireRole('ADMIN');
+  await Promise.all([
+    prisma.group.updateMany({ where: { swimRegistrantId: registrantId }, data: { swimRegistrantId: null } }),
+    prisma.group.updateMany({ where: { bikeRegistrantId: registrantId }, data: { bikeRegistrantId: null } }),
+    prisma.group.updateMany({ where: { runRegistrantId: registrantId }, data: { runRegistrantId: null } }),
+  ]);
+  await prisma.member.updateMany({ where: { registrantId }, data: { registrantId: null } });
+  await prisma.registrant.delete({ where: { id: registrantId } });
+  revalidatePath('/', 'layout');
+}
+
+// Admin: correct a registrant's name.
+export async function updateRegistrantName(
+  registrantId: string,
+  formData: FormData
+): Promise<{ ok?: true; error?: string }> {
+  await requireRole('ADMIN');
+  const name = String(formData.get('name') || '').trim();
+  if (!name) return { error: 'empty' };
+  if (!/^[\p{L}\s\-']+$/u.test(name)) return { error: 'name-letters-only' };
+  await prisma.registrant.update({ where: { id: registrantId }, data: { name } });
+  revalidatePath('/', 'layout');
+  return { ok: true };
+}
+
+// Admin: move a registrant to a different category (unlinks them from groups in the old category).
+export async function updateRegistrantCategory(
+  registrantId: string,
+  formData: FormData
+): Promise<{ ok?: true; error?: string }> {
+  await requireRole('ADMIN');
+  const categoryKey = String(formData.get('categoryKey') || '');
+  const [category, registrant] = await Promise.all([
+    prisma.category.findUnique({ where: { key: categoryKey } }),
+    prisma.registrant.findUnique({ where: { id: registrantId } }),
+  ]);
+  if (!category || !registrant) return { error: 'invalid' };
+  if (registrant.categoryId !== category.id) {
+    await Promise.all([
+      prisma.group.updateMany({ where: { categoryId: registrant.categoryId, swimRegistrantId: registrantId }, data: { swimRegistrantId: null } }),
+      prisma.group.updateMany({ where: { categoryId: registrant.categoryId, bikeRegistrantId: registrantId }, data: { bikeRegistrantId: null } }),
+      prisma.group.updateMany({ where: { categoryId: registrant.categoryId, runRegistrantId: registrantId }, data: { runRegistrantId: null } }),
+    ]);
+    await prisma.registrant.update({ where: { id: registrantId }, data: { categoryId: category.id, entryId: null } });
+  }
+  revalidatePath('/', 'layout');
+  return { ok: true };
+}
+
+// Admin: register a competitor even when public registration is closed.
+export async function adminAddRegistrant(
+  _prevState: { error?: string; success?: boolean } | undefined,
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  await requireRole('ADMIN');
+  const name = String(formData.get('name') || '').trim();
+  const categoryKey = String(formData.get('categoryKey') || '');
+  if (!name) return { error: 'invalid' };
+  if (!/^[\p{L}\s\-']+$/u.test(name)) return { error: 'name-letters-only' };
+  const category = await prisma.category.findUnique({ where: { key: categoryKey } });
+  if (!category) return { error: 'invalid' };
+  const dup = await prisma.registrant.findFirst({ where: { name, categoryId: category.id } });
+  if (dup) return { error: 'duplicate' };
+  const isKids = category.key.startsWith('KIDS_');
+  let age: number | null = null;
+  if (isKids) {
+    const parsed = Number(formData.get('age'));
+    if (!Number.isInteger(parsed) || parsed < 6 || parsed > 12) return { error: 'invalid' };
+    age = parsed;
+    const kidBracket = age < 9 ? 'KIDS_6_9' : 'KIDS_9_12';
+    if (category.key !== `${kidBracket}_${category.type}`) return { error: 'invalid' };
+  }
+  if (category.type === 'SINGLE') {
+    await prisma.registrant.create({ data: { name, age, categoryId: category.id, mode: 'SINGLE' } });
+  } else {
+    const legSwim = formData.get('legSwim') === 'on';
+    const legBike = formData.get('legBike') === 'on';
+    const legRun = formData.get('legRun') === 'on';
+    if (!legSwim && !legBike && !legRun) return { error: 'no-leg' };
+    await prisma.registrant.create({
+      data: { name, age, categoryId: category.id, mode: 'TEAM', groupPref: 'AVAILABLE', legSwim, legBike, legRun },
+    });
+  }
+  revalidatePath('/', 'layout');
+  return { success: true };
 }

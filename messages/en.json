@@ -197,7 +197,12 @@
     "unassignedHint": "Add these people to an existing team manually below, or check in more people and re-run the lottery.",
     "registrants": "Registrants",
     "checkedIn": "Checked in",
-    "addToTeam": "Add to team"
+    "addToTeam": "Add to team",
+    "allRegistrants": "All Competitors",
+    "addRegistrant": "Add Competitor",
+    "noRegistrants": "No competitors registered yet.",
+    "confirmDeleteRegistrant": "Remove this competitor? They will be unlinked from any group they belong to.",
+    "deleteRegistrant": "Delete"
   },
   "register": {
     "title": "Race Registration",
@@ -243,7 +248,10 @@
     "errorCaptainRole": "Please take at least one leg yourself.",
     "errorJoinLeg": "Please choose a group and which leg you'll do.",
     "errorJoinTaken": "That leg was just taken. Please pick another group or leg.",
-    "errorBadTeammate": "One of the teammates is no longer available. Please re-pick."
+    "errorBadTeammate": "One of the teammates is no longer available. Please re-pick.",
+    "errorNameLettersOnly": "Name must contain letters only — no numbers allowed.",
+    "errorDuplicate": "This name is already registered in this category.",
+    "errorLegConflict": "This competitor is already assigned to this leg in another group."
   },
   "testdata": {
     "title": "QC / Test Data",
