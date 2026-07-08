@@ -81,6 +81,7 @@ export default async function PreliminarySchedulePreview({ locale }: { locale: s
             <input
               name="iso"
               type="datetime-local"
+              step="1"
               defaultValue={formatDateTimeInputValue(settings.raceStartTime)}
               className="rounded-lg border border-ink/20 px-2 py-1 text-xs"
             />
