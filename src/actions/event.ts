@@ -7,11 +7,23 @@ import { runLottery, type LotteryCandidate } from '@/lib/lottery';
 import { chunk, computeEstimatedStarts } from '@/lib/schedule';
 import { HEAT_CAPACITY, type Leg } from '@/lib/constants';
 
-export async function setRegistrationOpen(locale: string, open: boolean) {
+export async function openRegistration(locale: string) {
   await requireRole('ADMIN');
-  await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { registrationOpen: open } });
-  revalidatePath(`/${locale}/staff/manage`);
-  revalidatePath(`/${locale}/register`);
+  await prisma.eventSettings.update({
+    where: { id: 'singleton' },
+    data: { registrationOpen: true },
+  });
+  revalidatePath('/', 'layout');
+}
+
+// Closing registration is permanent — there is no reopen action.
+export async function closeRegistration(locale: string) {
+  await requireRole('ADMIN');
+  await prisma.eventSettings.update({
+    where: { id: 'singleton' },
+    data: { registrationOpen: false, registrationPermanentlyClosed: true },
+  });
+  revalidatePath('/', 'layout');
 }
 
 export async function activateCompetition(locale: string) {

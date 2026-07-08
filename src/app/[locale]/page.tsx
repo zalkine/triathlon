@@ -1,10 +1,17 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import PublicHeader from '@/components/PublicHeader';
+import { prisma } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const t = await getTranslations('home');
   const tb = await getTranslations('brand');
+  const tn = await getTranslations('nav');
+
+  const settings = await prisma.eventSettings.findUnique({ where: { id: 'singleton' } });
+  const registrationOpen = settings?.registrationOpen ?? false;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -27,7 +34,15 @@ export default async function HomePage() {
             </span>
 
             <p className="text-2xl font-bold text-swim-dark sm:text-3xl">{t('tagline2')}</p>
-            <p className="text-sm text-ink-light">{t('comingSoon')}</p>
+
+            {/* Hall of Fame — primary CTA, always visible */}
+            <Link
+              href="/hall-of-fame"
+              className="mt-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-run to-run-dark px-8 py-3 text-lg font-bold text-white shadow-md transition hover:brightness-95"
+            >
+              🏆 {tn('hallOfFame')}
+            </Link>
+            <p className="text-xs text-ink-light">{t('hofSubtitle')}</p>
           </div>
 
           {/* three-color accent bar echoing the logo */}
@@ -38,14 +53,16 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* quick links */}
+        {/* secondary links */}
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href="/register"
-            className="rounded-full bg-swim px-6 py-2.5 font-semibold text-ink shadow-sm transition hover:brightness-95"
-          >
-            {t('registerCta')}
-          </Link>
+          {registrationOpen && (
+            <Link
+              href="/register"
+              className="rounded-full bg-swim px-6 py-2.5 font-semibold text-ink shadow-sm transition hover:brightness-95"
+            >
+              {t('registerCta')}
+            </Link>
+          )}
           <Link
             href="/schedule"
             className="rounded-full bg-bike px-6 py-2.5 font-semibold text-ink shadow-sm transition hover:brightness-95"
