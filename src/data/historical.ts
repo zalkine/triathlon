@@ -261,7 +261,7 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 7, name: 'אביתר צורף, אבישי שושן, ניב שוורצמן', seconds: 544, members: ['אביתר צורף', 'אבישי שושן', 'ניב שוורצמן'] },
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 8, name: 'אבישי ביטון, נדב כלפא, ארז רוימי', seconds: 573, members: ['אבישי ביטון', 'נדב כלפא', 'ארז רוימי'] },
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 9, name: 'ניצן כפיר, עידו מנור, תהל דגן', seconds: 598, members: ['ניצן כפיר', 'עידו מנור', 'תהל דגן'] },
-  { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 10, name: 'הראל כהן, ענבר והב הלינגר, הראל טהב הלינגר', seconds: 600, members: ['הראל כהן', 'ענבר והב הלינגר', 'הראל טהב הלינגר'] },
+  { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 10, name: 'הראל כהן, ענבר והב הלינגר, הראל והב הלינגר', seconds: 600, members: ['הראל כהן', 'ענבר והב הלינגר', 'הראל והב הלינגר'] },
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 11, name: 'נבו כפרי, ירדן נווה, רותם כהן', seconds: 603, members: ['נבו כפרי', 'ירדן נווה', 'רותם כהן'] },
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 12, name: 'הילי שושן, ליאור רוימי, רומי שר', seconds: 604, members: ['הילי שושן', 'ליאור רוימי', 'רומי שר'] },
   { year: 2022, categoryHe: 'ילדים', family: 'Kids', isTeam: true, rank: 13, name: 'יובל רז, מילה רזיאל, ליאו עברון', seconds: 619, members: ['יובל רז', 'מילה רזיאל', 'ליאו עברון'] },
