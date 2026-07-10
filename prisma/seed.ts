@@ -45,6 +45,18 @@ async function main() {
       })),
     });
     console.log(`Seeded ${HISTORICAL_RESULTS.length} historical results.`);
+  } else {
+    // One-time migration: split the Kids family into KidsAG (א-ג) and KidsDV (ד-ו).
+    const agCount = await prisma.historicalResult.updateMany({
+      where: { family: 'Kids', categoryHe: { contains: 'א-ג' } },
+      data: { family: 'KidsAG' },
+    });
+    const dvCount = await prisma.historicalResult.updateMany({
+      where: { family: 'Kids', categoryHe: { contains: 'ד-ו' } },
+      data: { family: 'KidsDV' },
+    });
+    if (agCount.count > 0 || dvCount.count > 0)
+      console.log(`Migrated Kids→KidsAG: ${agCount.count}, Kids→KidsDV: ${dvCount.count}`);
   }
 
   // Seed starter Rules & Trails content once so the admin has editable blocks
