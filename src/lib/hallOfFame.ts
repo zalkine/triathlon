@@ -3,7 +3,7 @@
 // HistoricalResult table. Callers (the public page / admin tab) load the rows
 // from the database and pass them in.
 
-export type Family = 'Elite' | 'Amateur' | 'Kids' | 'Seniors' | 'Open';
+export type Family = 'Elite' | 'Amateur' | 'Kids' | 'KidsAG' | 'KidsDV' | 'Seniors' | 'Open';
 
 export type HofResult = {
   year: number;
@@ -16,12 +16,14 @@ export type HofResult = {
   members?: string[];
 };
 
-export const FAMILY_ORDER: Family[] = ['Elite', 'Amateur', 'Kids', 'Seniors', 'Open'];
+export const FAMILY_ORDER: Family[] = ['Elite', 'Amateur', 'Kids', 'KidsAG', 'KidsDV', 'Seniors', 'Open'];
 
 const FAMILY_HE: Record<Family, string> = {
   Elite: 'מקצועי',
   Amateur: 'עממי',
   Kids: 'ילדים',
+  KidsAG: 'ילדים א-ג',
+  KidsDV: 'ילדים ד-ו',
   Seniors: 'גיל הזהב',
   Open: 'כללי',
 };

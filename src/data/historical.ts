@@ -2,7 +2,7 @@
 // are total seconds. Team `members` is set when the roster could be split
 // reliably (comma sheets, column parsing, or a hand-checked override); used for
 // commas + group medals. Records/medals by fastest time.
-export type Family = 'Elite' | 'Amateur' | 'Kids' | 'Seniors' | 'Open';
+export type Family = 'Elite' | 'Amateur' | 'Kids' | 'KidsAG' | 'KidsDV' | 'Seniors' | 'Open';
 export type HistoricalResult = {
   year: number; categoryHe: string; family: Family; isTeam: boolean;
   rank: number | null; name: string; seconds: number; members?: string[];
@@ -301,25 +301,25 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2023, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 4, name: 'איתן זלקין, עמית פיניה', seconds: 1743, members: ['איתן זלקין', 'עמית פיניה'] },
   { year: 2023, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 5, name: 'מייק פיינמן, מושיק כהן, רפי נבו', seconds: 1818, members: ['מייק פיינמן', 'מושיק כהן', 'רפי נבו'] },
   { year: 2023, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 6, name: 'גדי פלג, עמוס לבון, ליסה בן-נון', seconds: 1833, members: ['גדי פלג', 'עמוס לבון', 'ליסה בן-נון'] },
-  { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'Kids', isTeam: false, rank: 2, name: 'איילה ריבק', seconds: 630 },
-  { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'Kids', isTeam: false, rank: 1, name: 'ים רינות', seconds: 713 },
-  { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'Kids', isTeam: false, rank: 3, name: 'אסף כהן ארזוני', seconds: 731 },
-  { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'Kids', isTeam: false, rank: 4, name: 'איל פיינמן', seconds: 1278 },
-  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 1, name: 'אבישי שושן, עידו מנור, כרמי אוחנה', seconds: 532, members: ['אבישי שושן', 'עידו מנור', 'כרמי אוחנה'] },
-  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 2, name: 'מיכאל זלקין, ערבה פיקס, יובל רז', seconds: 558, members: ['מיכאל זלקין', 'ערבה פיקס', 'יובל רז'] },
-  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 3, name: 'עתי עברון, ליאו עברון, נועם עברון', seconds: 563, members: ['עתי עברון', 'ליאו עברון', 'נועם עברון'] },
-  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 4, name: 'נעמי כהן ארזוני, מילה רזיאל, גלי אברהם', seconds: 577, members: ['נעמי כהן ארזוני', 'מילה רזיאל', 'גלי אברהם'] },
-  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 5, name: 'אבישי ביטון, ארז רוימי, נדב כלפא', seconds: 580, members: ['אבישי ביטון', 'ארז רוימי', 'נדב כלפא'] },
-  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 6, name: 'תהל דגן, ניצן כפיר, ינאי דגן', seconds: 614, members: ['תהל דגן', 'ניצן כפיר', 'ינאי דגן'] },
-  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'Kids', isTeam: true, rank: 7, name: 'ליה ויטקו, הגר ריבקין, מיה רחמוט', seconds: 662, members: ['ליה ויטקו', 'הגר ריבקין', 'מיה רחמוט'] },
-  { year: 2023, categoryHe: 'ילדים יחידים ד-ו', family: 'Kids', isTeam: false, rank: 1, name: 'אבשלום ריבקין', seconds: 610 },
-  { year: 2023, categoryHe: 'ילדים יחידים ד-ו', family: 'Kids', isTeam: false, rank: 2, name: 'דולב שפירא', seconds: 614 },
-  { year: 2023, categoryHe: 'ילדים יחידים ד-ו', family: 'Kids', isTeam: false, rank: 3, name: 'ירדן נווה', seconds: 640 },
-  { year: 2023, categoryHe: 'ילדים יחידים ד-ו', family: 'Kids', isTeam: false, rank: 4, name: 'אביתר צורף', seconds: 670 },
-  { year: 2023, categoryHe: 'ילדים קבוצתי ד-ו', family: 'Kids', isTeam: true, rank: 1, name: 'אופיר כפיר, אבישי ברוג, יואב ביטון', seconds: 444, members: ['אופיר כפיר', 'אבישי ברוג', 'יואב ביטון'] },
-  { year: 2023, categoryHe: 'ילדים קבוצתי ד-ו', family: 'Kids', isTeam: true, rank: 2, name: 'רומי שר, אלה שר, יובל מייסלס', seconds: 496, members: ['רומי שר', 'אלה שר', 'יובל מייסלס'] },
-  { year: 2023, categoryHe: 'ילדים קבוצתי ד-ו', family: 'Kids', isTeam: true, rank: 3, name: 'איילה מרקדו, רותם מרקדו, איילה מרקדו', seconds: 660, members: ['איילה מרקדו', 'רותם מרקדו', 'איילה מרקדו'] },
-  { year: 2023, categoryHe: 'ילדים קבוצתי ד-ו', family: 'Kids', isTeam: true, rank: 4, name: 'גאיה הולצמן, אלה בקר, הילי חיון', seconds: 664, members: ['גאיה הולצמן', 'אלה בקר', 'הילי חיון'] },
+  { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'KidsAG', isTeam: false, rank: 2, name: 'איילה ריבק', seconds: 630 },
+  { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'KidsAG', isTeam: false, rank: 1, name: 'ים רינות', seconds: 713 },
+  { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'KidsAG', isTeam: false, rank: 3, name: 'אסף כהן ארזוני', seconds: 731 },
+  { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'KidsAG', isTeam: false, rank: 4, name: 'איל פיינמן', seconds: 1278 },
+  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'KidsAG', isTeam: true, rank: 1, name: 'אבישי שושן, עידו מנור, כרמי אוחנה', seconds: 532, members: ['אבישי שושן', 'עידו מנור', 'כרמי אוחנה'] },
+  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'KidsAG', isTeam: true, rank: 2, name: 'מיכאל זלקין, ערבה פיקס, יובל רז', seconds: 558, members: ['מיכאל זלקין', 'ערבה פיקס', 'יובל רז'] },
+  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'KidsAG', isTeam: true, rank: 3, name: 'עתי עברון, ליאו עברון, נועם עברון', seconds: 563, members: ['עתי עברון', 'ליאו עברון', 'נועם עברון'] },
+  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'KidsAG', isTeam: true, rank: 4, name: 'נעמי כהן ארזוני, מילה רזיאל, גלי אברהם', seconds: 577, members: ['נעמי כהן ארזוני', 'מילה רזיאל', 'גלי אברהם'] },
+  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'KidsAG', isTeam: true, rank: 5, name: 'אבישי ביטון, ארז רוימי, נדב כלפא', seconds: 580, members: ['אבישי ביטון', 'ארז רוימי', 'נדב כלפא'] },
+  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'KidsAG', isTeam: true, rank: 6, name: 'תהל דגן, ניצן כפיר, ינאי דגן', seconds: 614, members: ['תהל דגן', 'ניצן כפיר', 'ינאי דגן'] },
+  { year: 2023, categoryHe: 'ילדים קבוצתי א-ג', family: 'KidsAG', isTeam: true, rank: 7, name: 'ליה ויטקו, הגר ריבקין, מיה רחמוט', seconds: 662, members: ['ליה ויטקו', 'הגר ריבקין', 'מיה רחמוט'] },
+  { year: 2023, categoryHe: 'ילדים יחידים ד-ו', family: 'KidsDV', isTeam: false, rank: 1, name: 'אבשלום ריבקין', seconds: 610 },
+  { year: 2023, categoryHe: 'ילדים יחידים ד-ו', family: 'KidsDV', isTeam: false, rank: 2, name: 'דולב שפירא', seconds: 614 },
+  { year: 2023, categoryHe: 'ילדים יחידים ד-ו', family: 'KidsDV', isTeam: false, rank: 3, name: 'ירדן נווה', seconds: 640 },
+  { year: 2023, categoryHe: 'ילדים יחידים ד-ו', family: 'KidsDV', isTeam: false, rank: 4, name: 'אביתר צורף', seconds: 670 },
+  { year: 2023, categoryHe: 'ילדים קבוצתי ד-ו', family: 'KidsDV', isTeam: true, rank: 1, name: 'אופיר כפיר, אבישי ברוג, יואב ביטון', seconds: 444, members: ['אופיר כפיר', 'אבישי ברוג', 'יואב ביטון'] },
+  { year: 2023, categoryHe: 'ילדים קבוצתי ד-ו', family: 'KidsDV', isTeam: true, rank: 2, name: 'רומי שר, אלה שר, יובל מייסלס', seconds: 496, members: ['רומי שר', 'אלה שר', 'יובל מייסלס'] },
+  { year: 2023, categoryHe: 'ילדים קבוצתי ד-ו', family: 'KidsDV', isTeam: true, rank: 3, name: 'איילה מרקדו, רותם מרקדו, איילה מרקדו', seconds: 660, members: ['איילה מרקדו', 'רותם מרקדו', 'איילה מרקדו'] },
+  { year: 2023, categoryHe: 'ילדים קבוצתי ד-ו', family: 'KidsDV', isTeam: true, rank: 4, name: 'גאיה הולצמן, אלה בקר, הילי חיון', seconds: 664, members: ['גאיה הולצמן', 'אלה בקר', 'הילי חיון'] },
 ];
 
 export type SpecialAward = { year: number; titleHe: string; titleEn: string; name: string; note?: string };
