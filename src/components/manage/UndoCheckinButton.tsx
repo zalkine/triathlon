@@ -15,12 +15,13 @@ export default function UndoCheckinButton({ registrantId }: { registrantId: stri
     <button
       type="button"
       disabled={isPending}
-      onClick={() =>
+      onClick={() => {
+        if (!window.confirm(t('undoCheckinConfirm'))) return;
         startTransition(async () => {
           await undoCheckIn(registrantId);
           router.refresh();
-        })
-      }
+        });
+      }}
       className="text-xs text-run-dark underline disabled:opacity-60"
     >
       {t('undoCheckin')}

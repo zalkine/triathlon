@@ -5,6 +5,7 @@ import ConfirmForm from '@/components/ConfirmForm';
 import AdminAddRegistrantForm from '@/components/AdminAddRegistrantForm';
 import TestDataControls from '@/components/TestDataControls';
 import CsvLink from './CsvLink';
+import CompetitorFilters from './CompetitorFilters';
 import RegistrationRoster from './RegistrationRoster';
 
 export default async function RegistrationPanel({ locale }: { locale: string }) {
@@ -64,6 +65,9 @@ export default async function RegistrationPanel({ locale }: { locale: string }) 
 
       {/* Add a competitor manually */}
       <AdminAddRegistrantForm categories={catInfo} />
+
+      {/* Filterable overview — checked-in, no team, multi-team, anomalies */}
+      <CompetitorFilters />
 
       {/* Editable roster */}
       <RegistrationRoster locale={locale} />

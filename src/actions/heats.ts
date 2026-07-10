@@ -38,6 +38,15 @@ export async function createHeatForCategory(categoryId: string) {
   return { ok: true as const, heatId: heat.id };
 }
 
+// Delete a heat from the admin heats board (client-invoked, so no redirect —
+// the caller refreshes the board). Cascades to its entries.
+export async function removeHeat(heatId: string) {
+  await requireRole('ADMIN');
+  await prisma.heat.delete({ where: { id: heatId } });
+  revalidatePath('/', 'layout');
+  return { ok: true as const };
+}
+
 // Used by the "Start" timing station: only succeeds if the heat hasn't started yet.
 // `atMs` is the moment the timekeeper actually pressed GO (captured on their
 // device). Passing it means a retry after a network blip still records the real

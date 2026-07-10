@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { Link } from '@/i18n/navigation';
 import { createEntry, deleteEntry } from '@/actions/entries';
 import { deleteHeat } from '@/actions/heats';
+import { formatHeatName } from '@/lib/time';
 import HeatStartTimeEditor from '@/components/HeatStartTimeEditor';
 import TimeFieldEditor from '@/components/TimeFieldEditor';
 import MembersEditor from '@/components/MembersEditor';
@@ -54,7 +55,7 @@ export default async function HeatDetailPage({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm text-ink-light">{locale === 'he' ? heat.category.nameHe : heat.category.nameEn}</p>
-          <h1 className="text-2xl font-bold">{heat.name}</h1>
+          <h1 className="text-2xl font-bold">{formatHeatName(heat.name, locale)}</h1>
         </div>
         <ConfirmForm action={deleteHeatAction} confirmMessage={t('confirmDeleteHeat')}>
           <button className="rounded-full border border-run-dark px-4 py-2 text-sm font-semibold text-run-dark hover:bg-run-light/30">

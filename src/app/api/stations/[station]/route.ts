@@ -18,7 +18,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sta
 
   const entries = await prisma.entry.findMany({
     where: { [field]: null, scratched: false, heat: { startTime: { not: null } } },
-    include: { heat: { include: { category: true } } },
+    include: { heat: { include: { category: true } }, members: true },
     orderBy: { createdAt: 'asc' },
   });
 
@@ -32,6 +32,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sta
       heatStartTime: e.heat.startTime ? e.heat.startTime.toISOString() : null,
       categoryNameEn: e.heat.category.nameEn,
       categoryNameHe: e.heat.category.nameHe,
+      // Only the run (finish) station renders these — runner vs. the other legs
+      // — but they're small and harmless for the other stations.
+      members: e.members.filter((m) => m.leg).map((m) => ({ id: m.id, name: m.name, leg: m.leg })),
     })),
   });
 }

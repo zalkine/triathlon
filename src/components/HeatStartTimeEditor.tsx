@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { formatClock, formatDateTimeInputValue } from '@/lib/time';
+import { formatClock, formatDateTimeInputValue, israelInputToISO } from '@/lib/time';
 import { setHeatStartTime } from '@/actions/heats';
 
 export default function HeatStartTimeEditor({ heatId, value }: { heatId: string; value: string | null }) {
@@ -46,7 +46,7 @@ export default function HeatStartTimeEditor({ heatId, value }: { heatId: string;
         disabled={isPending}
         onClick={() =>
           startTransition(async () => {
-            await setHeatStartTime(locale, heatId, draft ? new Date(draft).toISOString() : '');
+            await setHeatStartTime(locale, heatId, israelInputToISO(draft));
             setEditing(false);
           })
         }

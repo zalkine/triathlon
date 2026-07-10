@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { formatClock, formatDateTimeInputValue } from '@/lib/time';
+import { formatClock, formatDateTimeInputValue, israelInputToISO } from '@/lib/time';
 import { setEntryTime } from '@/actions/entries';
 
 export default function TimeFieldEditor({
@@ -51,7 +51,7 @@ export default function TimeFieldEditor({
         disabled={isPending}
         onClick={() =>
           startTransition(async () => {
-            await setEntryTime(locale, heatId, entryId, field, draft ? new Date(draft).toISOString() : '');
+            await setEntryTime(locale, heatId, entryId, field, israelInputToISO(draft));
             setEditing(false);
           })
         }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { formatClockHM } from '@/lib/time';
+import { formatClockHM, formatHeatName } from '@/lib/time';
 
 type Heat = { id: string; name: string; entryCount: number; estimatedStart: string | null; startTime: string | null };
 type Category = { id: string; nameEn: string; nameHe: string; heats: Heat[] };
@@ -47,9 +47,7 @@ export default function ScheduleView() {
             <ul className="divide-y divide-ink/5">
               {c.heats.map((h) => (
                 <li key={h.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
-                  <span className="font-medium">
-                    {t('heat')}: {h.name}
-                  </span>
+                  <span className="font-medium">{formatHeatName(h.name, locale)}</span>
                   <span className="text-ink-light">
                     {t('competitors')}: {h.entryCount}
                   </span>

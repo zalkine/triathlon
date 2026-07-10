@@ -1,10 +1,11 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
 import { getCategoryResults } from '@/lib/ranking';
-import { formatDuration } from '@/lib/time';
+import { formatDuration, formatHeatName } from '@/lib/time';
 import { setPublicResultsVisible, setResultsApproved } from '@/actions/event';
 import { addResultsToHof } from '@/actions/hof';
 import ConfirmForm from '@/components/ConfirmForm';
+import TimeFieldEditor from '@/components/TimeFieldEditor';
 import CsvLink from './CsvLink';
 
 export default async function ScoresPanel({ locale }: { locale: string }) {
@@ -97,22 +98,38 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
             if (!result || result.ranked.length === 0) return null;
             return (
               <div key={cat.id} className="rounded-2xl border border-ink/10 bg-white/70 p-5">
-                <h3 className="mb-3 font-semibold">{locale === 'he' ? cat.nameHe : cat.nameEn}</h3>
+                <h3 className="mb-1 font-semibold">{locale === 'he' ? cat.nameHe : cat.nameEn}</h3>
+                <p className="mb-3 text-xs text-ink-light">{t('scoresEditHint')}</p>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[420px] text-sm">
+                  <table className="w-full min-w-[640px] text-sm">
                     <thead>
                       <tr className="border-b border-ink/10 text-xs text-ink-light">
                         <th className="px-2 py-2 text-start font-medium">{tr('rank')}</th>
                         <th className="px-2 py-2 text-start font-medium">{tr('name')}</th>
+                        <th className="px-2 py-2 text-start font-medium">{t('swimTime')}</th>
+                        <th className="px-2 py-2 text-start font-medium">{t('bikeTime')}</th>
+                        <th className="px-2 py-2 text-start font-medium">{t('runTime')}</th>
                         <th className="px-2 py-2 text-end font-medium">{tr('total')}</th>
                         <th className="px-2 py-2 text-start font-medium">{tr('status')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {result.ranked.map((e) => (
-                        <tr key={e.id} className="border-b border-ink/5 last:border-0">
+                        <tr key={e.id} className="border-b border-ink/5 align-top last:border-0">
                           <td className="px-2 py-2 font-semibold">{e.rank ?? '—'}</td>
-                          <td className="px-2 py-2">{e.name}</td>
+                          <td className="px-2 py-2">
+                            <div>{e.name}</div>
+                            <div className="text-xs text-ink-light">{formatHeatName(e.heatName, locale)}</div>
+                          </td>
+                          <td className="px-2 py-2">
+                            <TimeFieldEditor heatId={e.heatId} entryId={e.id} field="swimTime" value={e.swimTime?.toISOString() ?? null} />
+                          </td>
+                          <td className="px-2 py-2">
+                            <TimeFieldEditor heatId={e.heatId} entryId={e.id} field="bikeTime" value={e.bikeTime?.toISOString() ?? null} />
+                          </td>
+                          <td className="px-2 py-2">
+                            <TimeFieldEditor heatId={e.heatId} entryId={e.id} field="runTime" value={e.runTime?.toISOString() ?? null} />
+                          </td>
                           <td className="px-2 py-2 text-end tabular-nums font-medium">
                             {e.totalMs != null ? formatDuration(e.totalMs) : '—'}
                           </td>

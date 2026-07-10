@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useLocale, useTranslations } from 'next-intl';
 import { createHeatForCategory, stampHeatStart, undoHeatStart } from '@/actions/heats';
 import { addRaceEntry, moveEntry, removeRaceEntry, renameEntry, renameMember, setEntryScratched } from '@/actions/entries';
-import { formatClock, formatDuration } from '@/lib/time';
+import { formatClock, formatDuration, formatHeatName } from '@/lib/time';
 
 type Member = { id: string; name: string; leg: string | null };
 type Entry = { id: string; name: string; scratched: boolean; done: boolean; members: Member[] };
@@ -187,7 +187,7 @@ export default function StartStationView() {
                       {t('started', { time: formatClock(new Date(startMs), locale) })}
                     </span>
                   </div>
-                  <div className="mt-1 font-bold">{h.name}</div>
+                  <div className="mt-1 font-bold">{formatHeatName(h.name, locale)}</div>
                   <div className="mt-2 font-mono text-5xl font-black tabular-nums tracking-tight">
                     {formatDuration(elapsed)}
                   </div>
@@ -242,7 +242,7 @@ export default function StartStationView() {
               <div key={h.id} className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
                 <div className="mb-2 flex items-baseline justify-between gap-2">
                   <span className="text-xs text-ink-light">{catName(h)}</span>
-                  <span className="text-lg font-bold">{h.name}</span>
+                  <span className="text-lg font-bold">{formatHeatName(h.name, locale)}</span>
                 </div>
 
                 {isStarting ? (
@@ -305,7 +305,7 @@ export default function StartStationView() {
                                 <option value="">{t('moveTo')}</option>
                                 {moveTargets.map((o) => (
                                   <option key={o.id} value={o.id}>
-                                    {catName(o)} · {o.name}
+                                    {catName(o)} · {formatHeatName(o.name, locale)}
                                   </option>
                                 ))}
                               </select>

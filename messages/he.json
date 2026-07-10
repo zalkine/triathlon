@@ -118,6 +118,7 @@
     "legSwim": "שחייה",
     "legBike": "רכיבה",
     "legRun": "ריצה",
+    "poolFinishHint": "מודד ההתחלה נמצא בבריכה — ניתן לתעד כאן גם את סיום השחייה.",
     "notActiveYet": "התחרות טרם הופעלה. יש לבדוק שוב לאחר שהמנהל/ת יפעיל/ה אותה."
   },
   "stationStamp": {
@@ -131,7 +132,10 @@
     "manualHint": "הקלידו את שעת ההגעה מהשעון (שעה:דקה:שנייה).",
     "saveTime": "שמירת שעה",
     "stamped": "נרשם עבור {name} בשעה {time}",
-    "notStartedYet": "המקצה עדיין לא התחיל"
+    "notStartedYet": "המקצה עדיין לא התחיל",
+    "legSwim": "שחייה",
+    "legBike": "רכיבה",
+    "legRun": "ריצה"
   },
   "manage": {
     "dashboard": "ניהול תחרות",
@@ -291,7 +295,12 @@
     "doneEditingGroup": "סיום עריכה",
     "confirmDeleteGroup": "למחוק את הקבוצה? חבריה יחזרו למאגר הזמינים.",
     "groupDelete": "מחיקת קבוצה",
-    "undoCheckin": "ביטול הגעה"
+    "undoCheckin": "ביטול הגעה",
+    "undoCheckinConfirm": "לבטל את רישום ההגעה של המתחרה/ה?",
+    "heatsBoardHint": "גררו מתחרים בין המקצים כדי לארגן אותם. במסך רחב המקצים מוצגים זה לצד זה. הזמנים נערכים בלשונית התוצאות.",
+    "dropHere": "גררו לכאן",
+    "confirmDeleteEmptyHeat": "למחוק את המקצה הריק הזה?",
+    "scoresEditHint": "בקרת איכות: הקישו על זמן כדי לתקן אותו מול הצילום/הרישום הידני. הדירוג יתעדכן אוטומטית."
   },
   "info": {
     "title": "תקנון ומסלולים",
@@ -369,7 +378,23 @@
     "search": "חיפוש לפי שם…",
     "noResults": "לא נמצאו נרשמים תואמים.",
     "markArrived": "סימון כהגיע/ה",
-    "arrived": "הגיע/ה"
+    "arrived": "הגיע/ה",
+    "confirmCancel": "לבטל את רישום ההגעה של {name}?"
+  },
+  "competitorFilters": {
+    "title": "סינון מתחרים",
+    "hint": "תצוגה בלבד — לאיתור אנומליות שדורשות תשומת לב. העריכה נעשית ברשימה למטה.",
+    "all": "הכל",
+    "checkedIn": "הגיעו",
+    "notCheckedIn": "טרם הגיעו",
+    "noTeam": "ללא קבוצה",
+    "multiTeam": "ביותר מקבוצה אחת",
+    "anomaly": "אנומליות",
+    "none": "אין תוצאות מתאימות.",
+    "badgeCheckedIn": "הגיע/ה",
+    "badgeNotCheckedIn": "טרם הגיע/ה",
+    "badgeNoTeam": "ללא קבוצה",
+    "badgeMultiTeam": "{count} קבוצות"
   },
   "schedule": {
     "title": "לוח הזמנים של התחרות",

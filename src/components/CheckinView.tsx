@@ -40,6 +40,9 @@ export default function CheckinView() {
   }, [registrants, query]);
 
   const toggle = (r: Registrant) => {
+    // Cancelling an already-recorded arrival is easy to do by accident, so make
+    // the timekeeper confirm before we undo it.
+    if (r.checkedIn && !window.confirm(t('confirmCancel', { name: r.name }))) return;
     startTransition(async () => {
       if (r.checkedIn) {
         await undoCheckIn(r.id);

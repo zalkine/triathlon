@@ -118,6 +118,7 @@
     "legSwim": "Swim",
     "legBike": "Bike",
     "legRun": "Run",
+    "poolFinishHint": "The start-line timekeeper is at the pool — you can also record swim-exit times here.",
     "notActiveYet": "The competition hasn't been activated yet. Check back once the admin starts it."
   },
   "stationStamp": {
@@ -131,7 +132,10 @@
     "manualHint": "Type the arrival time from the clock (HH:MM:SS).",
     "saveTime": "Save time",
     "stamped": "Stamped {name} at {time}",
-    "notStartedYet": "Heat hasn't started yet"
+    "notStartedYet": "Heat hasn't started yet",
+    "legSwim": "Swim",
+    "legBike": "Bike",
+    "legRun": "Run"
   },
   "manage": {
     "dashboard": "Race Management",
@@ -291,7 +295,12 @@
     "doneEditingGroup": "Done",
     "confirmDeleteGroup": "Delete this group? Its members return to the available pool.",
     "groupDelete": "Delete group",
-    "undoCheckin": "Cancel check-in"
+    "undoCheckin": "Cancel check-in",
+    "undoCheckinConfirm": "Cancel this competitor's check-in?",
+    "heatsBoardHint": "Drag competitors between heats to organise them. On a wide screen the heats sit side by side. Times are edited on the Results tab.",
+    "dropHere": "Drop here",
+    "confirmDeleteEmptyHeat": "Delete this empty heat?",
+    "scoresEditHint": "QC: tap a time to correct it against the camera / manual record. Ranking updates automatically."
   },
   "info": {
     "title": "Rules & Trails",
@@ -369,7 +378,23 @@
     "search": "Search by name…",
     "noResults": "No matching registrants.",
     "markArrived": "Mark Arrived",
-    "arrived": "Arrived"
+    "arrived": "Arrived",
+    "confirmCancel": "Cancel {name}'s check-in?"
+  },
+  "competitorFilters": {
+    "title": "Filter competitors",
+    "hint": "View only — to spot anomalies that need attention. Editing is done in the roster below.",
+    "all": "All",
+    "checkedIn": "Checked in",
+    "notCheckedIn": "Not checked in",
+    "noTeam": "No team",
+    "multiTeam": "On multiple teams",
+    "anomaly": "Anomalies",
+    "none": "No matching competitors.",
+    "badgeCheckedIn": "Checked in",
+    "badgeNotCheckedIn": "Not checked in",
+    "badgeNoTeam": "No team",
+    "badgeMultiTeam": "{count} teams"
   },
   "schedule": {
     "title": "Race Schedule",
