@@ -148,6 +148,8 @@ model EventSettings {
   // hidden until results are BOTH approved and set visible, so provisional
   // rankings are never shown before an admin has reviewed them.
   resultsApproved              Boolean   @default(false)
+  competitionInfoPublished     Boolean   @default(false)
+  trailsPublished              Boolean   @default(false)
 }
 
 // Editable contact directory shown to every competitor on the public info page:
@@ -181,11 +183,12 @@ model HistoricalResult {
   @@index([year])
 }
 
-// Editable content blocks for the public "Rules & Trails" / info page: rules,
-// trail descriptions, maps (as image URLs), and general information. Each
-// section has a bilingual title and body plus an optional image.
+// Editable content blocks for the public info pages: competition info, trail descriptions,
+// maps (as image URLs), and general information. Each section has a bilingual title and body
+// plus an optional image. Type categorizes where it appears: "competitionInfo" | "trails".
 model InfoSection {
   id        String   @id @default(cuid())
+  type      String   @default("competitionInfo")
   titleEn   String   @default("")
   titleHe   String   @default("")
   bodyEn    String   @default("")

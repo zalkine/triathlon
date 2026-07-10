@@ -6,6 +6,8 @@ import StaffPanel from '@/components/manage/StaffPanel';
 import HeatsPanel from '@/components/manage/HeatsPanel';
 import SchedulePanel from '@/components/manage/SchedulePanel';
 import ScoresPanel from '@/components/manage/ScoresPanel';
+import CompetitionInfoPanel from '@/components/manage/CompetitionInfoPanel';
+import TrailsPanel from '@/components/manage/TrailsPanel';
 import HofPanel from '@/components/manage/HofPanel';
 import InfoPanel from '@/components/manage/InfoPanel';
 
@@ -36,6 +38,8 @@ export default async function ManageDashboardPage({
         {active === 'heats' && <HeatsPanel locale={locale} />}
         {active === 'schedule' && <SchedulePanel locale={locale} />}
         {active === 'scores' && <ScoresPanel locale={locale} />}
+        {active === 'competitionInfo' && <CompetitionInfoPanel locale={locale} />}
+        {active === 'trails' && <TrailsPanel locale={locale} />}
         {active === 'hof' && <HofPanel locale={locale} />}
         {active === 'info' && <InfoPanel locale={locale} />}
       </div>

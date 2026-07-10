@@ -29,6 +29,12 @@ export default async function PublicHeader() {
         <Link href="/results" className="hover:underline">
           {t('results')}
         </Link>
+        <Link href="/competition-info" className="hover:underline">
+          {t('competitionInfo')}
+        </Link>
+        <Link href="/trails" className="hover:underline">
+          {t('trails')}
+        </Link>
         <Link href="/hall-of-fame" className="hover:underline">
           {t('hallOfFame')}
         </Link>
