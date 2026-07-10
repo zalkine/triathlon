@@ -5,6 +5,8 @@ export const MANAGE_TABS = [
   { key: 'heats', icon: '🏁', labelKey: 'tabHeats' },
   { key: 'schedule', icon: '🕐', labelKey: 'tabSchedule' },
   { key: 'scores', icon: '🏅', labelKey: 'tabScores' },
+  { key: 'competitionInfo', icon: 'ℹ️', labelKey: 'tabCompetitionInfo' },
+  { key: 'trails', icon: '🥾', labelKey: 'tabTrails' },
   { key: 'hof', icon: '🏆', labelKey: 'tabHof' },
   { key: 'info', icon: '🗺️', labelKey: 'tabInfo' },
 ] as const;

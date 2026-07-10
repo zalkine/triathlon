@@ -9,6 +9,8 @@
     "register": "הרשמה",
     "competitors": "מתחרים",
     "schedule": "לוח זמנים",
+    "competitionInfo": "מידע התחרות",
+    "trails": "מסלולים",
     "hallOfFame": "היכל התהילה",
     "login": "כניסת צוות",
     "logout": "התנתקות",
@@ -229,6 +231,8 @@
     "tabHeats": "מקצים",
     "tabSchedule": "לוח זמנים",
     "tabScores": "תוצאות ודירוג",
+    "tabCompetitionInfo": "מידע התחרות",
+    "tabTrails": "מסלולים",
     "tabHof": "היכל התהילה",
     "tabInfo": "תקנון ומסלולים",
     "randomGroupingHint": "יוצר קבוצות שליחים אוטומטית ממאגר הזמינים בעת יצירת המקצים.",
@@ -286,6 +290,9 @@
     "infoUploadNotConfigured": "העלאה אינה מוגדרת — הדביקו כתובת תמונה במקום.",
     "infoUploadFailed": "ההעלאה נכשלה — נסו שוב או הדביקו כתובת.",
     "infoViewPublic": "צפייה בעמוד הציבורי",
+    "competitionInfoHint": "מידע כללי על התחרות ופרטי קשר למשתתפים.",
+    "trailsHint": "תיאורים של מסלולי המירוץ, מפות קורס ופרטי הנתיב.",
+    "viewPublic": "צפייה בעמוד הציבורי",
     "legClear": "פנה",
     "assign": "שבץ",
     "doneEditingGroup": "סיום עריכה",
@@ -301,6 +308,21 @@
     "nameCol": "שם",
     "phoneCol": "טלפון",
     "empty": "המידע יפורסם כאן בקרוב."
+  },
+  "competitionInfo": {
+    "title": "מידע התחרות",
+    "subtitle": "מידע כללי ואנשי קשר לשירותי חירום.",
+    "contactsTitle": "אנשי קשר",
+    "roleCol": "תפקיד",
+    "nameCol": "שם",
+    "phoneCol": "טלפון",
+    "notPublished": "מידע התחרות עדיין לא פורסם."
+  },
+  "trails": {
+    "title": "מסלולי המירוץ",
+    "subtitle": "תיאורי קורס ומידע על הנתיב.",
+    "empty": "מידע המסלולים יפורסם כאן בקרוב.",
+    "notPublished": "מידע המסלולים עדיין לא פורסם."
   },
   "register": {
     "title": "הרשמה לתחרות",
