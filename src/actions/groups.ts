@@ -79,3 +79,33 @@ export async function createEmptyGroup(categoryId: string): Promise<{ ok?: true;
   revalidatePath('/', 'layout');
   return { ok: true };
 }
+
+// Admin: form a complete group by assigning a registrant to every leg. All
+// three legs are required so the runner (and each other leg) is unambiguous at
+// the finish line. The same person may fill two legs (e.g. swim + bike) while a
+// teammate runs — every leg is still assigned, so the runner stays defined.
+export async function createGroupWithLegs(
+  categoryId: string,
+  legs: { SWIM: string; BIKE: string; RUN: string }
+): Promise<{ ok?: true; error?: string }> {
+  await requireRole('ADMIN');
+  const category = await prisma.category.findUnique({ where: { id: categoryId } });
+  if (!category || category.type !== 'TEAM') return { error: 'invalid' };
+  if (!legs.SWIM || !legs.BIKE || !legs.RUN) return { error: 'incomplete' };
+
+  const uniqueIds = Array.from(new Set([legs.SWIM, legs.BIKE, legs.RUN]));
+  const registrants = await prisma.registrant.findMany({ where: { id: { in: uniqueIds } } });
+  if (registrants.length !== uniqueIds.length) return { error: 'invalid' };
+  if (registrants.some((r) => r.categoryId !== categoryId)) return { error: 'category' };
+
+  await prisma.group.create({
+    data: {
+      categoryId,
+      swimRegistrantId: legs.SWIM,
+      bikeRegistrantId: legs.BIKE,
+      runRegistrantId: legs.RUN,
+    },
+  });
+  revalidatePath('/', 'layout');
+  return { ok: true };
+}

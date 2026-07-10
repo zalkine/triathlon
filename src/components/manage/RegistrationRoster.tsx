@@ -4,6 +4,7 @@ import ConfirmForm from '@/components/ConfirmForm';
 import RegistrantEditors from '@/components/RegistrantEditors';
 import { deleteRegistrant } from '@/actions/registrants';
 import GroupEditor from './GroupEditor';
+import CreateGroupForm from './CreateGroupForm';
 import AddToCategoryForm from './AddToCategoryForm';
 import UndoCheckinButton from './UndoCheckinButton';
 
@@ -96,24 +97,43 @@ export default async function RegistrationRoster({ locale }: { locale: string })
               </ul>
             )}
 
-            {/* Formed groups — editable */}
-            {c.groups.length > 0 && (
+            {/* Group builder + formed groups — fully editable by the admin */}
+            {c.type === 'TEAM' && (c.groups.length > 0 || pool.length > 0) && (
               <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-ink-light">{tc('groups')}</h4>
-                <ul className="space-y-2">
-                  {c.groups.map((g) => (
-                    <GroupEditor
-                      key={g.id}
-                      pool={pool}
-                      group={{
-                        id: g.id,
-                        SWIM: g.swimRegistrantId ? { registrantId: g.swimRegistrantId, name: nameOf.get(g.swimRegistrantId) ?? '?' } : null,
-                        BIKE: g.bikeRegistrantId ? { registrantId: g.bikeRegistrantId, name: nameOf.get(g.bikeRegistrantId) ?? '?' } : null,
-                        RUN: g.runRegistrantId ? { registrantId: g.runRegistrantId, name: nameOf.get(g.runRegistrantId) ?? '?' } : null,
-                      }}
-                    />
-                  ))}
-                </ul>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="text-sm font-semibold text-ink-light">{tc('groups')}</h4>
+                  {pool.length > 0 && <CreateGroupForm categoryId={c.id} pool={pool} />}
+                </div>
+                {c.groups.length > 0 && (
+                  <ul className="space-y-2">
+                    {c.groups.map((g) => {
+                      const legIds = [g.swimRegistrantId, g.bikeRegistrantId, g.runRegistrantId].filter(
+                        (id): id is string => !!id
+                      );
+                      // A group member can be given a second leg, so include this
+                      // group's own members in its assignable pool alongside the
+                      // available pool.
+                      const groupPool = [
+                        ...pool,
+                        ...legIds
+                          .filter((id) => !pool.some((p) => p.id === id))
+                          .map((id) => ({ id, name: nameOf.get(id) ?? '?' })),
+                      ];
+                      return (
+                        <GroupEditor
+                          key={g.id}
+                          pool={groupPool}
+                          group={{
+                            id: g.id,
+                            SWIM: g.swimRegistrantId ? { registrantId: g.swimRegistrantId, name: nameOf.get(g.swimRegistrantId) ?? '?' } : null,
+                            BIKE: g.bikeRegistrantId ? { registrantId: g.bikeRegistrantId, name: nameOf.get(g.bikeRegistrantId) ?? '?' } : null,
+                            RUN: g.runRegistrantId ? { registrantId: g.runRegistrantId, name: nameOf.get(g.runRegistrantId) ?? '?' } : null,
+                          }}
+                        />
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
             )}
 

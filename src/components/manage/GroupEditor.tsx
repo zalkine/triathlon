@@ -34,6 +34,8 @@ export default function GroupEditor({ group, pool }: { group: Group; pool: PoolM
     run(() => updateRegistrantName(registrantId, fd));
   };
 
+  const openLegs = LEGS.filter((leg) => !group[leg]);
+
   if (!editing) {
     return (
       <li className="rounded-xl bg-cream/60 p-3 text-sm">
@@ -42,7 +44,7 @@ export default function GroupEditor({ group, pool }: { group: Group; pool: PoolM
             {LEGS.map((leg) => (
               <span key={leg}>
                 <span className="text-ink-light">{legLabel(leg)}:</span>{' '}
-                {group[leg] ? group[leg]!.name : <span className="italic text-ink-light">{tc('openSlot')}</span>}
+                {group[leg] ? group[leg]!.name : <span className="italic text-run-dark">{tc('openSlot')}</span>}
               </span>
             ))}
           </div>
@@ -50,6 +52,11 @@ export default function GroupEditor({ group, pool }: { group: Group; pool: PoolM
             {t('edit')}
           </button>
         </div>
+        {openLegs.length > 0 && (
+          <p className="mt-1 text-xs font-medium text-run-dark">
+            ⚠ {openLegs.includes('RUN') ? t('groupNoRunner') : t('groupIncomplete')}
+          </p>
+        )}
       </li>
     );
   }

@@ -300,7 +300,14 @@
     "heatsBoardHint": "Drag competitors between heats to organise them. On a wide screen the heats sit side by side. Times are edited on the Results tab.",
     "dropHere": "Drop here",
     "confirmDeleteEmptyHeat": "Delete this empty heat?",
-    "scoresEditHint": "QC: tap a time to correct it against the camera / manual record. Ranking updates automatically."
+    "scoresEditHint": "QC: tap a time to correct it against the camera / manual record. Ranking updates automatically.",
+    "createGroup": "Create group",
+    "createGroupHint": "Choose who swims, bikes and runs. All three legs must be filled so the runner is clearly defined. The same person can take two legs (e.g. one swims and bikes while a teammate runs).",
+    "createGroupPick": "Pick competitor…",
+    "createGroupIncomplete": "Assign someone to all three legs (swim, bike, run).",
+    "createGroupFailed": "Couldn't create the group. Try again.",
+    "groupIncomplete": "Incomplete group — a leg is unassigned.",
+    "groupNoRunner": "No runner assigned — assign a runner before the finish line."
   },
   "info": {
     "title": "Rules & Trails",
