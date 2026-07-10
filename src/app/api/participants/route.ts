@@ -35,13 +35,14 @@ export async function GET() {
           bike: g.bikeRegistrantId ? nameOf.get(g.bikeRegistrantId) ?? '?' : null,
           run: g.runRegistrantId ? nameOf.get(g.runRegistrantId) ?? '?' : null,
         })),
-        // TEAM categories: people available to join a group, not yet in any
-        // group. Anyone who isn't a self-formed-group captain counts here,
-        // including legacy rows with a null groupPref (never hide a registrant).
+        // TEAM categories: people not currently holding a leg in any group, so
+        // available to join one. Keyed off actual group membership (not the
+        // registration-time groupPref) so nobody is hidden after an admin
+        // clears or reassigns their leg — never hide a registrant.
         available:
           c.type === 'TEAM'
             ? c.registrants
-                .filter((r) => r.groupPref !== 'HAS_GROUP' && !inGroup.has(r.id))
+                .filter((r) => !inGroup.has(r.id))
                 .map((r) => ({
                   name: r.name,
                   legSwim: r.legSwim,

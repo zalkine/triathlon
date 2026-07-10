@@ -55,10 +55,12 @@ export default async function RegistrationRoster({ locale }: { locale: string })
           c.groups.flatMap((g) => [g.swimRegistrantId, g.bikeRegistrantId, g.runRegistrantId])
         );
         const singles = c.type === 'SINGLE' ? c.registrants : [];
+        // "Available" = any TEAM registrant not currently holding a leg in a
+        // group — based on actual membership, not their registration-time
+        // groupPref. This keeps a registrant visible (and placeable) even after
+        // an admin clears/reassigns their leg, so no one is orphaned off-screen.
         const available =
-          c.type === 'TEAM'
-            ? c.registrants.filter((r) => r.groupPref !== 'HAS_GROUP' && !inGroup.has(r.id))
-            : [];
+          c.type === 'TEAM' ? c.registrants.filter((r) => !inGroup.has(r.id)) : [];
         const pool = available.map((r) => ({ id: r.id, name: r.name }));
         const isKids = c.key.startsWith('KIDS_');
 
