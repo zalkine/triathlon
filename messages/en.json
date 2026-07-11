@@ -307,7 +307,13 @@
     "createGroupIncomplete": "Assign someone to all three legs (swim, bike, run).",
     "createGroupFailed": "Couldn't create the group. Try again.",
     "groupIncomplete": "Incomplete group — a leg is unassigned.",
-    "groupNoRunner": "No runner assigned — assign a runner before the finish line."
+    "groupNoRunner": "No runner assigned — assign a runner before the finish line.",
+    "groupsBoardHint": "Drag competitors between groups to assign them. Dropping onto a taken cell replaces the occupant — they return to the unassigned tray. Drag to the tray to remove from a group.",
+    "renamePrompt": "Enter the correct name",
+    "renameAction": "Rename",
+    "unassignedTrayEmpty": "Everyone is assigned to a group.",
+    "pickedHint": "Picked {name} — tap a cell to place them.",
+    "removeFromGroup": "Remove from group"
   },
   "info": {
     "title": "Rules & Trails",

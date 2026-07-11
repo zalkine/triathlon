@@ -3,8 +3,7 @@ import { prisma } from '@/lib/db';
 import ConfirmForm from '@/components/ConfirmForm';
 import RegistrantEditors from '@/components/RegistrantEditors';
 import { deleteRegistrant } from '@/actions/registrants';
-import GroupEditor from './GroupEditor';
-import CreateGroupForm from './CreateGroupForm';
+import GroupsBoard from './GroupsBoard';
 import AddToCategoryForm from './AddToCategoryForm';
 import UndoCheckinButton from './UndoCheckinButton';
 
@@ -50,18 +49,38 @@ export default async function RegistrationRoster({ locale }: { locale: string })
     <div className="space-y-4">
       <p className="text-sm text-ink-light">{t('allRegistrants')} · {tc('count', { count: total })}</p>
       {categories.map((c) => {
-        const nameOf = new Map(c.registrants.map((r) => [r.id, r.name]));
+        const byId = new Map(c.registrants.map((r) => [r.id, r]));
         const inGroup = new Set(
           c.groups.flatMap((g) => [g.swimRegistrantId, g.bikeRegistrantId, g.runRegistrantId])
         );
         const singles = c.type === 'SINGLE' ? c.registrants : [];
-        // "Available" = any TEAM registrant not currently holding a leg in a
+        // Unassigned = any TEAM registrant not currently holding a leg in a
         // group — based on actual membership, not their registration-time
         // groupPref. This keeps a registrant visible (and placeable) even after
         // an admin clears/reassigns their leg, so no one is orphaned off-screen.
-        const available =
-          c.type === 'TEAM' ? c.registrants.filter((r) => !inGroup.has(r.id)) : [];
-        const pool = available.map((r) => ({ id: r.id, name: r.name }));
+        const unassigned =
+          c.type === 'TEAM'
+            ? c.registrants
+                .filter((r) => !inGroup.has(r.id))
+                .map((r) => ({
+                  id: r.id,
+                  name: r.name,
+                  checkedIn: r.checkedIn,
+                  legSwim: r.legSwim,
+                  legBike: r.legBike,
+                  legRun: r.legRun,
+                }))
+            : [];
+        const slotOf = (id: string | null) => {
+          const r = id ? byId.get(id) : null;
+          return r ? { id: r.id, name: r.name, checkedIn: r.checkedIn } : null;
+        };
+        const boardGroups = c.groups.map((g) => ({
+          id: g.id,
+          SWIM: slotOf(g.swimRegistrantId),
+          BIKE: slotOf(g.bikeRegistrantId),
+          RUN: slotOf(g.runRegistrantId),
+        }));
         const isKids = c.key.startsWith('KIDS_');
 
         return (
@@ -99,89 +118,18 @@ export default async function RegistrationRoster({ locale }: { locale: string })
               </ul>
             )}
 
-            {/* Group builder + formed groups — fully editable by the admin */}
-            {c.type === 'TEAM' && (c.groups.length > 0 || pool.length > 0) && (
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h4 className="text-sm font-semibold text-ink-light">{tc('groups')}</h4>
-                  {pool.length > 0 && <CreateGroupForm categoryId={c.id} pool={pool} />}
-                </div>
-                {c.groups.length > 0 && (
-                  <ul className="space-y-2">
-                    {c.groups.map((g) => {
-                      const legIds = [g.swimRegistrantId, g.bikeRegistrantId, g.runRegistrantId].filter(
-                        (id): id is string => !!id
-                      );
-                      // A group member can be given a second leg, so include this
-                      // group's own members in its assignable pool alongside the
-                      // available pool.
-                      const groupPool = [
-                        ...pool,
-                        ...legIds
-                          .filter((id) => !pool.some((p) => p.id === id))
-                          .map((id) => ({ id, name: nameOf.get(id) ?? '?' })),
-                      ];
-                      return (
-                        <GroupEditor
-                          key={g.id}
-                          pool={groupPool}
-                          group={{
-                            id: g.id,
-                            SWIM: g.swimRegistrantId ? { registrantId: g.swimRegistrantId, name: nameOf.get(g.swimRegistrantId) ?? '?' } : null,
-                            BIKE: g.bikeRegistrantId ? { registrantId: g.bikeRegistrantId, name: nameOf.get(g.bikeRegistrantId) ?? '?' } : null,
-                            RUN: g.runRegistrantId ? { registrantId: g.runRegistrantId, name: nameOf.get(g.runRegistrantId) ?? '?' } : null,
-                          }}
-                        />
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            )}
-
-            {/* Available pool — flag anyone not yet in a group */}
-            {available.length > 0 && (
-              <div className="mt-3 space-y-2">
-                <h4 className="text-sm font-semibold text-ink-light">{tc('availableTitle')}</h4>
-                <ul className="divide-y divide-ink/5">
-                  {available.map((r) => {
-                    const legs = [r.legSwim && tc('legSwim'), r.legBike && tc('legBike'), r.legRun && tc('legRun')]
-                      .filter(Boolean)
-                      .join(' · ');
-                    return (
-                      <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 py-2">
-                        <div className="min-w-0 flex-1">
-                          <RegistrantEditors
-                            registrantId={r.id}
-                            initialName={r.name}
-                            initialCategoryKey={c.key}
-                            categories={catInfo}
-                          />
-                          <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs">
-                            <span className="rounded-full bg-bike/20 px-2 py-0.5 font-medium text-bike-dark">
-                              ⚠ {t('notInGroup')}
-                            </span>
-                            {legs && <span className="text-ink-light">{legs}</span>}
-                            {r.checkedIn && (
-                              <span className="flex items-center gap-2 text-swim-dark">
-                                ✓ {tc('arrived')}
-                                <UndoCheckinButton registrantId={r.id} />
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <DeleteButton id={r.id} />
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
+            {/* Groups as a drag-and-drop table + unassigned tray */}
+            {c.type === 'TEAM' && (
+              <GroupsBoard
+                categoryId={c.id}
+                categoryKey={c.key}
+                groups={boardGroups}
+                unassigned={unassigned}
+                categories={catInfo}
+              />
             )}
 
             {c.type === 'SINGLE' && singles.length === 0 && (
-              <p className="text-sm text-ink-light">{t('noRegistrants')}</p>
-            )}
-            {c.type === 'TEAM' && c.groups.length === 0 && available.length === 0 && (
               <p className="text-sm text-ink-light">{t('noRegistrants')}</p>
             )}
           </div>

@@ -70,6 +70,51 @@ export async function addNewMemberToGroupLeg(
   return { ok: true };
 }
 
+// Admin drag-and-drop: assign `registrantId` to a target leg of a group. If the
+// registrant was dragged out of another leg (`source`), that leg is cleared. If
+// the target leg was already held by someone else, that person is displaced back
+// to the unassigned pool (their leg simply becomes null on the group) — a
+// replace, not a swap. Their registered legs live on the registrant record and
+// are untouched, so they return to the pool with their original leg preferences.
+export async function moveGroupMember(
+  registrantId: string,
+  target: { groupId: string; leg: Leg },
+  source: { groupId: string; leg: Leg } | null
+): Promise<{ ok?: true; error?: string }> {
+  await requireRole('ADMIN');
+
+  // Dropping onto the exact same cell is a no-op.
+  if (source && source.groupId === target.groupId && source.leg === target.leg) return { ok: true };
+
+  const [targetGroup, registrant] = await Promise.all([
+    prisma.group.findUnique({ where: { id: target.groupId } }),
+    prisma.registrant.findUnique({ where: { id: registrantId } }),
+  ]);
+  if (!targetGroup || !registrant) return { error: 'invalid' };
+  if (registrant.categoryId !== targetGroup.categoryId) return { error: 'category' };
+
+  const targetField = LEG_FIELD[target.leg];
+
+  if (source && source.groupId === target.groupId) {
+    // Same group: set the new leg and clear the old one in a single update. Any
+    // person who held the target leg drops out of the group (→ unassigned).
+    await prisma.group.update({
+      where: { id: target.groupId },
+      data: { [targetField]: registrantId, [LEG_FIELD[source.leg]]: null },
+    });
+  } else {
+    await prisma.group.update({ where: { id: target.groupId }, data: { [targetField]: registrantId } });
+    if (source) {
+      const srcGroup = await prisma.group.findUnique({ where: { id: source.groupId } });
+      if (srcGroup && srcGroup.categoryId === targetGroup.categoryId) {
+        await prisma.group.update({ where: { id: source.groupId }, data: { [LEG_FIELD[source.leg]]: null } });
+      }
+    }
+  }
+  revalidatePath('/', 'layout');
+  return { ok: true };
+}
+
 // Admin: create a new empty group in a category (all legs open, to be filled).
 export async function createEmptyGroup(categoryId: string): Promise<{ ok?: true; error?: string }> {
   await requireRole('ADMIN');
