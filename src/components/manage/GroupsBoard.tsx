@@ -67,6 +67,24 @@ export default function GroupsBoard({
     run(() => moveGroupMember(p.registrantId, { groupId, leg }, p.source));
   };
 
+  // Everyone in this category (unassigned + already-grouped), for the "assign
+  // anyone" cell picker. Picking is additive (source: null), so a person already
+  // in another group can also be given a leg here — e.g. run in one group and
+  // swim in another.
+  const allPeople = (() => {
+    const byId = new Map<string, { id: string; name: string; grouped: boolean }>();
+    for (const g of groups) for (const leg of LEGS) {
+      const s = g[leg];
+      if (s) byId.set(s.id, { id: s.id, name: s.name, grouped: true });
+    }
+    for (const u of unassigned) if (!byId.has(u.id)) byId.set(u.id, { id: u.id, name: u.name, grouped: false });
+    return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name, locale === 'he' ? 'he' : undefined));
+  })();
+
+  const assignPick = (registrantId: string, groupId: string, leg: Leg) => {
+    run(() => moveGroupMember(registrantId, { groupId, leg }, null));
+  };
+
   // --- drag (desktop) ---
   const startDrag = (e: React.DragEvent, p: Payload) => {
     dragRef.current = p;
@@ -222,8 +240,28 @@ export default function GroupsBoard({
                               <span className="min-w-0 flex-1 truncate">{slot.name}</span>
                             </div>
                           ) : (
-                            <div className="rounded-lg border border-dashed border-ink/20 px-2 py-2 text-center text-xs text-ink-light">
-                              {t('dropHere')}
+                            <div className="space-y-1 rounded-lg border border-dashed border-ink/20 px-2 py-1.5 text-center text-xs text-ink-light">
+                              <div>{t('dropHere')}</div>
+                              <select
+                                value=""
+                                disabled={isPending}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => {
+                                  const id = e.target.value;
+                                  e.currentTarget.value = '';
+                                  if (id) assignPick(id, g.id, leg);
+                                }}
+                                title={t('assignPickHint')}
+                                className="w-full rounded border border-ink/20 bg-white px-1 py-0.5 text-xs"
+                              >
+                                <option value="">{t('assignPick')}</option>
+                                {allPeople.map((p) => (
+                                  <option key={p.id} value={p.id}>
+                                    {p.name}
+                                    {p.grouped ? ` • ${t('alreadyGrouped')}` : ''}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
                           )}
                         </td>

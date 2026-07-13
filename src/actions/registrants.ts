@@ -323,8 +323,11 @@ export async function adminAddRegistrant(
   if (!/^[\p{L}\s\-']+$/u.test(name)) return { error: 'name-letters-only' };
   const category = await prisma.category.findUnique({ where: { key: categoryKey } });
   if (!category) return { error: 'invalid' };
+  // The admin can knowingly override the duplicate-name guard (two real people
+  // with the same name, or intentionally adding a second entry for someone).
+  const allowDuplicate = formData.get('allowDuplicate') === 'on';
   const dup = await prisma.registrant.findFirst({ where: { name, categoryId: category.id } });
-  if (dup) return { error: 'duplicate' };
+  if (dup && !allowDuplicate) return { error: 'duplicate' };
   const isKids = category.key.startsWith('KIDS_');
   let age: number | null = null;
   if (isKids) {

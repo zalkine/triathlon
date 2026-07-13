@@ -320,7 +320,11 @@
     "lotteryDone": "Lottery formed {count} teams.",
     "lotteryAll": "Lottery — all categories",
     "lotteryAllHint": "Form random teams from every ungrouped competitor, across all team categories.",
-    "lotteryAllConfirm": "Form random teams from every ungrouped competitor in all categories? Existing groups are left unchanged."
+    "lotteryAllConfirm": "Form random teams from every ungrouped competitor in all categories? Existing groups are left unchanged.",
+    "addDuplicateAnyway": "Name already exists — add anyway",
+    "assignPick": "Assign competitor…",
+    "assignPickHint": "Assign anyone to this leg. Someone already in another group is added here too (e.g. runs in one group and swims in another).",
+    "alreadyGrouped": "already in a group"
   },
   "info": {
     "title": "Rules & Trails",

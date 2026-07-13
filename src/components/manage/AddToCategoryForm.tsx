@@ -90,6 +90,12 @@ export default function AddToCategoryForm({
         </button>
       </div>
       {state?.error && <p className="text-xs text-run-dark">{errorMsg(state.error)}</p>}
+      {state?.error === 'duplicate' && (
+        <label className="flex items-center gap-1.5 text-xs text-ink-light">
+          <input type="checkbox" name="allowDuplicate" />
+          {t('addDuplicateAnyway')}
+        </label>
+      )}
       {state?.success && <p className="text-xs text-swim-dark">{tr('success')}</p>}
     </form>
   );
