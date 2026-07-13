@@ -6,6 +6,7 @@ import AdminAddRegistrantForm from '@/components/AdminAddRegistrantForm';
 import TestDataControls from '@/components/TestDataControls';
 import CsvLink from './CsvLink';
 import CompetitorFilters from './CompetitorFilters';
+import LotteryAllButton from './LotteryAllButton';
 import RegistrationRoster from './RegistrationRoster';
 
 export default async function RegistrationPanel({ locale }: { locale: string }) {
@@ -53,6 +54,9 @@ export default async function RegistrationPanel({ locale }: { locale: string }) 
 
       {/* Add a competitor manually */}
       <AdminAddRegistrantForm categories={catInfo} />
+
+      {/* One-push lottery across every team category */}
+      <LotteryAllButton />
 
       {/* Filterable overview — checked-in, no team, multi-team, anomalies */}
       <CompetitorFilters />

@@ -313,7 +313,14 @@
     "renameAction": "Rename",
     "unassignedTrayEmpty": "Everyone is assigned to a group.",
     "pickedHint": "Picked {name} — tap a cell to place them.",
-    "removeFromGroup": "Remove from group"
+    "removeFromGroup": "Remove from group",
+    "lottery": "Lottery",
+    "lotteryHint": "Form random teams from the ungrouped competitors in this category.",
+    "lotteryConfirm": "Form random teams from the ungrouped competitors in this category? Existing groups are left unchanged.",
+    "lotteryDone": "Lottery formed {count} teams.",
+    "lotteryAll": "Lottery — all categories",
+    "lotteryAllHint": "Form random teams from every ungrouped competitor, across all team categories.",
+    "lotteryAllConfirm": "Form random teams from every ungrouped competitor in all categories? Existing groups are left unchanged."
   },
   "info": {
     "title": "Rules & Trails",

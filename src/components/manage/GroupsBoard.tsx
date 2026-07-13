@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { moveGroupMember, clearGroupLeg, createEmptyGroup, deleteGroup } from '@/actions/groups';
+import { moveGroupMember, clearGroupLeg, createEmptyGroup, deleteGroup, lotteryCategory } from '@/actions/groups';
 import { updateRegistrant, deleteRegistrant, undoCheckIn } from '@/actions/registrants';
 
 type Leg = 'SWIM' | 'BIKE' | 'RUN';
@@ -53,6 +53,7 @@ export default function GroupsBoard({
   const [dropCell, setDropCell] = useState<string | null>(null);
   const [dropTray, setDropTray] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [lotteryMsg, setLotteryMsg] = useState<string | null>(null);
   const dragRef = useRef<Payload | null>(null);
 
   const run = (fn: () => Promise<unknown>) => startTransition(async () => { await fn(); router.refresh(); });
@@ -120,15 +121,34 @@ export default function GroupsBoard({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 className="text-sm font-semibold text-ink-light">{tc('groups')}</h4>
-        <button
-          type="button"
-          onClick={() => run(() => createEmptyGroup(categoryId))}
-          disabled={isPending}
-          className="rounded-full border border-ink/30 px-3 py-1.5 text-xs font-semibold hover:bg-ink/5 disabled:opacity-50"
-        >
-          + {t('createGroup')}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              if (!window.confirm(t('lotteryConfirm'))) return;
+              startTransition(async () => {
+                const r = await lotteryCategory(categoryId);
+                setLotteryMsg(t('lotteryDone', { count: r.formed }));
+                router.refresh();
+              });
+            }}
+            disabled={isPending || unassigned.length === 0}
+            className="rounded-full border border-ink/30 px-3 py-1.5 text-xs font-semibold hover:bg-ink/5 disabled:opacity-50"
+            title={t('lotteryHint')}
+          >
+            🎲 {t('lottery')}
+          </button>
+          <button
+            type="button"
+            onClick={() => run(() => createEmptyGroup(categoryId))}
+            disabled={isPending}
+            className="rounded-full border border-ink/30 px-3 py-1.5 text-xs font-semibold hover:bg-ink/5 disabled:opacity-50"
+          >
+            + {t('createGroup')}
+          </button>
+        </div>
       </div>
+      {lotteryMsg && <p className="text-xs font-semibold text-swim-dark">{lotteryMsg}</p>}
       <p className="text-xs text-ink-light">{t('groupsBoardHint')}</p>
 
       {/* Pick-up banner (touch) */}

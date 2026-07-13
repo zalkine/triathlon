@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
+import { runLottery, type LotteryCandidate } from '@/lib/lottery';
 import type { Leg } from '@/lib/constants';
 
 const LEG_FIELD: Record<Leg, 'swimRegistrantId' | 'bikeRegistrantId' | 'runRegistrantId'> = {
@@ -10,6 +11,62 @@ const LEG_FIELD: Record<Leg, 'swimRegistrantId' | 'bikeRegistrantId' | 'runRegis
   BIKE: 'bikeRegistrantId',
   RUN: 'runRegistrantId',
 };
+
+function legsForRegistrant(r: { legSwim: boolean; legBike: boolean; legRun: boolean }): Leg[] {
+  const legs: Leg[] = [];
+  if (r.legSwim) legs.push('SWIM');
+  if (r.legBike) legs.push('BIKE');
+  if (r.legRun) legs.push('RUN');
+  return legs;
+}
+
+// Form random swim+bike+run teams from the ungrouped registrants of one TEAM
+// category, respecting each person's willing legs. Additive: only touches people
+// not already in a group, so existing (admin-formed) groups are left intact.
+// Returns how many teams were created.
+async function lotteryForCategory(categoryId: string): Promise<number> {
+  const category = await prisma.category.findUnique({ where: { id: categoryId } });
+  if (!category || category.type !== 'TEAM') return 0;
+
+  const groups = await prisma.group.findMany({ where: { categoryId } });
+  const inGroup = new Set(groups.flatMap((g) => [g.swimRegistrantId, g.bikeRegistrantId, g.runRegistrantId]));
+  const registrants = await prisma.registrant.findMany({ where: { categoryId } });
+
+  const candidates: LotteryCandidate[] = registrants
+    .filter((r) => !inGroup.has(r.id))
+    .map((r) => ({ registrantId: r.id, name: r.name, legs: legsForRegistrant(r) }));
+
+  const { teams } = runLottery(candidates);
+  for (const team of teams) {
+    await prisma.group.create({
+      data: {
+        categoryId,
+        swimRegistrantId: team.swim.registrantId,
+        bikeRegistrantId: team.bike.registrantId,
+        runRegistrantId: team.run.registrantId,
+      },
+    });
+  }
+  return teams.length;
+}
+
+// Admin: run the lottery for a single category (button in the group section).
+export async function lotteryCategory(categoryId: string): Promise<{ ok: true; formed: number }> {
+  await requireRole('ADMIN');
+  const formed = await lotteryForCategory(categoryId);
+  revalidatePath('/', 'layout');
+  return { ok: true, formed };
+}
+
+// Admin: run the lottery across every team category in one push.
+export async function lotteryAllCategories(): Promise<{ ok: true; formed: number }> {
+  await requireRole('ADMIN');
+  const teamCats = await prisma.category.findMany({ where: { type: 'TEAM' }, orderBy: { sortOrder: 'asc' } });
+  let formed = 0;
+  for (const c of teamCats) formed += await lotteryForCategory(c.id);
+  revalidatePath('/', 'layout');
+  return { ok: true, formed };
+}
 
 // Admin: delete a self-formed/lottery group. The people in it stay registered
 // and simply return to the "available" pool.
