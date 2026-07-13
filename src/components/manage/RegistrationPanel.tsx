@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
-import { openRegistration, closeRegistration, setAllowRandomGrouping } from '@/actions/event';
+import { openRegistration, closeRegistration } from '@/actions/event';
 import ConfirmForm from '@/components/ConfirmForm';
 import AdminAddRegistrantForm from '@/components/AdminAddRegistrantForm';
 import TestDataControls from '@/components/TestDataControls';
@@ -17,7 +17,6 @@ export default async function RegistrationPanel({ locale }: { locale: string }) 
 
   const runOpen = openRegistration.bind(null, locale);
   const runClose = closeRegistration.bind(null, locale);
-  const toggleGrouping = setAllowRandomGrouping.bind(null, locale, !settings.allowRandomGrouping);
 
   const catInfo = categories.map((c) => ({ key: c.key, nameEn: c.nameEn, nameHe: c.nameHe, type: c.type }));
 
@@ -49,17 +48,6 @@ export default async function RegistrationPanel({ locale }: { locale: string }) 
               </button>
             </ConfirmForm>
           )}
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-ink/5 pt-4 text-sm">
-          <span className="text-ink-light">{t('randomGroupingLabel')}:</span>
-          <span className="font-semibold">{settings.allowRandomGrouping ? t('open') : t('closed')}</span>
-          <form action={toggleGrouping}>
-            <button type="submit" className="text-sm font-semibold underline">
-              {settings.allowRandomGrouping ? t('disableRandomGrouping') : t('enableRandomGrouping')}
-            </button>
-          </form>
-          <span className="text-xs text-ink-light">· {t('randomGroupingHint')}</span>
         </div>
       </div>
 

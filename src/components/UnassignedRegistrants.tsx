@@ -1,73 +1,76 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
 import { LEGS, type Leg } from '@/lib/constants';
-import AssignToTeamForm from './AssignToTeamForm';
 
+// Heats-tab visibility panel: every TEAM registrant who isn't in a group. These
+// people are deliberately NOT placed in a heat — the admin forms their group on
+// the Registration tab. Membership-based (not check-in / groupPref), matching
+// the group table's "unassigned" tray so the two always agree.
 export default async function UnassignedRegistrants({ locale }: { locale: string }) {
   const t = await getTranslations('manage');
+  const tc = await getTranslations('competitors');
 
-  // "Available" people who are checked in but aren't in any group yet and
-  // haven't been manually placed into an entry.
-  const [available, allGroups] = await Promise.all([
-    prisma.registrant.findMany({
-      // Not HAS_GROUP (captains own their group) also catches legacy null-groupPref rows.
-      where: { checkedIn: true, entryId: null, groupPref: { not: 'HAS_GROUP' }, category: { type: 'TEAM' } },
-      include: { category: true },
-      orderBy: { createdAt: 'asc' },
-    }),
-    prisma.group.findMany(),
-  ]);
-  const inGroup = new Set(
-    allGroups.flatMap((g) => [g.swimRegistrantId, g.bikeRegistrantId, g.runRegistrantId])
-  );
-  const leftovers = available.filter((r) => !inGroup.has(r.id));
-
-  if (leftovers.length === 0) {
-    return (
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
-        <h2 className="mb-2 font-semibold">{t('unassigned')}</h2>
-        <p className="text-sm text-ink-light">{t('unassignedNone')}</p>
-      </div>
-    );
-  }
-
-  const categoryIds = [...new Set(leftovers.map((r) => r.categoryId))];
-  const openEntries = await prisma.entry.findMany({
-    where: { heat: { categoryId: { in: categoryIds } } },
-    include: { members: true, heat: true },
+  const categories = await prisma.category.findMany({
+    where: { type: 'TEAM' },
+    orderBy: { sortOrder: 'asc' },
+    include: { registrants: { orderBy: { createdAt: 'asc' } }, groups: true },
   });
 
-  const optionsFor = (categoryId: string, willingLegs: Leg[]) => {
-    return openEntries
-      .filter((e) => e.heat.categoryId === categoryId)
-      .flatMap((e) => {
-        const takenLegs = new Set(e.members.map((m) => m.leg));
-        const missing = LEGS.filter((l) => !takenLegs.has(l) && willingLegs.includes(l));
-        return missing.map((leg) => ({ entryId: e.id, entryName: e.name, leg }));
-      });
-  };
+  const legLabel = (l: Leg) => (l === 'SWIM' ? tc('legSwim') : l === 'BIKE' ? tc('legBike') : tc('legRun'));
+
+  const perCategory = categories
+    .map((c) => {
+      const inGroup = new Set(
+        c.groups.flatMap((g) => [g.swimRegistrantId, g.bikeRegistrantId, g.runRegistrantId])
+      );
+      const ungrouped = c.registrants.filter((r) => !inGroup.has(r.id));
+      return { category: c, ungrouped };
+    })
+    .filter((x) => x.ungrouped.length > 0);
+
+  const total = perCategory.reduce((s, x) => s + x.ungrouped.length, 0);
 
   return (
     <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
       <h2 className="mb-1 font-semibold">{t('unassigned')}</h2>
-      <p className="mb-3 text-sm text-ink-light">{t('unassignedHint')}</p>
-      <ul className="divide-y divide-ink/5">
-        {leftovers.map((r) => {
-          const willingLegs = LEGS.filter((l) => (l === 'SWIM' && r.legSwim) || (l === 'BIKE' && r.legBike) || (l === 'RUN' && r.legRun));
-          const options = optionsFor(r.categoryId, willingLegs);
-          return (
-            <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-              <div>
-                <span className="font-medium">{r.name}</span>{' '}
-                <span className="text-sm text-ink-light">
-                  · {locale === 'he' ? r.category.nameHe : r.category.nameEn} · {willingLegs.join('/')}
-                </span>
+      {total === 0 ? (
+        <p className="text-sm text-ink-light">{t('unassignedNone')}</p>
+      ) : (
+        <>
+          <p className="mb-3 text-sm text-ink-light">{t('unassignedHint')}</p>
+          <div className="space-y-4">
+            {perCategory.map(({ category, ungrouped }) => (
+              <div key={category.id}>
+                <h3 className="mb-1 text-sm font-semibold">
+                  {locale === 'he' ? category.nameHe : category.nameEn}{' '}
+                  <span className="font-normal text-ink-light">({ungrouped.length})</span>
+                </h3>
+                <ul className="divide-y divide-ink/5">
+                  {ungrouped.map((r) => {
+                    const willing = LEGS.filter(
+                      (l) => (l === 'SWIM' && r.legSwim) || (l === 'BIKE' && r.legBike) || (l === 'RUN' && r.legRun)
+                    );
+                    return (
+                      <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                        <span className="font-medium">{r.name}</span>
+                        <span className="flex flex-wrap items-center gap-2 text-xs">
+                          <span className="rounded-full bg-bike/20 px-2 py-0.5 font-medium text-bike-dark">
+                            ⚠ {t('notInGroup')}
+                          </span>
+                          {willing.length > 0 && (
+                            <span className="text-ink-light">{willing.map(legLabel).join(' · ')}</span>
+                          )}
+                          {r.checkedIn && <span className="text-swim-dark">✓ {tc('arrived')}</span>}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-              <AssignToTeamForm locale={locale} registrantId={r.id} options={options} />
-            </li>
-          );
-        })}
-      </ul>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

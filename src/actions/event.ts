@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
-import { runLottery, type LotteryCandidate } from '@/lib/lottery';
 import { chunk, computeEstimatedStarts } from '@/lib/schedule';
 import { HEAT_CAPACITY, LEGS, type Leg } from '@/lib/constants';
 
@@ -83,19 +82,10 @@ export async function setHeatGapMinutes(locale: string, formData: FormData) {
   revalidatePath(`/${locale}/staff/manage`);
 }
 
-function legsFor(r: { legSwim: boolean; legBike: boolean; legRun: boolean }): Leg[] {
-  const legs: Leg[] = [];
-  if (r.legSwim) legs.push('SWIM');
-  if (r.legBike) legs.push('BIKE');
-  if (r.legRun) legs.push('RUN');
-  return legs;
-}
-
 /**
  * Turns registrations into a runnable schedule for every category:
- *  - TEAM: self-formed groups are scheduled as-is; if random grouping is on, the
- *    lottery forms extra groups from "available" people not already in any group.
- *    Every group (formed or lottery) becomes one heat entry.
+ *  - TEAM: only admin-formed groups are scheduled — one heat entry per group.
+ *    Registrants who aren't in a group are left unassigned (never auto-teamed).
  *  - SINGLE: each registered solo competitor becomes one heat entry.
  * This is the *preliminary* schedule built from registrations — check-in is a
  * race-day step and is intentionally NOT required here, so the admin sees the
@@ -119,34 +109,9 @@ export async function generateSchedule(locale: string) {
     const existingHeatCount = await prisma.heat.count({ where: { categoryId: category.id } });
 
     if (category.type === 'TEAM') {
-      // 1. Optionally lottery available people (not already in any group) into new groups.
-      if (settings.allowRandomGrouping) {
-        const existingGroups = await prisma.group.findMany({ where: { categoryId: category.id } });
-        const inGroup = new Set(
-          existingGroups.flatMap((g) => [g.swimRegistrantId, g.bikeRegistrantId, g.runRegistrantId])
-        );
-        const pool = (
-          await prisma.registrant.findMany({
-            // not HAS_GROUP also picks up legacy null-groupPref registrants.
-            where: { categoryId: category.id, groupPref: { not: 'HAS_GROUP' } },
-          })
-        ).filter((r) => !inGroup.has(r.id));
-
-        const candidates: LotteryCandidate[] = pool.map((r) => ({ registrantId: r.id, name: r.name, legs: legsFor(r) }));
-        const { teams } = runLottery(candidates);
-        for (const team of teams) {
-          await prisma.group.create({
-            data: {
-              categoryId: category.id,
-              swimRegistrantId: team.swim.registrantId,
-              bikeRegistrantId: team.bike.registrantId,
-              runRegistrantId: team.run.registrantId,
-            },
-          });
-        }
-      }
-
-      // 2. Schedule every group in this category that isn't placed in a heat yet.
+      // Only admin-formed groups are scheduled — registrants who aren't in a
+      // group are deliberately left unassigned (shown on the Heats tab) rather
+      // than auto-teamed, so the admin stays in full control of the rosters.
       const unscheduled = await prisma.group.findMany({
         where: { categoryId: category.id, entryId: null },
         orderBy: { createdAt: 'asc' },

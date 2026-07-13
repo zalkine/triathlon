@@ -20,12 +20,10 @@ export default async function PreliminarySchedulePreview({ locale }: { locale: s
         const total = await prisma.registrant.count({ where: { categoryId: cat.id } });
         return { categoryId: cat.id, expectedEntries: total };
       } else {
+        // Only admin-formed groups become heat entries; ungrouped registrants
+        // are not auto-teamed, so they don't count towards the schedule.
         const groups = await prisma.group.count({ where: { categoryId: cat.id } });
-        const available = settings.allowRandomGrouping
-          ? await prisma.registrant.count({ where: { categoryId: cat.id, groupPref: 'AVAILABLE' } })
-          : 0;
-        const lotteryTeams = Math.floor(available / 3);
-        return { categoryId: cat.id, expectedEntries: groups + lotteryTeams };
+        return { categoryId: cat.id, expectedEntries: groups };
       }
     })
   );
