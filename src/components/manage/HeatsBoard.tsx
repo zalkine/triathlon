@@ -7,7 +7,8 @@ import { moveEntry } from '@/actions/entries';
 import { createHeatForCategory, removeHeat } from '@/actions/heats';
 import { formatHeatName } from '@/lib/time';
 
-export type BoardEntry = { id: string; name: string };
+export type BoardMember = { id: string; name: string; leg: string | null };
+export type BoardEntry = { id: string; name: string; members: BoardMember[] };
 export type BoardHeat = { id: string; name: string; entries: BoardEntry[] };
 export type BoardCategory = { id: string; nameEn: string; nameHe: string; heats: BoardHeat[] };
 
@@ -24,6 +25,8 @@ export default function HeatsBoard({ categories }: { categories: BoardCategory[]
   const [dropTarget, setDropTarget] = useState<string | null>(null);
 
   const catName = (c: BoardCategory) => (locale === 'he' ? c.nameHe : c.nameEn);
+  const legLabel = (leg: string | null) =>
+    leg === 'SWIM' ? t('legSwim') : leg === 'BIKE' ? t('legBike') : leg === 'RUN' ? t('legRun') : '';
 
   const doMove = (entryId: string, targetHeatId: string) => {
     startTransition(async () => {
@@ -134,13 +137,24 @@ export default function HeatsBoard({ categories }: { categories: BoardCategory[]
                               setDragEntry(null);
                               setDropTarget(null);
                             }}
-                            className={`group flex items-center justify-between gap-1 rounded-lg border border-ink/10 bg-white px-2 py-1.5 text-sm shadow-sm ${
+                            className={`group flex items-start justify-between gap-1 rounded-lg border border-ink/10 bg-white px-2 py-1.5 text-sm shadow-sm ${
                               isPending ? '' : 'cursor-grab active:cursor-grabbing'
                             } ${dragEntry === entry.id ? 'opacity-40' : ''}`}
                           >
-                            <span className="min-w-0 flex-1 truncate" title={entry.name}>
-                              {entry.name}
-                            </span>
+                            <div className="min-w-0 flex-1">
+                              {entry.members.length > 0 ? (
+                                <ul className="space-y-0.5">
+                                  {entry.members.map((m) => (
+                                    <li key={m.id} className="break-words leading-tight">
+                                      {m.leg && <span className="text-ink-light">{legLabel(m.leg)}: </span>}
+                                      {m.name}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <span className="break-words">{entry.name}</span>
+                              )}
+                            </div>
                             {moveTargets.length > 0 && (
                               <select
                                 value=""

@@ -16,7 +16,12 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
       orderBy: { sortOrder: 'asc' },
       include: {
         heats: {
-          include: { entries: { select: { id: true, name: true }, orderBy: { createdAt: 'asc' } } },
+          include: {
+            entries: {
+              include: { members: true },
+              orderBy: { createdAt: 'asc' },
+            },
+          },
           orderBy: { createdAt: 'asc' },
         },
       },
@@ -25,6 +30,9 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
     prisma.registrant.count({ where: { entryId: null, mode: 'SINGLE' } }),
     prisma.group.count({ where: { entryId: null } }),
   ]);
+
+  // Display relay members in race order (swim → bike → run).
+  const legOrder = (leg: string | null) => (leg === 'SWIM' ? 0 : leg === 'BIKE' ? 1 : leg === 'RUN' ? 2 : 3);
 
   const placeableCount = unplacedSingles + unplacedGroups;
   const runGenerate = generateSchedule.bind(null, locale);
@@ -37,7 +45,13 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
     heats: c.heats.map((h) => ({
       id: h.id,
       name: h.name,
-      entries: h.entries.map((e) => ({ id: e.id, name: e.name })),
+      entries: h.entries.map((e) => ({
+        id: e.id,
+        name: e.name,
+        members: e.members
+          .map((m) => ({ id: m.id, name: m.name, leg: m.leg }))
+          .sort((a, b) => legOrder(a.leg) - legOrder(b.leg)),
+      })),
     })),
   }));
 
