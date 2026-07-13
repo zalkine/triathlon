@@ -25,7 +25,9 @@ export default function HeatsBoard({ categories }: { categories: BoardCategory[]
   const [dropTarget, setDropTarget] = useState<string | null>(null);
 
   const catName = (c: BoardCategory) => (locale === 'he' ? c.nameHe : c.nameEn);
-  const legLabel = (leg: string | null) =>
+  const legIcon = (leg: string | null) =>
+    leg === 'SWIM' ? '🏊' : leg === 'BIKE' ? '🚴' : leg === 'RUN' ? '🏃' : '';
+  const legName = (leg: string | null) =>
     leg === 'SWIM' ? t('legSwim') : leg === 'BIKE' ? t('legBike') : leg === 'RUN' ? t('legRun') : '';
 
   const doMove = (entryId: string, targetHeatId: string) => {
@@ -146,7 +148,11 @@ export default function HeatsBoard({ categories }: { categories: BoardCategory[]
                                 <ul className="space-y-0.5">
                                   {entry.members.map((m) => (
                                     <li key={m.id} className="break-words leading-tight">
-                                      {m.leg && <span className="text-ink-light">{legLabel(m.leg)}: </span>}
+                                      {m.leg && (
+                                        <span className="me-1" aria-label={legName(m.leg)} title={legName(m.leg)}>
+                                          {legIcon(m.leg)}
+                                        </span>
+                                      )}
                                       {m.name}
                                     </li>
                                   ))}
