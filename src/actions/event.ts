@@ -5,7 +5,13 @@ import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
 import { runLottery, type LotteryCandidate } from '@/lib/lottery';
 import { chunk, computeEstimatedStarts } from '@/lib/schedule';
-import { HEAT_CAPACITY, type Leg } from '@/lib/constants';
+import { HEAT_CAPACITY, LEGS, type Leg } from '@/lib/constants';
+
+const LEG_FIELD: Record<Leg, 'swimRegistrantId' | 'bikeRegistrantId' | 'runRegistrantId'> = {
+  SWIM: 'swimRegistrantId',
+  BIKE: 'bikeRegistrantId',
+  RUN: 'runRegistrantId',
+};
 
 export async function openRegistration(locale: string) {
   await requireRole('ADMIN');
@@ -241,7 +247,119 @@ export async function addRegistrantToEntry(locale: string, registrantId: string,
     data: { entryId, name: registrant.name, leg, registrantId: registrant.id },
   });
   await prisma.registrant.update({ where: { id: registrant.id }, data: { entryId } });
+  // Keep the linked group's leg in sync so the group stays the source of truth
+  // (and the heats↔roster reconcile below won't undo this placement).
+  await prisma.group.updateMany({ where: { entryId }, data: { [LEG_FIELD[leg]]: registrantId } });
 
   revalidatePath(`/${locale}/staff/manage`);
   return { ok: true as const, memberId: member.id };
+}
+
+/**
+ * Reconcile already-scheduled heats with the current roster, so group/competitor
+ * edits made on the Registration tab show up on the Heats tab. Run when the admin
+ * opens the Heats tab; it only writes (and reports `changed`) when something is
+ * actually out of date, so nothing happens on a quiet revisit.
+ *
+ * - For each group already placed in a heat: rebuild its entry's members and name
+ *   from the group's current legs. If a group leg is open but the entry still
+ *   holds a real person there (a legacy manual placement), that person is adopted
+ *   back into the group rather than dropped. If the entry was deleted (its heat
+ *   removed), the group is freed so it can be re-scheduled.
+ * - For each solo competitor already placed: keep the entry name in step with a
+ *   rename, and free them if their entry was deleted.
+ * Never moves entries between heats or touches stamped times, so the admin's heat
+ * arrangement and any recorded results are preserved.
+ */
+export async function syncHeatsWithRoster(): Promise<{ changed: boolean }> {
+  await requireRole('ADMIN');
+  let changed = false;
+
+  // --- TEAM: reconcile each placed group's entry with the group's legs ---
+  const placedGroups = await prisma.group.findMany({ where: { entryId: { not: null } } });
+  if (placedGroups.length > 0) {
+    const entries = await prisma.entry.findMany({
+      where: { id: { in: placedGroups.map((g) => g.entryId as string) } },
+      include: { members: true },
+    });
+    const entryById = new Map(entries.map((e) => [e.id, e]));
+
+    const rids = new Set<string>();
+    for (const g of placedGroups) {
+      for (const f of ['swimRegistrantId', 'bikeRegistrantId', 'runRegistrantId'] as const) if (g[f]) rids.add(g[f] as string);
+    }
+    for (const e of entries) for (const m of e.members) if (m.registrantId) rids.add(m.registrantId);
+    const regs = await prisma.registrant.findMany({ where: { id: { in: [...rids] } } });
+    const nameOf = new Map(regs.map((r) => [r.id, r.name]));
+
+    for (const g of placedGroups) {
+      const entry = entryById.get(g.entryId as string);
+      if (!entry) {
+        await prisma.group.update({ where: { id: g.id }, data: { entryId: null } });
+        changed = true;
+        continue;
+      }
+
+      // Prefer the real (assigned) member per leg when reading the current entry.
+      const curByLeg = new Map<string, (typeof entry.members)[number]>();
+      for (const m of entry.members) {
+        const existing = curByLeg.get(m.leg ?? '');
+        if (m.leg && (!existing || (!existing.registrantId && m.registrantId))) curByLeg.set(m.leg, m);
+      }
+
+      const groupFix: Record<string, string> = {};
+      const desired = LEGS.map((leg) => {
+        let rid = g[LEG_FIELD[leg]];
+        if (!rid) {
+          const cur = curByLeg.get(leg);
+          if (cur?.registrantId) {
+            rid = cur.registrantId; // adopt a legacy entry-side placement into the group
+            groupFix[LEG_FIELD[leg]] = rid;
+          }
+        }
+        return { leg, registrantId: rid ?? null, name: rid ? nameOf.get(rid) ?? '?' : '—' };
+      });
+      if (Object.keys(groupFix).length > 0) {
+        await prisma.group.update({ where: { id: g.id }, data: groupFix });
+        changed = true;
+      }
+
+      const desiredName = [...new Set(desired.filter((m) => m.registrantId).map((m) => m.name))].join(' / ') || '—';
+      const membersMatch =
+        entry.members.length === desired.length &&
+        desired.every((d) => {
+          const cur = curByLeg.get(d.leg);
+          return cur && cur.registrantId === d.registrantId && cur.name === d.name;
+        });
+
+      if (!membersMatch || entry.name !== desiredName) {
+        await prisma.member.deleteMany({ where: { entryId: entry.id } });
+        await prisma.member.createMany({
+          data: desired.map((d) => ({ entryId: entry.id, name: d.name, leg: d.leg, registrantId: d.registrantId })),
+        });
+        await prisma.entry.update({ where: { id: entry.id }, data: { name: desiredName } });
+        changed = true;
+      }
+    }
+  }
+
+  // --- SINGLE: keep each placed solo entry's name in step with the registrant ---
+  const placedSingles = await prisma.registrant.findMany({ where: { entryId: { not: null }, mode: 'SINGLE' } });
+  if (placedSingles.length > 0) {
+    const entries = await prisma.entry.findMany({ where: { id: { in: placedSingles.map((r) => r.entryId as string) } } });
+    const entryById = new Map(entries.map((e) => [e.id, e]));
+    for (const r of placedSingles) {
+      const entry = entryById.get(r.entryId as string);
+      if (!entry) {
+        await prisma.registrant.update({ where: { id: r.id }, data: { entryId: null } });
+        changed = true;
+      } else if (entry.name !== r.name) {
+        await prisma.entry.update({ where: { id: entry.id }, data: { name: r.name } });
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) revalidatePath('/', 'layout');
+  return { changed };
 }

@@ -6,6 +6,7 @@ import AutoGenerateHeats from '@/components/AutoGenerateHeats';
 import ConfirmForm from '@/components/ConfirmForm';
 import UnassignedRegistrants from '@/components/UnassignedRegistrants';
 import HeatsBoard from './HeatsBoard';
+import SyncHeatsWithRoster from './SyncHeatsWithRoster';
 import CsvLink from './CsvLink';
 
 export default async function HeatsPanel({ locale }: { locale: string }) {
@@ -59,6 +60,8 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
     <div className="space-y-6">
       {/* Additive auto-generation on load (safe, only appends new people) */}
       <AutoGenerateHeats locale={locale} placeableCount={placeableCount} />
+      {/* Reconcile placed heats with registration-tab group/competitor edits */}
+      <SyncHeatsWithRoster />
 
       <div className="rounded-2xl border border-ink/10 bg-white/70 p-5 space-y-3">
         <h2 className="font-semibold">{t('heatsTitle')}</h2>
