@@ -63,6 +63,24 @@ export async function setResultsApproved(locale: string, approved: boolean) {
   revalidatePath('/', 'layout');
 }
 
+export async function setCompetitionInfoPublished(locale: string, published: boolean) {
+  await requireRole('ADMIN');
+  await prisma.eventSettings.update({
+    where: { id: 'singleton' },
+    data: { competitionInfoPublished: published },
+  });
+  revalidatePath('/', 'layout');
+}
+
+export async function setTrailsPublished(locale: string, published: boolean) {
+  await requireRole('ADMIN');
+  await prisma.eventSettings.update({
+    where: { id: 'singleton' },
+    data: { trailsPublished: published },
+  });
+  revalidatePath('/', 'layout');
+}
+
 export async function setRaceStartTime(locale: string, formData: FormData) {
   await requireRole('ADMIN');
   const iso = formData.get('iso') as string;

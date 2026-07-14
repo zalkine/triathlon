@@ -9,6 +9,8 @@
     "register": "Register",
     "competitors": "Competitors",
     "schedule": "Schedule",
+    "competitionInfo": "Competition Info",
+    "trails": "Trails",
     "hallOfFame": "Hall of Fame",
     "login": "Staff Login",
     "logout": "Log out",
@@ -234,6 +236,8 @@
     "tabHeats": "Heats",
     "tabSchedule": "Schedule",
     "tabScores": "Scores & Ranking",
+    "tabCompetitionInfo": "Competition Info",
+    "tabTrails": "Trails",
     "tabHof": "Hall of Fame",
     "tabInfo": "Rules & Trails",
     "randomGroupingHint": "Auto-forms relay teams from the available pool when generating heats.",
@@ -291,6 +295,9 @@
     "infoUploadNotConfigured": "Upload isn't set up — paste an image URL instead.",
     "infoUploadFailed": "Upload failed — try again or paste a URL.",
     "infoViewPublic": "View public page",
+    "competitionInfoHint": "General information about the competition and contact details for participants.",
+    "trailsHint": "Descriptions of the race trails, course maps, and route information.",
+    "viewPublic": "View public page",
     "legClear": "Clear",
     "assign": "Assign",
     "doneEditingGroup": "Done",
@@ -335,6 +342,21 @@
     "nameCol": "Name",
     "phoneCol": "Phone",
     "empty": "Information will be posted here soon."
+  },
+  "competitionInfo": {
+    "title": "Competition Information",
+    "subtitle": "General information and emergency contacts.",
+    "contactsTitle": "Emergency Contacts",
+    "roleCol": "Role",
+    "nameCol": "Name",
+    "phoneCol": "Phone",
+    "notPublished": "Competition information hasn't been published yet."
+  },
+  "trails": {
+    "title": "Race Trails",
+    "subtitle": "Course descriptions and route information.",
+    "empty": "Trail information will be posted here soon.",
+    "notPublished": "Trail information hasn't been published yet."
   },
   "register": {
     "title": "Race Registration",

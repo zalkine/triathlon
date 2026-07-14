@@ -4,12 +4,12 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
 
-// Admin CRUD for the public "Rules & Trails" info sections.
+// Admin CRUD for the public info sections (competition info, trails, etc).
 
-export async function createInfoSection(): Promise<{ id: string }> {
+export async function createInfoSection(type = 'competitionInfo'): Promise<{ id: string }> {
   await requireRole('ADMIN');
-  const count = await prisma.infoSection.count();
-  const section = await prisma.infoSection.create({ data: { sortOrder: count } });
+  const count = await prisma.infoSection.count({ where: { type } });
+  const section = await prisma.infoSection.create({ data: { type, sortOrder: count } });
   revalidatePath('/', 'layout');
   return { id: section.id };
 }
@@ -42,7 +42,12 @@ export async function deleteInfoSection(sectionId: string, _formData: FormData) 
 // Nudge a section up/down in display order by swapping sortOrder with its neighbour.
 export async function moveInfoSection(sectionId: string, direction: 'up' | 'down') {
   await requireRole('ADMIN');
-  const sections = await prisma.infoSection.findMany({ orderBy: { sortOrder: 'asc' } });
+  const section = await prisma.infoSection.findUnique({ where: { id: sectionId } });
+  if (!section) return;
+  const sections = await prisma.infoSection.findMany({
+    where: { type: section.type },
+    orderBy: { sortOrder: 'asc' },
+  });
   const idx = sections.findIndex((s) => s.id === sectionId);
   if (idx < 0) return;
   const swapWith = direction === 'up' ? idx - 1 : idx + 1;
