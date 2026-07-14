@@ -28,7 +28,18 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
     }),
     prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } }),
     prisma.registrant.count({ where: { entryId: null, mode: 'SINGLE' } }),
-    prisma.group.count({ where: { entryId: null } }),
+    // Only non-empty unplaced groups count as "to schedule" — a dismantled
+    // (all-legs-cleared) group isn't a team and won't be placed.
+    prisma.group.count({
+      where: {
+        entryId: null,
+        OR: [
+          { swimRegistrantId: { not: null } },
+          { bikeRegistrantId: { not: null } },
+          { runRegistrantId: { not: null } },
+        ],
+      },
+    }),
   ]);
 
   // Display relay members in race order (swim → bike → run).

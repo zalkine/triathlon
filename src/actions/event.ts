@@ -125,11 +125,14 @@ async function packTeamCategory(categoryId: string) {
     prisma.registrant.findMany({ where: { categoryId } }),
   ]);
   const nameOf = new Map(regs.map((r) => [r.id, r.name]));
+  // Empty groups (every leg cleared, e.g. a dismantled team) aren't scheduled —
+  // they'd only make an all-"—" junk entry. They stay as an editable blank row.
+  const activeGroups = groups.filter((g) => g.swimRegistrantId || g.bikeRegistrantId || g.runRegistrantId);
 
   if (!isLocked(heats)) {
     if (heats.length > 0) await prisma.heat.deleteMany({ where: { categoryId } });
     await prisma.group.updateMany({ where: { categoryId }, data: { entryId: null } });
-    const chunks = chunk(groups, HEAT_CAPACITY);
+    const chunks = chunk(activeGroups, HEAT_CAPACITY);
     for (let i = 0; i < chunks.length; i++) {
       const heat = await prisma.heat.create({ data: { categoryId, name: `Heat ${i + 1}` } });
       for (const g of chunks[i]) await createGroupEntry(heat.id, g, nameOf);
@@ -137,7 +140,7 @@ async function packTeamCategory(categoryId: string) {
     return;
   }
 
-  const unscheduled = groups.filter((g) => !g.entryId);
+  const unscheduled = activeGroups.filter((g) => !g.entryId);
   if (unscheduled.length === 0) return;
   let idx = 0;
   for (const h of heats) {
@@ -337,6 +340,15 @@ export async function syncHeatsWithRoster(): Promise<{ changed: boolean }> {
       if (Object.keys(groupFix).length > 0) {
         await prisma.group.update({ where: { id: g.id }, data: groupFix });
         changed = true;
+      }
+
+      // Group emptied out (all legs cleared) — it's no longer a team: drop its
+      // heat entry and unschedule the (now-blank) group.
+      if (desired.every((d) => !d.registrantId)) {
+        await prisma.entry.delete({ where: { id: entry.id } });
+        await prisma.group.update({ where: { id: g.id }, data: { entryId: null } });
+        changed = true;
+        continue;
       }
 
       const desiredName = [...new Set(desired.filter((m) => m.registrantId).map((m) => m.name))].join(' / ') || '—';
