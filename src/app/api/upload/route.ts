@@ -37,7 +37,12 @@ export async function POST(request: Request) {
       addRandomSuffix: true,
     });
     return NextResponse.json({ url: blob.url });
-  } catch {
-    return NextResponse.json({ error: 'upload-failed' }, { status: 500 });
+  } catch (err) {
+    // Surface the real Blob error so the admin can see *why* it failed (bad
+    // token, wrong store, etc.) instead of a generic message. Also logged to
+    // the Vercel function logs for debugging.
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error('Blob upload failed:', err);
+    return NextResponse.json({ error: 'upload-failed', detail }, { status: 500 });
   }
 }

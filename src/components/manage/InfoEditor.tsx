@@ -62,7 +62,8 @@ function SectionCard({ section, count, index }: { section: Section; count: numbe
     } else if (res.status === 501) {
       setUploadMsg(t('infoUploadNotConfigured'));
     } else {
-      setUploadMsg(t('infoUploadFailed'));
+      const data = await res.json().catch(() => ({}));
+      setUploadMsg(data.detail ? `${t('infoUploadFailed')} (${data.detail})` : t('infoUploadFailed'));
     }
   };
 
