@@ -82,17 +82,127 @@ export async function setHeatGapMinutes(locale: string, formData: FormData) {
   revalidatePath(`/${locale}/staff/manage`);
 }
 
+type GroupRow = { id: string; swimRegistrantId: string | null; bikeRegistrantId: string | null; runRegistrantId: string | null };
+
+// Create one heat entry (with its three leg members) for a relay group and link
+// the group to it. An open leg becomes a "—" placeholder the admin can fill later.
+async function createGroupEntry(heatId: string, group: GroupRow, nameOf: Map<string, string>) {
+  const legMembers = (
+    [
+      ['SWIM', group.swimRegistrantId],
+      ['BIKE', group.bikeRegistrantId],
+      ['RUN', group.runRegistrantId],
+    ] as const
+  ).map(([leg, registrantId]) => ({
+    leg,
+    registrantId,
+    name: registrantId ? nameOf.get(registrantId) ?? '?' : '—',
+  }));
+  const memberNames = [...new Set(legMembers.filter((m) => m.registrantId).map((m) => m.name))].join(' / ') || '—';
+  const entry = await prisma.entry.create({ data: { heatId, name: memberNames } });
+  await prisma.member.createMany({
+    data: legMembers.map((m) => ({ entryId: entry.id, name: m.name, leg: m.leg, registrantId: m.registrantId })),
+  });
+  await prisma.group.update({ where: { id: group.id }, data: { entryId: entry.id } });
+}
+
+// A category is "locked" once timing has begun — a heat has been started or any
+// leg time recorded. We never rebuild a locked category (that would lose times);
+// we only top up its heats with newcomers.
+function isLocked(heats: { startTime: Date | null; entries: { swimTime: Date | null; bikeTime: Date | null; runTime: Date | null }[] }[]) {
+  return heats.some((h) => h.startTime || h.entries.some((e) => e.swimTime || e.bikeTime || e.runTime));
+}
+
+// Pack a TEAM category's groups into as few heats as possible (HEAT_CAPACITY per
+// heat), named Heat 1..N. Before timing starts we rebuild the heats from scratch
+// so incremental additions never fragment into many half-empty heats or collide
+// on names. Once timing has started we leave placed teams (and their times)
+// alone and only fill spare lanes / append heats for any new groups.
+async function packTeamCategory(categoryId: string) {
+  const [groups, heats, regs] = await Promise.all([
+    prisma.group.findMany({ where: { categoryId }, orderBy: { createdAt: 'asc' } }),
+    prisma.heat.findMany({ where: { categoryId }, include: { entries: true }, orderBy: { createdAt: 'asc' } }),
+    prisma.registrant.findMany({ where: { categoryId } }),
+  ]);
+  const nameOf = new Map(regs.map((r) => [r.id, r.name]));
+
+  if (!isLocked(heats)) {
+    if (heats.length > 0) await prisma.heat.deleteMany({ where: { categoryId } });
+    await prisma.group.updateMany({ where: { categoryId }, data: { entryId: null } });
+    const chunks = chunk(groups, HEAT_CAPACITY);
+    for (let i = 0; i < chunks.length; i++) {
+      const heat = await prisma.heat.create({ data: { categoryId, name: `Heat ${i + 1}` } });
+      for (const g of chunks[i]) await createGroupEntry(heat.id, g, nameOf);
+    }
+    return;
+  }
+
+  const unscheduled = groups.filter((g) => !g.entryId);
+  if (unscheduled.length === 0) return;
+  let idx = 0;
+  for (const h of heats) {
+    let free = HEAT_CAPACITY - h.entries.length;
+    while (free > 0 && idx < unscheduled.length) {
+      await createGroupEntry(h.id, unscheduled[idx++], nameOf);
+      free--;
+    }
+  }
+  const chunks = chunk(unscheduled.slice(idx), HEAT_CAPACITY);
+  for (let i = 0; i < chunks.length; i++) {
+    const heat = await prisma.heat.create({ data: { categoryId, name: `Heat ${heats.length + i + 1}` } });
+    for (const g of chunks[i]) await createGroupEntry(heat.id, g, nameOf);
+  }
+}
+
+// Same compact packing for a SINGLE category (one entry per solo competitor).
+async function packSingleCategory(categoryId: string) {
+  const [registrants, heats] = await Promise.all([
+    prisma.registrant.findMany({ where: { categoryId }, orderBy: { createdAt: 'asc' } }),
+    prisma.heat.findMany({ where: { categoryId }, include: { entries: true }, orderBy: { createdAt: 'asc' } }),
+  ]);
+
+  const addSolo = async (heatId: string, r: { id: string; name: string }) => {
+    const entry = await prisma.entry.create({ data: { heatId, name: r.name } });
+    await prisma.registrant.update({ where: { id: r.id }, data: { entryId: entry.id } });
+  };
+
+  if (!isLocked(heats)) {
+    if (heats.length > 0) await prisma.heat.deleteMany({ where: { categoryId } });
+    await prisma.registrant.updateMany({ where: { categoryId }, data: { entryId: null } });
+    const chunks = chunk(registrants, HEAT_CAPACITY);
+    for (let i = 0; i < chunks.length; i++) {
+      const heat = await prisma.heat.create({ data: { categoryId, name: `Heat ${i + 1}` } });
+      for (const r of chunks[i]) await addSolo(heat.id, r);
+    }
+    return;
+  }
+
+  const pending = registrants.filter((r) => !r.entryId);
+  if (pending.length === 0) return;
+  let idx = 0;
+  for (const h of heats) {
+    let free = HEAT_CAPACITY - h.entries.length;
+    while (free > 0 && idx < pending.length) {
+      await addSolo(h.id, pending[idx++]);
+      free--;
+    }
+  }
+  const chunks = chunk(pending.slice(idx), HEAT_CAPACITY);
+  for (let i = 0; i < chunks.length; i++) {
+    const heat = await prisma.heat.create({ data: { categoryId, name: `Heat ${heats.length + i + 1}` } });
+    for (const r of chunks[i]) await addSolo(heat.id, r);
+  }
+}
+
 /**
- * Turns registrations into a runnable schedule for every category:
- *  - TEAM: only admin-formed groups are scheduled — one heat entry per group.
- *    Registrants who aren't in a group are left unassigned (never auto-teamed).
- *  - SINGLE: each registered solo competitor becomes one heat entry.
- * This is the *preliminary* schedule built from registrations — check-in is a
- * race-day step and is intentionally NOT required here, so the admin sees the
- * full proposed heat list during registration. Then every heat gets an estimated
- * start time in race order. Safe to re-run: already-scheduled groups
- * (group.entryId set) and already-placed singles (registrant.entryId set) are
- * skipped, so a later run only adds newly-registered people.
+ * Builds the heat schedule for every category. Only admin-formed groups (TEAM)
+ * and registered solos (SINGLE) are scheduled — ungrouped team registrants are
+ * left unassigned, never auto-teamed. Groups/solos are packed into as few heats
+ * as possible (up to HEAT_CAPACITY each), named Heat 1..N. Before any timing has
+ * started a category's heats are rebuilt compactly on each run (so re-running
+ * never fragments heats or duplicates names); once a heat is started or a time
+ * is recorded, that category is only topped up with newcomers. Then every heat
+ * gets an estimated start time in race order.
  */
 export async function generateSchedule(locale: string) {
   await requireRole('ADMIN');
@@ -106,70 +216,10 @@ export async function generateSchedule(locale: string) {
       : new Date(Date.now() + 5 * 60_000);
 
   for (const category of categories) {
-    const existingHeatCount = await prisma.heat.count({ where: { categoryId: category.id } });
-
     if (category.type === 'TEAM') {
-      // Only admin-formed groups are scheduled — registrants who aren't in a
-      // group are deliberately left unassigned (shown on the Heats tab) rather
-      // than auto-teamed, so the admin stays in full control of the rosters.
-      const unscheduled = await prisma.group.findMany({
-        where: { categoryId: category.id, entryId: null },
-        orderBy: { createdAt: 'asc' },
-      });
-      if (unscheduled.length === 0) continue;
-
-      const regs = await prisma.registrant.findMany({ where: { categoryId: category.id } });
-      const nameOf = new Map(regs.map((r) => [r.id, r.name]));
-
-      const heatChunks = chunk(unscheduled, HEAT_CAPACITY);
-      for (let i = 0; i < heatChunks.length; i++) {
-        const heat = await prisma.heat.create({
-          data: { categoryId: category.id, name: `Heat ${existingHeatCount + i + 1}` },
-        });
-        for (const group of heatChunks[i]) {
-          // An open (unfilled) leg becomes a placeholder member the admin can
-          // fix up later; only real names go into the entry label.
-          const legMembers = (
-            [
-              ['SWIM', group.swimRegistrantId],
-              ['BIKE', group.bikeRegistrantId],
-              ['RUN', group.runRegistrantId],
-            ] as const
-          ).map(([leg, registrantId]) => ({
-            leg,
-            registrantId,
-            name: registrantId ? nameOf.get(registrantId) ?? '?' : '—',
-          }));
-          const memberNames =
-            [...new Set(legMembers.filter((m) => m.registrantId).map((m) => m.name))].join(' / ') || '—';
-          const entry = await prisma.entry.create({ data: { heatId: heat.id, name: memberNames } });
-          await prisma.member.createMany({
-            data: legMembers.map((m) => ({
-              entryId: entry.id,
-              name: m.name,
-              leg: m.leg,
-              registrantId: m.registrantId,
-            })),
-          });
-          await prisma.group.update({ where: { id: group.id }, data: { entryId: entry.id } });
-        }
-      }
+      await packTeamCategory(category.id);
     } else {
-      const pending = await prisma.registrant.findMany({
-        where: { categoryId: category.id, entryId: null },
-      });
-      if (pending.length === 0) continue;
-
-      const heatChunks = chunk(pending, HEAT_CAPACITY);
-      for (let i = 0; i < heatChunks.length; i++) {
-        const heat = await prisma.heat.create({
-          data: { categoryId: category.id, name: `Heat ${existingHeatCount + i + 1}` },
-        });
-        for (const registrant of heatChunks[i]) {
-          const entry = await prisma.entry.create({ data: { heatId: heat.id, name: registrant.name } });
-          await prisma.registrant.update({ where: { id: registrant.id }, data: { entryId: entry.id } });
-        }
-      }
+      await packSingleCategory(category.id);
     }
   }
 
@@ -305,6 +355,25 @@ export async function syncHeatsWithRoster(): Promise<{ changed: boolean }> {
         await prisma.entry.update({ where: { id: entry.id }, data: { name: desiredName } });
         changed = true;
       }
+    }
+  }
+
+  // --- Remove phantom relay entries left over from disbanded groups: a team
+  // entry that has leg members but is no longer pointed to by any group. Manual
+  // name-only entries and solo entries have no leg members, so they're safe. ---
+  const linkedEntryIds = new Set(
+    (await prisma.group.findMany({ where: { entryId: { not: null } }, select: { entryId: true } })).map(
+      (g) => g.entryId as string
+    )
+  );
+  const teamEntries = await prisma.entry.findMany({
+    where: { heat: { category: { type: 'TEAM' } } },
+    include: { members: true },
+  });
+  for (const e of teamEntries) {
+    if (!linkedEntryIds.has(e.id) && e.members.some((m) => m.leg)) {
+      await prisma.entry.delete({ where: { id: e.id } });
+      changed = true;
     }
   }
 

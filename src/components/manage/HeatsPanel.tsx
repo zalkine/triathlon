@@ -2,7 +2,6 @@ import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
 import { formatClock } from '@/lib/time';
 import { generateSchedule } from '@/actions/event';
-import AutoGenerateHeats from '@/components/AutoGenerateHeats';
 import ConfirmForm from '@/components/ConfirmForm';
 import UnassignedRegistrants from '@/components/UnassignedRegistrants';
 import HeatsBoard from './HeatsBoard';
@@ -58,14 +57,17 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Additive auto-generation on load (safe, only appends new people) */}
-      <AutoGenerateHeats locale={locale} placeableCount={placeableCount} />
       {/* Reconcile placed heats with registration-tab group/competitor edits */}
       <SyncHeatsWithRoster />
 
       <div className="rounded-2xl border border-ink/10 bg-white/70 p-5 space-y-3">
         <h2 className="font-semibold">{t('heatsTitle')}</h2>
         <p className="text-sm text-ink-light">{t('heatsBoardHint')}</p>
+        {placeableCount > 0 && (
+          <p className="rounded-lg bg-bike/15 px-3 py-2 text-sm font-medium text-bike-dark">
+            ⚠ {t('unscheduledHint', { count: placeableCount })}
+          </p>
+        )}
         <div className="flex flex-wrap items-center gap-3">
           <ConfirmForm action={runGenerate} confirmMessage={t('generateScheduleConfirm')}>
             <button type="submit" className="rounded-full bg-ink px-5 py-2 text-sm font-semibold text-cream hover:brightness-110">
