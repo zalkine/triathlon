@@ -9,7 +9,9 @@ export default async function InfoPage() {
   const locale = await getLocale();
 
   const [sections, contacts] = await Promise.all([
-    prisma.infoSection.findMany({ orderBy: { sortOrder: 'asc' } }),
+    // Exclude trail sections — those live on the dedicated /trails page, and
+    // repeating them here (alongside rules & general info) is confusing.
+    prisma.infoSection.findMany({ where: { type: { not: 'trails' } }, orderBy: { sortOrder: 'asc' } }),
     prisma.contact.findMany({ orderBy: { sortOrder: 'asc' } }),
   ]);
 
