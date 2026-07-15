@@ -3,13 +3,18 @@
     "name": "טריאתלון גל-און",
     "tagline": "תוצאות ותזמון חי לטריאתלון הקהילתי"
   },
+  "theme": {
+    "label": "ערכת נושא",
+    "toDark": "מעבר למצב כהה",
+    "toLight": "מעבר למצב בהיר"
+  },
   "nav": {
     "home": "בית",
     "results": "תוצאות",
     "register": "הרשמה",
     "competitors": "מתחרים",
     "schedule": "לוח זמנים",
-    "competitionInfo": "מידע התחרות",
+    "competitionInfo": "מידע כללי",
     "trails": "מסלולים",
     "hallOfFame": "היכל התהילה",
     "login": "כניסת צוות",
@@ -236,7 +241,7 @@
     "tabHeats": "מקצים",
     "tabSchedule": "לוח זמנים",
     "tabScores": "תוצאות ודירוג",
-    "tabCompetitionInfo": "מידע התחרות",
+    "tabCompetitionInfo": "מידע כללי",
     "tabTrails": "מסלולים",
     "tabHof": "היכל התהילה",
     "tabInfo": "תקנון ומסלולים",
@@ -344,13 +349,13 @@
     "empty": "המידע יפורסם כאן בקרוב."
   },
   "competitionInfo": {
-    "title": "מידע התחרות",
+    "title": "מידע כללי",
     "subtitle": "מידע כללי ואנשי קשר לשירותי חירום.",
     "contactsTitle": "אנשי קשר",
     "roleCol": "תפקיד",
     "nameCol": "שם",
     "phoneCol": "טלפון",
-    "notPublished": "מידע התחרות עדיין לא פורסם."
+    "notPublished": "מידע כללי עדיין לא פורסם."
   },
   "trails": {
     "title": "מסלולי המירוץ",

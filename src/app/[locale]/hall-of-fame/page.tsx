@@ -53,7 +53,7 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
             {records.map((r) => (
               <div
                 key={`${r.family}-${r.isTeam}`}
-                className="rounded-2xl border border-ink/10 bg-white/70 p-4 shadow-sm"
+                className="rounded-2xl border border-ink/10 bg-surface/70 p-4 shadow-sm"
               >
                 <div className="text-xs font-medium uppercase tracking-wide text-ink-light">
                   {familyLabel(r.family, locale)} · {kindLabel(r.isTeam, locale)}
@@ -72,7 +72,7 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
         <section className="space-y-4">
           <h2 className="text-xl font-bold">🥇 {t('champions')}</h2>
           {allYears.map((year) => (
-            <div key={year} className="rounded-2xl border border-ink/10 bg-white/70 p-5 shadow-sm">
+            <div key={year} className="rounded-2xl border border-ink/10 bg-surface/70 p-5 shadow-sm">
               <h3 className="mb-3 text-lg font-bold">{year}</h3>
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {championsFor(results, year).map((c) => (
@@ -99,7 +99,7 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
               {[...SPECIAL_AWARDS]
                 .sort((a, b) => b.year - a.year)
                 .map((a, i) => (
-                  <div key={i} className="rounded-xl border border-ink/10 bg-white/70 p-3 text-sm shadow-sm">
+                  <div key={i} className="rounded-xl border border-ink/10 bg-surface/70 p-3 text-sm shadow-sm">
                     <div className="text-xs text-ink-light">
                       {a.year} · {locale === 'he' ? a.titleHe : a.titleEn}
                     </div>
@@ -118,7 +118,7 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
         <section className="space-y-3">
           <h2 className="text-xl font-bold">📜 {t('allResults')}</h2>
           {allYears.map((year) => (
-            <details key={year} className="rounded-2xl border border-ink/10 bg-white/70 p-4 shadow-sm">
+            <details key={year} className="rounded-2xl border border-ink/10 bg-surface/70 p-4 shadow-sm">
               <summary className="cursor-pointer text-lg font-bold">{year}</summary>
               <div className="mt-3 space-y-5">
                 {bucketList.map(({ family, isTeam }) => {

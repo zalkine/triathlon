@@ -60,7 +60,7 @@ export default function HeatsBoard({ categories }: { categories: BoardCategory[]
   return (
     <div className="space-y-6">
       {categories.map((cat) => (
-        <div key={cat.id} className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+        <div key={cat.id} className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h3 className="font-semibold">{catName(cat)}</h3>
             <button
@@ -139,7 +139,7 @@ export default function HeatsBoard({ categories }: { categories: BoardCategory[]
                               setDragEntry(null);
                               setDropTarget(null);
                             }}
-                            className={`group flex items-start justify-between gap-1 rounded-lg border border-ink/10 bg-white px-2 py-1.5 text-sm shadow-sm ${
+                            className={`group flex items-start justify-between gap-1 rounded-lg border border-ink/10 bg-surface px-2 py-1.5 text-sm shadow-sm ${
                               isPending ? '' : 'cursor-grab active:cursor-grabbing'
                             } ${dragEntry === entry.id ? 'opacity-40' : ''}`}
                           >

@@ -3,6 +3,11 @@
     "name": "Gal-On Triathlon",
     "tagline": "Community Triathlon Results & Timing"
   },
+  "theme": {
+    "label": "Theme",
+    "toDark": "Switch to dark mode",
+    "toLight": "Switch to light mode"
+  },
   "nav": {
     "home": "Home",
     "results": "Results",

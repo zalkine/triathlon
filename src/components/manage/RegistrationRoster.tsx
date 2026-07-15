@@ -84,7 +84,7 @@ export default async function RegistrationRoster({ locale }: { locale: string })
         const isKids = c.key.startsWith('KIDS_');
 
         return (
-          <div key={c.id} className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+          <div key={c.id} className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <h3 className="font-semibold">
                 {locale === 'he' ? c.nameHe : c.nameEn}{' '}

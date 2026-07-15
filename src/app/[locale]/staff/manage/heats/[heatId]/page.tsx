@@ -71,7 +71,7 @@ export default async function HeatDetailPage({
 
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">{t('entries')}</h2>
-        <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white/70">
+        <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-surface/70">
           <table className="w-full min-w-[640px] text-start">
             <thead>
               <tr className="border-b border-ink/10 text-sm text-ink-light">

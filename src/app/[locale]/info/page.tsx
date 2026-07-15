@@ -36,7 +36,7 @@ export default async function InfoPage() {
               const title = locale === 'he' ? s.titleHe : s.titleEn;
               const body = locale === 'he' ? s.bodyHe : s.bodyEn;
               return (
-                <section key={s.id} className="rounded-2xl border border-ink/10 bg-white/70 p-6 shadow-sm">
+                <section key={s.id} className="rounded-2xl border border-ink/10 bg-surface/70 p-6 shadow-sm">
                   {title && <h2 className="mb-2 text-xl font-bold">{title}</h2>}
                   {body && <p className="whitespace-pre-line leading-relaxed text-ink">{body}</p>}
                   {s.imageUrl && (
@@ -48,7 +48,7 @@ export default async function InfoPage() {
             })}
 
             {contacts.length > 0 && (
-              <section className="rounded-2xl border border-ink/10 bg-white/70 p-6 shadow-sm">
+              <section className="rounded-2xl border border-ink/10 bg-surface/70 p-6 shadow-sm">
                 <h2 className="mb-3 text-xl font-bold">📞 {t('contactsTitle')}</h2>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">

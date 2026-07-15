@@ -39,7 +39,7 @@ export default function AdminAddRegistrantForm({ categories }: { categories: Cat
     })[e] ?? tr('errorInvalid');
 
   return (
-    <form action={formAction} className="space-y-3 rounded-xl border border-ink/10 bg-white/60 p-3">
+    <form action={formAction} className="space-y-3 rounded-xl border border-ink/10 bg-surface/60 p-3">
       <p className="text-sm font-medium">{t('addRegistrant')}</p>
 
       <div className="flex flex-wrap gap-2">

@@ -36,7 +36,7 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
   return (
     <div className="space-y-6">
       {/* Review & publish workflow */}
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5 space-y-4">
+      <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5 space-y-4">
         <h2 className="font-semibold">{t('scoresReviewTitle')}</h2>
         <p className="text-sm text-ink-light">{t('scoresReviewHint')}</p>
 
@@ -97,7 +97,7 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
             const result = results[i];
             if (!result || result.ranked.length === 0) return null;
             return (
-              <div key={cat.id} className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+              <div key={cat.id} className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
                 <h3 className="mb-1 font-semibold">{locale === 'he' ? cat.nameHe : cat.nameEn}</h3>
                 <p className="mb-3 text-xs text-ink-light">{t('scoresEditHint')}</p>
                 <div className="overflow-x-auto">

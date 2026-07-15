@@ -42,7 +42,7 @@ export default function ScheduleView() {
       {categories
         .filter((c) => c.heats.length > 0)
         .map((c) => (
-          <div key={c.id} className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+          <div key={c.id} className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
             <h2 className="mb-3 font-semibold">{locale === 'he' ? c.nameHe : c.nameEn}</h2>
             <ul className="divide-y divide-ink/5">
               {c.heats.map((h) => (

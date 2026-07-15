@@ -73,7 +73,7 @@ function SectionCard({ section, count, index }: { section: Section; count: numbe
         e.preventDefault();
         save(e.currentTarget);
       }}
-      className="space-y-3 rounded-2xl border border-ink/10 bg-white/70 p-5"
+      className="space-y-3 rounded-2xl border border-ink/10 bg-surface/70 p-5"
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold text-ink-light">#{index + 1}</span>

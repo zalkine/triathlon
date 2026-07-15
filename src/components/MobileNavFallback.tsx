@@ -22,7 +22,7 @@ export default async function MobileNavFallback() {
         <Link
           key={l.href}
           href={l.href}
-          className="rounded-full border border-ink/20 bg-white px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-ink/5"
+          className="rounded-full border border-ink/20 bg-surface px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-ink/5"
         >
           {l.label}
         </Link>

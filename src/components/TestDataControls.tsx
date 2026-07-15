@@ -10,7 +10,7 @@ export default function TestDataControls({ locale }: { locale: string }) {
   const [msg, setMsg] = useState('');
 
   return (
-    <div className="rounded-2xl border border-dashed border-ink/30 bg-white/50 p-5">
+    <div className="rounded-2xl border border-dashed border-ink/30 bg-surface/50 p-5">
       <h2 className="mb-1 font-semibold">{t('title')}</h2>
       <p className="mb-3 text-sm text-ink-light">{t('hint')}</p>
       <div className="flex flex-wrap items-center gap-3">

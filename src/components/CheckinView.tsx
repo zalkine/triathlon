@@ -75,7 +75,7 @@ export default function CheckinView() {
             disabled={isPending}
             onClick={() => toggle(r)}
             className={`flex flex-col items-start gap-1 rounded-2xl p-5 text-start shadow-sm transition disabled:opacity-60 ${
-              r.checkedIn ? 'bg-swim/40' : 'bg-white hover:brightness-95'
+              r.checkedIn ? 'bg-swim/40' : 'bg-surface hover:brightness-95'
             }`}
           >
             <span className="text-xs text-ink-light">
@@ -85,7 +85,7 @@ export default function CheckinView() {
             <span className="text-lg font-bold">{r.name}</span>
             <span
               className={`mt-2 rounded-full px-4 py-1.5 text-sm font-semibold ${
-                r.checkedIn ? 'bg-swim-dark text-white' : 'bg-ink text-cream'
+                r.checkedIn ? 'bg-[#1f6d72] text-white' : 'bg-ink text-cream'
               }`}
             >
               {r.checkedIn ? t('arrived') : t('markArrived')}

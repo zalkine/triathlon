@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import LanguageSwitcher from './LanguageSwitcher';
+import ThemeToggle from './ThemeToggle';
 import type { NavLink } from './publicNavLinks';
 
 /**
@@ -32,7 +33,7 @@ export default function PublicNav({
   const close = () => setOpen(false);
 
   const frame =
-    'rounded-full border border-ink/20 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:bg-ink/5';
+    'rounded-full border border-ink/20 bg-surface px-4 py-2 text-sm font-medium text-ink transition hover:bg-ink/5';
 
   // Staff login when signed out; the way back to the staff area + logout when
   // signed in. Rendered in both the desktop row and the mobile header cluster.
@@ -69,18 +70,20 @@ export default function PublicNav({
         ))}
         {authControls()}
         <LanguageSwitcher />
+        <ThemeToggle />
       </nav>
 
       {/* Mobile: staff login + language toggle + hamburger, always visible */}
       <div className="flex flex-wrap items-center justify-end gap-2 md:hidden">
         {authControls(close)}
         <LanguageSwitcher />
+        <ThemeToggle />
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-label="menu"
           aria-expanded={open}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-ink/20 bg-white text-2xl leading-none text-ink"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-ink/20 bg-surface text-2xl leading-none text-ink"
         >
           ☰
         </button>

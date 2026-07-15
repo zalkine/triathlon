@@ -65,7 +65,7 @@ export default async function PreliminarySchedulePreview({ locale }: { locale: s
   }
 
   return (
-    <div className="rounded-2xl border border-ink/10 bg-white/70 p-5 space-y-5">
+    <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-semibold">{t('preliminaryScheduleTitle')}</h2>
         <span className="text-sm text-ink-light">{t('preliminaryScheduleHint')}</span>

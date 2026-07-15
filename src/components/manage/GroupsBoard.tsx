@@ -232,7 +232,7 @@ export default function GroupsBoard({
                               className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-sm shadow-sm ${
                                 isPicked(slot.id, { groupId: g.id, leg })
                                   ? 'border-ink bg-ink/10 ring-2 ring-ink'
-                                  : 'border-ink/10 bg-white'
+                                  : 'border-ink/10 bg-surface'
                               } ${isPending ? '' : 'cursor-grab active:cursor-grabbing'}`}
                               title={slot.name}
                             >
@@ -252,7 +252,7 @@ export default function GroupsBoard({
                                   if (id) assignPick(id, g.id, leg);
                                 }}
                                 title={t('assignPickHint')}
-                                className="w-full rounded border border-ink/20 bg-white px-1 py-0.5 text-xs"
+                                className="w-full rounded border border-ink/20 bg-surface px-1 py-0.5 text-xs"
                               >
                                 <option value="">{t('assignPick')}</option>
                                 {allPeople.map((p) => (
@@ -334,7 +334,7 @@ export default function GroupsBoard({
                   draggable={!editing}
                   onDragStart={(e) => startDrag(e, { registrantId: u.id, name: u.name, source: null })}
                   onDragEnd={endDrag}
-                  className={`rounded-lg border bg-white px-2 py-1 text-sm shadow-sm ${
+                  className={`rounded-lg border bg-surface px-2 py-1 text-sm shadow-sm ${
                     isPicked(u.id, null) ? 'border-ink ring-2 ring-ink' : 'border-bike/40'
                   } ${isPending ? '' : 'cursor-grab active:cursor-grabbing'}`}
                 >

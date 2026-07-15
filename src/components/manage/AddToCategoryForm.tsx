@@ -55,7 +55,7 @@ export default function AddToCategoryForm({
   }
 
   return (
-    <form action={formAction} className="space-y-2 rounded-xl border border-ink/10 bg-white/60 p-3">
+    <form action={formAction} className="space-y-2 rounded-xl border border-ink/10 bg-surface/60 p-3">
       <input type="hidden" name="categoryKey" value={categoryKey} />
       <div className="flex flex-wrap items-center gap-2">
         <input

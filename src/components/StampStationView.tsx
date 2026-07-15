@@ -144,7 +144,7 @@ export default function StampStationView({ station }: { station: StampStation })
           const otherMembers = isFinish ? e.members.filter((m) => m.leg !== 'RUN') : [];
           const headline = runner ? runner.name : e.name;
           return (
-            <div key={e.id} className="rounded-2xl bg-white p-4 shadow-sm">
+            <div key={e.id} className="rounded-2xl bg-surface p-4 shadow-sm">
               <div className="text-xs text-ink-light">
                 {locale === 'he' ? e.categoryNameHe : e.categoryNameEn} · {formatHeatName(e.heatName, locale)}
               </div>

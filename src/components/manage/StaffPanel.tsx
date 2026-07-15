@@ -21,7 +21,7 @@ export default async function StaffPanel({ locale }: { locale: string }) {
   return (
     <div className="space-y-6">
       {/* Staff accounts */}
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5 space-y-4">
+      <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5 space-y-4">
         <h2 className="font-semibold">{tu('title')}</h2>
         <CreateUserForm action={createAction} />
         <ul className="divide-y divide-ink/5">
@@ -48,7 +48,7 @@ export default async function StaffPanel({ locale }: { locale: string }) {
       </div>
 
       {/* Contact directory (public) */}
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5 space-y-4">
+      <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5 space-y-4">
         <h2 className="font-semibold">{t('contactsTitle')}</h2>
         <ContactsEditor contacts={contacts} />
         <div className="flex flex-wrap gap-3 pt-1">
