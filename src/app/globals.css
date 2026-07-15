@@ -4,6 +4,8 @@
 
 :root {
   --font-sans: 'Segoe UI', 'Arial Hebrew', Arial, system-ui, sans-serif;
+  /* Keep the light palette on dark-mode phones — no auto force-darkening. */
+  color-scheme: light only;
 }
 
 html {
