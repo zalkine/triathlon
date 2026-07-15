@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { logoutAction } from '@/actions/auth';
 import Logo from './Logo';
 import PublicNav from './PublicNav';
+import { publicNavLinks } from './publicNavLinks';
 
 export default async function PublicHeader() {
   const t = await getTranslations('nav');
@@ -11,16 +12,7 @@ export default async function PublicHeader() {
   const session = await getSession();
   const logout = logoutAction.bind(null, locale);
 
-  const links = [
-    { href: '/register', label: t('register') },
-    { href: '/competitors', label: t('competitors') },
-    { href: '/schedule', label: t('schedule') },
-    { href: '/results', label: t('results') },
-    { href: '/competition-info', label: t('competitionInfo') },
-    { href: '/trails', label: t('trails') },
-    { href: '/hall-of-fame', label: t('hallOfFame') },
-    { href: '/info', label: t('info') },
-  ];
+  const links = publicNavLinks(t);
 
   return (
     <header className="relative flex flex-wrap items-center justify-between gap-4 border-b border-ink/10 px-6 py-4">
