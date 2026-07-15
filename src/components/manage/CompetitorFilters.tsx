@@ -83,7 +83,7 @@ export default function CompetitorFilters() {
   if (loaded && competitors.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-ink/10 bg-white/70 p-5 space-y-3">
+    <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5 space-y-3">
       <div>
         <h2 className="font-semibold">{t('title')}</h2>
         <p className="text-sm text-ink-light">{t('hint')}</p>

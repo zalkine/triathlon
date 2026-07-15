@@ -14,7 +14,7 @@ export default function LotteryAllButton() {
   const [msg, setMsg] = useState<string | null>(null);
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-ink/10 bg-white/70 p-4">
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-ink/10 bg-surface/70 p-4">
       <button
         type="button"
         onClick={() => {

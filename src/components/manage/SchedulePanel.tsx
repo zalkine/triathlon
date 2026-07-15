@@ -18,7 +18,7 @@ export default async function SchedulePanel({ locale }: { locale: string }) {
       <PreliminarySchedulePreview locale={locale} />
 
       {/* Publish schedule to the public */}
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5 space-y-3">
+      <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5 space-y-3">
         <h2 className="font-semibold">{t('schedulePublishedLabel')}</h2>
         <div className="flex flex-wrap items-center gap-3 text-sm">
           <span
@@ -45,7 +45,7 @@ export default async function SchedulePanel({ locale }: { locale: string }) {
       </div>
 
       {/* Activate the competition (go live for timekeepers) */}
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5 space-y-3">
+      <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5 space-y-3">
         <h2 className="font-semibold">{t('competitionActiveLabel')}</h2>
         <div className="flex flex-wrap items-center gap-3 text-sm">
           <span

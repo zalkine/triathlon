@@ -5,10 +5,16 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import '../globals.css';
 
-// Lock the app to a light color scheme so mobile browsers don't force-darken
-// the cream/terracotta palette (emits <meta name="color-scheme" content="light">).
+// Advertise support for both schemes so browsers (including Samsung Internet,
+// which ignores `color-scheme: light only`) render our own dark theme instead
+// of force-inverting the light palette. `themeColor` keeps the browser chrome
+// (address/status bar) matched to the page background in each mode.
 export const viewport: Viewport = {
-  colorScheme: 'light',
+  colorScheme: 'light dark',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#eef4f4' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f1a1f' },
+  ],
 };
 
 export async function generateMetadata({
@@ -41,7 +47,7 @@ export default async function LocaleLayout({
   const dir = locale === 'he' ? 'rtl' : 'ltr';
 
   return (
-    <html lang={locale} dir={dir} style={{ colorScheme: 'light' }}>
+    <html lang={locale} dir={dir}>
       <body className="min-h-screen bg-cream font-sans text-ink antialiased">
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>

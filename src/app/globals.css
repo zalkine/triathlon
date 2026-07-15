@@ -2,10 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Brand palette as RGB channel triplets so Tailwind's `<color>/<alpha>`
+ * opacity modifiers keep working (see tailwind.config.ts, which wraps these
+ * in `rgb(var(--x) / <alpha-value>)`).
+ *
+ * The app pairs colours by discipline: light surfaces (cream / surface) carry
+ * `text-ink`, and inverted chips (`bg-ink`) carry `text-cream`. Because both
+ * sides of every pair are variables that flip together in dark mode, contrast
+ * is preserved automatically. The accent `-dark` shades brighten in dark mode
+ * so accent *text* (headings, the date, pills) stays vivid instead of muddy.
+ */
 :root {
   --font-sans: 'Segoe UI', 'Arial Hebrew', Arial, system-ui, sans-serif;
-  /* Keep the light palette on dark-mode phones — no auto force-darkening. */
-  color-scheme: light only;
+
+  --cream: 238 244 244; /* #eef4f4 page background */
+  --surface: 255 255 255; /* #ffffff cards / inputs */
+  --ink: 22 50 60; /* #16323c primary text */
+  --ink-light: 71 100 111; /* #47646f secondary text */
+
+  --run-dark: 191 70 50; /* #bf4632 */
+  --bike-dark: 47 121 173; /* #2f79ad */
+  --swim-dark: 31 109 114; /* #1f6d72 */
+
+  /* We ship a real dark theme, so browsers (incl. Samsung Internet, which
+     ignores `light only`) render it instead of force-inverting the page. */
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cream: 15 26 31; /* deep ink-teal page background */
+    --surface: 26 42 49; /* cards sit slightly above the page */
+    --ink: 226 235 237; /* near-white primary text */
+    --ink-light: 156 178 185; /* muted secondary text */
+
+    /* Brighten the accent "dark" shades so accent text stays legible on the
+       dark surface (they map to the original `-light` brand tones). */
+    --run-dark: 244 166 150; /* #f4a696 */
+    --bike-dark: 166 205 237; /* #a6cded */
+    --swim-dark: 143 204 206; /* #8fccce */
+  }
 }
 
 html {

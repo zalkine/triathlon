@@ -49,7 +49,7 @@ export default function ContactsEditor({ contacts }: { contacts: Contact[] }) {
     <div className="space-y-4">
       <p className="text-sm text-ink-light">{t('contactsHint')}</p>
 
-      <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white/70">
+      <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-surface/70">
         <table className="w-full min-w-[520px] text-sm">
           <thead>
             <tr className="border-b border-ink/10 text-xs text-ink-light">
@@ -118,7 +118,7 @@ export default function ContactsEditor({ contacts }: { contacts: Contact[] }) {
           e.preventDefault();
           add(e.currentTarget);
         }}
-        className="flex flex-wrap items-center gap-2 rounded-xl border border-ink/10 bg-white/60 p-3"
+        className="flex flex-wrap items-center gap-2 rounded-xl border border-ink/10 bg-surface/60 p-3"
       >
         <input name="role" required placeholder={t('contactRole')} className={`${inputCls} sm:w-40`} />
         <input name="name" required placeholder={t('contactName')} className={`${inputCls} sm:w-48`} />

@@ -18,12 +18,12 @@ export default async function UsersPage() {
     <div className="mx-auto max-w-3xl space-y-8">
       <h1 className="text-2xl font-bold">{t('title')}</h1>
 
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+      <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
         <h2 className="mb-3 font-semibold">{t('newUser')}</h2>
         <CreateUserForm action={createAction} />
       </div>
 
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+      <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
         <h2 className="mb-3 font-semibold">{t('existing')}</h2>
         <ul className="divide-y divide-ink/5">
           {users.map((u) => {

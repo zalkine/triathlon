@@ -46,7 +46,7 @@ export default function CompetitorSearch({ results }: { results: AnnotatedResult
 
       <ul className="space-y-2">
         {matches.map((r, i) => (
-          <li key={i} className="rounded-xl border border-ink/10 bg-white/70 p-3 text-sm shadow-sm">
+          <li key={i} className="rounded-xl border border-ink/10 bg-surface/70 p-3 text-sm shadow-sm">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
               <span className="font-semibold">{renderName(r.name)}</span>
               <span className="font-mono tabular-nums text-ink-light">{formatHms(r.seconds)}</span>

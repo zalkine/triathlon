@@ -258,7 +258,7 @@ export default function RegisterForm({ action, categories }: { action: FormActio
       </div>
 
       {mode === 'TEAM' && (
-        <div className="space-y-4 rounded-xl border border-ink/10 bg-white/50 p-4">
+        <div className="space-y-4 rounded-xl border border-ink/10 bg-surface/50 p-4">
           <div>
             <span className="mb-2 block text-sm font-medium">{t('groupChoiceLabel')}</span>
             <div className="space-y-1">

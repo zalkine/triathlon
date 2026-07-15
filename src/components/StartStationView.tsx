@@ -239,7 +239,7 @@ export default function StartStationView() {
             const isEditing = editing.has(h.id);
             const moveTargets = allHeats.filter((o) => o.id !== h.id);
             return (
-              <div key={h.id} className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
+              <div key={h.id} className="rounded-2xl border border-ink/10 bg-surface p-5 shadow-sm">
                 <div className="mb-2 flex items-baseline justify-between gap-2">
                   <span className="text-xs text-ink-light">{catName(h)}</span>
                   <span className="text-lg font-bold">{formatHeatName(h.name, locale)}</span>

@@ -33,7 +33,7 @@ export default function MedalTable({ personal, withGroups }: { personal: Medalis
       </div>
       <p className="text-sm text-ink-light">{includeGroups ? t('medalsWithGroupsNote') : t('medalsNote')}</p>
 
-      <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-white/70 shadow-sm">
+      <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-surface/70 shadow-sm">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-ink/10 text-ink-light">

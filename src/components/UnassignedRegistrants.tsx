@@ -31,7 +31,7 @@ export default async function UnassignedRegistrants({ locale }: { locale: string
   const total = perCategory.reduce((s, x) => s + x.ungrouped.length, 0);
 
   return (
-    <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+    <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
       <h2 className="mb-1 font-semibold">{t('unassigned')}</h2>
       {total === 0 ? (
         <p className="text-sm text-ink-light">{t('unassignedNone')}</p>

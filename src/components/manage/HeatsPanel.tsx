@@ -71,7 +71,7 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
       {/* Reconcile placed heats with registration-tab group/competitor edits */}
       <SyncHeatsWithRoster />
 
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5 space-y-3">
+      <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5 space-y-3">
         <h2 className="font-semibold">{t('heatsTitle')}</h2>
         <p className="text-sm text-ink-light">{t('heatsBoardHint')}</p>
         {placeableCount > 0 && (

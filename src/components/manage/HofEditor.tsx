@@ -39,7 +39,7 @@ function RowForm({
         e.preventDefault();
         onSubmit(e.currentTarget);
       }}
-      className="grid grid-cols-2 gap-2 rounded-xl border border-ink/10 bg-white/60 p-3 sm:grid-cols-4"
+      className="grid grid-cols-2 gap-2 rounded-xl border border-ink/10 bg-surface/60 p-3 sm:grid-cols-4"
     >
       <label className="flex flex-col gap-1 text-xs text-ink-light">
         {t('hofYear')}
@@ -153,7 +153,7 @@ export default function HofEditor({ rows }: { rows: Row[] }) {
       {adding && <RowForm onSubmit={doCreate} onCancel={() => setAdding(false)} pending={isPending} />}
 
       {years.map((year, yi) => (
-        <details key={year} open={yi === 0} className="rounded-2xl border border-ink/10 bg-white/70 p-4">
+        <details key={year} open={yi === 0} className="rounded-2xl border border-ink/10 bg-surface/70 p-4">
           <summary className="cursor-pointer font-bold">{year}</summary>
           <ul className="mt-3 space-y-2">
             {rows

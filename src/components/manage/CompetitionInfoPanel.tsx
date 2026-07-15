@@ -15,7 +15,7 @@ export default async function CompetitionInfoPanel(_props: { locale: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+      <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-semibold">{t('tabCompetitionInfo')}</h2>
           <Link href="/competition-info" className="text-sm font-semibold underline">

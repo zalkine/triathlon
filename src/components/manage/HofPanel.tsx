@@ -9,7 +9,7 @@ export default async function HofPanel(_props: { locale: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+      <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
         <h2 className="mb-3 font-semibold">{t('tabHof')}</h2>
         <HofEditor rows={rows} />
       </div>

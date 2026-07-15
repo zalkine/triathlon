@@ -17,10 +17,22 @@ export default async function HomePage() {
         {/* Save-the-date hero. Sizes and spacing are tightened on mobile so
             both CTAs stay above the fold on a phone; the sm: values restore
             the full-size desktop layout. */}
-        <section className="w-full max-w-2xl overflow-hidden rounded-3xl border border-ink/10 bg-gradient-to-b from-cream to-white shadow-sm">
+        <section className="w-full max-w-2xl overflow-hidden rounded-3xl border border-ink/10 bg-gradient-to-b from-cream to-surface shadow-sm">
           <div className="flex flex-col items-center gap-3 px-6 py-6 text-center sm:gap-5 sm:py-14">
+            {/* Baked lockup in light mode; its wordmark is dark navy, so on
+                dark-mode phones we swap to the icon mark + readable text name
+                (same approach as the header logo). */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-lockup.png" alt={tb('name')} className="h-20 w-auto sm:h-36" />
+            <img
+              src="/logo-lockup.png"
+              alt={tb('name')}
+              className="h-20 w-auto sm:h-36 dark:hidden"
+            />
+            <div className="hidden flex-col items-center gap-2 dark:flex">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo-mark.png" alt="" className="h-14 w-auto sm:h-24" />
+              <span className="text-2xl font-bold text-ink sm:text-4xl">{tb('name')}</span>
+            </div>
 
             <span className="rounded-lg border-2 border-bike-dark/50 bg-bike/15 px-4 py-1 text-base font-extrabold tracking-[0.2em] text-bike-dark sm:px-5 sm:py-1.5 sm:text-xl">
               {t('saveTheDate')}

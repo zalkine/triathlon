@@ -20,7 +20,7 @@ export default function ManageTabs({ active }: { active: ManageTabKey }) {
 
   return (
     <div className="-mx-1 overflow-x-auto pb-1">
-      <nav className="flex w-max min-w-full gap-1 rounded-full border border-ink/10 bg-white/60 p-1">
+      <nav className="flex w-max min-w-full gap-1 rounded-full border border-ink/10 bg-surface/60 p-1">
         {MANAGE_TABS.map((tab, i) => {
           const isActive = tab.key === active;
           return (

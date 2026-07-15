@@ -24,7 +24,7 @@ export default async function RegistrationPanel({ locale }: { locale: string }) 
   return (
     <div className="space-y-6">
       {/* Registration open/closed toggle — the headline control of this tab */}
-      <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+      <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="text-ink-light">{t('registrationOpenLabel')}:</span>
