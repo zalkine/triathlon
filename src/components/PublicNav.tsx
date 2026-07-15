@@ -73,8 +73,9 @@ export default function PublicNav({
         <ThemeToggle />
       </nav>
 
-      {/* Mobile: staff login + language toggle + hamburger, always visible */}
-      <div className="flex flex-wrap items-center justify-end gap-2 md:hidden">
+      {/* Mobile: staff login + language toggle + theme toggle + hamburger,
+          kept on a single row (the abbreviated language toggle makes room). */}
+      <div className="flex flex-nowrap items-center justify-end gap-1.5 md:hidden">
         {authControls(close)}
         <LanguageSwitcher />
         <ThemeToggle />

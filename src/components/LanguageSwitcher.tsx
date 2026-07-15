@@ -15,12 +15,16 @@ export default function LanguageSwitcher() {
         <button
           key={l}
           onClick={() => router.replace(pathname, { locale: l })}
-          className={`rounded-full px-3 py-1 font-medium transition ${
+          className={`rounded-full px-2.5 py-1 font-medium transition sm:px-3 ${
             l === locale ? 'bg-ink text-cream' : 'text-ink/70 hover:bg-ink/10'
           }`}
           aria-current={l === locale}
+          aria-label={l === 'he' ? 'עברית' : 'English'}
         >
-          {l === 'he' ? 'עברית' : 'English'}
+          {/* Abbreviated on mobile to keep the header controls on one row; the
+              full name shows once there's room (sm+). */}
+          <span className="sm:hidden">{l === 'he' ? 'עב' : 'En'}</span>
+          <span className="hidden sm:inline">{l === 'he' ? 'עברית' : 'English'}</span>
         </button>
       ))}
     </div>
