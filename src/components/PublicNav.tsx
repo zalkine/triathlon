@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import LanguageSwitcher from './LanguageSwitcher';
+import ThemeToggle from './ThemeToggle';
 import type { NavLink } from './publicNavLinks';
 
 /**
@@ -69,12 +70,14 @@ export default function PublicNav({
         ))}
         {authControls()}
         <LanguageSwitcher />
+        <ThemeToggle />
       </nav>
 
       {/* Mobile: staff login + language toggle + hamburger, always visible */}
       <div className="flex flex-wrap items-center justify-end gap-2 md:hidden">
         {authControls(close)}
         <LanguageSwitcher />
+        <ThemeToggle />
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}

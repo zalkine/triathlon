@@ -2,10 +2,11 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
-  // `dark:` variants follow the OS setting (prefers-color-scheme), matching the
-  // CSS-variable palette flip in globals.css. Used sparingly for the few spots
-  // that need a distinct dark treatment (e.g. the hero logo lockup).
-  darkMode: 'media',
+  // `dark:` variants key off the `dark` class on <html>, which the layout's
+  // pre-paint script sets from the phone's setting (or a saved override),
+  // matching the CSS-variable palette flip in globals.css. Used sparingly for
+  // the few spots that need a distinct dark treatment (e.g. the hero logo).
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
