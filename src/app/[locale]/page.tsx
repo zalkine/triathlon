@@ -1,7 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import PublicHeader from '@/components/PublicHeader';
-import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,9 +8,6 @@ export default async function HomePage() {
   const t = await getTranslations('home');
   const tb = await getTranslations('brand');
   const tn = await getTranslations('nav');
-
-  const settings = await prisma.eventSettings.findUnique({ where: { id: 'singleton' } });
-  const registrationOpen = settings?.registrationOpen ?? false;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -33,16 +29,21 @@ export default async function HomePage() {
               {t('date')}
             </span>
 
-            <p className="text-2xl font-bold text-swim-dark sm:text-3xl">{t('tagline2')}</p>
-
-            {/* Hall of Fame — primary CTA, always visible */}
-            <Link
-              href="/hall-of-fame"
-              className="mt-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-run to-run-dark px-8 py-3 text-lg font-bold text-white shadow-md transition hover:brightness-95"
-            >
-              🏆 {tn('hallOfFame')}
-            </Link>
-            <p className="text-xs text-ink-light">{t('hofSubtitle')}</p>
+            {/* Primary CTAs — Register Now and Hall of Fame, always visible */}
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-2.5 rounded-full bg-swim px-11 py-5 text-2xl font-extrabold text-ink shadow-lg transition hover:brightness-95 sm:text-3xl"
+              >
+                📝 {t('registerCta')}
+              </Link>
+              <Link
+                href="/hall-of-fame"
+                className="inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-run to-run-dark px-11 py-5 text-2xl font-extrabold text-white shadow-lg transition hover:brightness-95 sm:text-3xl"
+              >
+                🏆 {tn('hallOfFame')}
+              </Link>
+            </div>
           </div>
 
           {/* three-color accent bar echoing the logo */}
@@ -52,36 +53,6 @@ export default async function HomePage() {
             <div className="flex-1 bg-swim" />
           </div>
         </section>
-
-        {/* secondary links */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          {registrationOpen && (
-            <Link
-              href="/register"
-              className="rounded-full bg-swim px-6 py-2.5 font-semibold text-ink shadow-sm transition hover:brightness-95"
-            >
-              {t('registerCta')}
-            </Link>
-          )}
-          <Link
-            href="/schedule"
-            className="rounded-full bg-bike px-6 py-2.5 font-semibold text-ink shadow-sm transition hover:brightness-95"
-          >
-            {t('scheduleCta')}
-          </Link>
-          <Link
-            href="/results"
-            className="rounded-full bg-run px-6 py-2.5 font-semibold text-white shadow-sm transition hover:brightness-95"
-          >
-            {t('viewResults')}
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-full border-2 border-ink/20 px-6 py-2.5 font-semibold text-ink transition hover:bg-ink/5"
-          >
-            {t('staffLogin')}
-          </Link>
-        </div>
       </main>
     </div>
   );

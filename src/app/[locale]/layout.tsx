@@ -1,9 +1,15 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import '../globals.css';
+
+// Lock the app to a light color scheme so mobile browsers don't force-darken
+// the cream/terracotta palette (emits <meta name="color-scheme" content="light">).
+export const viewport: Viewport = {
+  colorScheme: 'light',
+};
 
 export async function generateMetadata({
   params,
@@ -35,7 +41,7 @@ export default async function LocaleLayout({
   const dir = locale === 'he' ? 'rtl' : 'ltr';
 
   return (
-    <html lang={locale} dir={dir}>
+    <html lang={locale} dir={dir} style={{ colorScheme: 'light' }}>
       <body className="min-h-screen bg-cream font-sans text-ink antialiased">
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>
