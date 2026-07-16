@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useLocale, useTranslations } from 'next-intl';
 import { stampEntryTime, undoEntryTime } from '@/actions/entries';
 import { formatClock, formatHeatName, israelClockToMs } from '@/lib/time';
+import { useWakeLock } from '@/lib/useWakeLock';
 import type { Station } from '@/lib/constants';
 
 type Member = { id: string; name: string; leg: string | null };
@@ -52,6 +53,10 @@ export default function StampStationView({ station }: { station: StampStation })
       clearInterval(clock);
     };
   }, [load]);
+
+  // Keep the timekeeper's device awake while this station is live, so it never
+  // locks between athletes and forces a password unlock mid-stamp.
+  useWakeLock(active);
 
   const serverNow = () => Date.now() + offsetRef.current;
 
