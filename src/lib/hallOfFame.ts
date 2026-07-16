@@ -37,6 +37,13 @@ export function kindLabel(isTeam: boolean, locale: string): string {
   return isTeam ? 'Teams' : 'Individual';
 }
 
+// Display label for an exact submitted category (e.g. "עממי קבוצתי"). The source
+// sheet only has Hebrew names, so both locales show the original label; runs of
+// whitespace are collapsed to tidy a few sheet typos (e.g. double spaces).
+export function categoryLabel(categoryHe: string): string {
+  return categoryHe.replace(/\s+/g, ' ').trim();
+}
+
 // "0:39:31" -> "39:31"; keeps the hour only when there is one.
 export function formatHms(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -68,6 +75,30 @@ export function buckets(results: HofResult[]): Bucket[] {
 export const years = (results: HofResult[]): number[] =>
   [...new Set(results.map((r) => r.year))].sort((a, b) => b - a);
 
+// A single exact race as it was submitted (e.g. "עממי משפחתי" vs "עממי קבוצתי"
+// are two distinct races even though both fall under the Amateur family). The
+// public Hall of Fame lists and champions are grouped by this — not by the
+// coarse family — so every category from the source sheet is shown on its own,
+// with its own places, exactly as submitted.
+export type CategoryBucket = Bucket & { categoryHe: string };
+
+// Distinct categories present in a given year, ordered for display: by family,
+// then individuals before teams, then by the category label.
+export function categoriesForYear(results: HofResult[], year: number): CategoryBucket[] {
+  const seen = new Map<string, CategoryBucket>();
+  for (const r of results) {
+    if (r.year !== year) continue;
+    const key = `${r.categoryHe}|${r.isTeam}`;
+    if (!seen.has(key)) seen.set(key, { categoryHe: r.categoryHe, family: r.family, isTeam: r.isTeam });
+  }
+  return [...seen.values()].sort(
+    (a, b) =>
+      FAMILY_ORDER.indexOf(a.family) - FAMILY_ORDER.indexOf(b.family) ||
+      Number(a.isTeam) - Number(b.isTeam) ||
+      a.categoryHe.localeCompare(b.categoryHe, 'he')
+  );
+}
+
 const fastest = (rows: HofResult[]) =>
   rows.reduce<HofResult | null>((best, r) => (!best || r.seconds < best.seconds ? r : best), null);
 
@@ -82,20 +113,27 @@ export function courseRecords(results: HofResult[]): RecordEntry[] {
     .filter((r): r is RecordEntry => r !== null);
 }
 
-// The winner (fastest) of each bucket in a given year.
-export function championsFor(results: HofResult[], year: number): RecordEntry[] {
-  return buckets(results)
-    .map(({ family, isTeam }) => {
-      const win = fastest(results.filter((r) => r.year === year && r.family === family && r.isTeam === isTeam));
-      return win ? { family, isTeam, name: win.name, year, seconds: win.seconds } : null;
+// The winner (fastest) of each exact category in a given year — one champion per
+// race as submitted, so sibling categories (e.g. עממי משפחתי / עממי קבוצתי) each
+// get their own champion rather than being collapsed into one family winner.
+export type Champion = CategoryBucket & { name: string; year: number; seconds: number };
+
+export function championsFor(results: HofResult[], year: number): Champion[] {
+  return categoriesForYear(results, year)
+    .map(({ categoryHe, family, isTeam }) => {
+      const win = fastest(
+        results.filter((r) => r.year === year && r.categoryHe === categoryHe && r.isTeam === isTeam)
+      );
+      return win ? { categoryHe, family, isTeam, name: win.name, year, seconds: win.seconds } : null;
     })
-    .filter((r): r is RecordEntry => r !== null);
+    .filter((r): r is Champion => r !== null);
 }
 
-// Full ranked list for one year+bucket (fastest first).
-export function resultsFor(results: HofResult[], year: number, family: Family, isTeam: boolean): HofResult[] {
+// Full ranked list for one exact category (fastest first). Keyed by the exact
+// submitted label so each race ranks independently, matching the source sheet.
+export function resultsFor(results: HofResult[], year: number, categoryHe: string, isTeam: boolean): HofResult[] {
   return results
-    .filter((r) => r.year === year && r.family === family && r.isTeam === isTeam)
+    .filter((r) => r.year === year && r.categoryHe === categoryHe && r.isTeam === isTeam)
     .sort((a, b) => a.seconds - b.seconds);
 }
 
