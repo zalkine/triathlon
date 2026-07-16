@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import PublicHeader from '@/components/PublicHeader';
 import MobileNavFallback from '@/components/MobileNavFallback';
+import LandingSplash from '@/components/LandingSplash';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <LandingSplash />
       <PublicHeader />
       <main className="flex flex-1 flex-col items-center px-6 py-6 sm:py-10">
         {/* Save-the-date hero. Sizes and spacing are tightened on mobile so

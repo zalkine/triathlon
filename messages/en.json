@@ -37,7 +37,9 @@
     "date": "19.9",
     "tagline2": "It's finally back",
     "comingSoon": "More details and registration soon",
-    "hofSubtitle": "Records, champions & all-time results"
+    "hofSubtitle": "Records, champions & all-time results",
+    "splashAlt": "Gal-On Triathlon intro animation",
+    "splashSkip": "Skip"
   },
   "hof": {
     "title": "Hall of Fame",
