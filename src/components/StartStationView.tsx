@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { createHeatForCategory, stampHeatStart, undoHeatStart } from '@/actions/heats';
 import { addRaceEntry, moveEntry, removeRaceEntry, renameEntry, renameMember, setEntryScratched } from '@/actions/entries';
 import { formatClock, formatDuration, formatHeatName } from '@/lib/time';
+import { useWakeLock } from '@/lib/useWakeLock';
 
 type Member = { id: string; name: string; leg: string | null };
 type Entry = { id: string; name: string; scratched: boolean; done: boolean; members: Member[] };
@@ -61,6 +62,10 @@ export default function StartStationView() {
       clearInterval(clock);
     };
   }, [load]);
+
+  // Keep the start-line timekeeper's device awake while this station is live, so
+  // it never locks while they wait for the gun and forces a password unlock.
+  useWakeLock(active);
 
   const serverNow = () => Date.now() + offsetRef.current;
   const upcoming = useMemo(() => heats.filter((h) => !h.startTime), [heats]);
