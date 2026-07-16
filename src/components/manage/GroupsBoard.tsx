@@ -47,6 +47,7 @@ export default function GroupsBoard({
   const locale = useLocale();
   const t = useTranslations('manage');
   const tc = useTranslations('competitors');
+  const legLabel: Record<Leg, string> = { SWIM: tc('roleSwim'), BIKE: tc('roleBike'), RUN: tc('roleRun') };
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [picked, setPicked] = useState<Payload | null>(null); // tap-to-move selection
@@ -186,8 +187,8 @@ export default function GroupsBoard({
 
       {groups.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[420px] border-collapse text-start">
-            <thead>
+          <table className="block w-full border-collapse text-start sm:table sm:min-w-[420px]">
+            <thead className="hidden sm:table-header-group">
               <tr className="text-xs text-ink-light">
                 <th className="border border-ink/10 px-2 py-1.5 text-center font-medium">{tc('roleSwim')}</th>
                 <th className="border border-ink/10 px-2 py-1.5 text-center font-medium">{tc('roleBike')}</th>
@@ -195,11 +196,14 @@ export default function GroupsBoard({
                 <th className="w-8 border border-ink/10 px-1 py-1.5"></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="block sm:table-row-group">
               {groups.map((g) => {
                 const openLegs = LEGS.filter((leg) => !g[leg]);
                 return (
-                  <tr key={g.id}>
+                  <tr
+                    key={g.id}
+                    className="mb-3 block rounded-xl border border-ink/10 sm:mb-0 sm:table-row sm:rounded-none sm:border-0"
+                  >
                     {LEGS.map((leg) => {
                       const slot = g[leg];
                       const key = `${g.id}:${leg}`;
@@ -220,10 +224,13 @@ export default function GroupsBoard({
                             endDrag();
                             if (p) place(p, g.id, leg);
                           }}
-                          className={`cursor-pointer border border-ink/10 p-1.5 align-middle transition ${
+                          className={`block cursor-pointer border-b border-ink/10 p-1.5 align-middle transition last:border-b-0 sm:table-cell sm:border sm:last:border-b ${
                             dropCell === key ? 'bg-swim/20' : ''
                           }`}
                         >
+                          <span className="mb-1 block text-xs font-medium text-ink-light sm:hidden">
+                            {legLabel[leg]}
+                          </span>
                           {slot ? (
                             <div
                               draggable
@@ -267,7 +274,7 @@ export default function GroupsBoard({
                         </td>
                       );
                     })}
-                    <td className="border border-ink/10 p-1 text-center align-middle">
+                    <td className="block border-ink/10 p-1 text-center align-middle sm:table-cell sm:border">
                       <button
                         type="button"
                         onClick={() => {

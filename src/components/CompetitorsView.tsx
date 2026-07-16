@@ -81,7 +81,7 @@ export default function CompetitorsView() {
               <ul className="space-y-2">
                 {c.groups.map((g) => (
                   <li key={g.id} className="rounded-xl bg-cream/60 p-3 text-sm">
-                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    <div className="flex flex-col gap-y-1 sm:flex-row sm:flex-wrap sm:gap-x-4">
                       <span>
                         <span className="text-ink-light">{t('roleSwim')}:</span>{' '}
                         {g.swim ?? <span className="italic text-ink-light">{t('openSlot')}</span>}
