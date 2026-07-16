@@ -6,7 +6,8 @@ import { SPECIAL_AWARDS } from '@/data/historical';
 import { loadHofResults } from '@/lib/hofData';
 import {
   annotatedResults,
-  buckets,
+  categoriesForYear,
+  categoryLabel,
   championsFor,
   courseRecords,
   familyLabel,
@@ -26,7 +27,6 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
   const results = await loadHofResults();
   const records = courseRecords(results);
   const allYears = years(results);
-  const bucketList = buckets(results);
   const annotated = annotatedResults(results);
   const medalsPersonal = medalTable(results, false);
   const medalsWithGroups = medalTable(results, true);
@@ -76,10 +76,8 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
               <h3 className="mb-3 text-lg font-bold">{year}</h3>
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {championsFor(results, year).map((c) => (
-                  <li key={`${c.family}-${c.isTeam}`} className="text-sm">
-                    <div className="text-xs text-ink-light">
-                      {familyLabel(c.family, locale)} · {kindLabel(c.isTeam, locale)}
-                    </div>
+                  <li key={`${c.categoryHe}-${c.isTeam}`} className="text-sm">
+                    <div className="text-xs text-ink-light">{categoryLabel(c.categoryHe)}</div>
                     <div className="flex items-baseline justify-between gap-3">
                       <span className="break-words font-semibold">{c.name}</span>
                       <span className="shrink-0 font-mono tabular-nums text-swim-dark">{formatHms(c.seconds)}</span>
@@ -121,13 +119,13 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
             <details key={year} className="rounded-2xl border border-ink/10 bg-surface/70 p-4 shadow-sm">
               <summary className="cursor-pointer text-lg font-bold">{year}</summary>
               <div className="mt-3 space-y-5">
-                {bucketList.map(({ family, isTeam }) => {
-                  const rows = resultsFor(results, year, family, isTeam);
+                {categoriesForYear(results, year).map(({ categoryHe, isTeam }) => {
+                  const rows = resultsFor(results, year, categoryHe, isTeam);
                   if (rows.length === 0) return null;
                   return (
-                    <div key={`${family}-${isTeam}`}>
+                    <div key={`${categoryHe}-${isTeam}`}>
                       <h4 className="mb-1 text-sm font-semibold text-ink-light">
-                        {familyLabel(family, locale)} · {kindLabel(isTeam, locale)}
+                        {categoryLabel(categoryHe)}
                       </h4>
                       <ol className="divide-y divide-ink/5">
                         {rows.map((r, i) => (

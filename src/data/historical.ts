@@ -298,7 +298,7 @@ export const HISTORICAL_RESULTS: HistoricalResult[] = [
   { year: 2023, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 1, name: 'אלדר דגן, אורי עברון, בארי צורף', seconds: 1371, members: ['אלדר דגן', 'אורי עברון', 'בארי צורף'] },
   { year: 2023, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 2, name: 'לירי קריקון, רועי כלפה, רום רחמוט', seconds: 1417, members: ['לירי קריקון', 'רועי כלפה', 'רום רחמוט'] },
   { year: 2023, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 3, name: 'אילון פלג, איתמר כהן ארזוני, סהר רחמוט', seconds: 1658, members: ['אילון פלג', 'איתמר כהן ארזוני', 'סהר רחמוט'] },
-  { year: 2023, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 4, name: 'איתן זלקין, עמית פיניה', seconds: 1743, members: ['איתן זלקין', 'עמית פיניה'] },
+  { year: 2023, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 4, name: 'איתן זלקין, עמית פיניה, איתן זלקין', seconds: 1743, members: ['איתן זלקין', 'עמית פיניה', 'איתן זלקין'] },
   { year: 2023, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 5, name: 'מייק פיינמן, מושיק כהן, רפי נבו', seconds: 1818, members: ['מייק פיינמן', 'מושיק כהן', 'רפי נבו'] },
   { year: 2023, categoryHe: 'עממי קבוצתי', family: 'Amateur', isTeam: true, rank: 6, name: 'גדי פלג, עמוס לבון, ליסה בן-נון', seconds: 1833, members: ['גדי פלג', 'עמוס לבון', 'ליסה בן-נון'] },
   { year: 2023, categoryHe: 'ילדים יחידים א-ג', family: 'KidsAG', isTeam: false, rank: 2, name: 'איילה ריבק', seconds: 630 },
