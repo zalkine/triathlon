@@ -1,18 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useFormStatus, useFormState } from 'react-dom';
 import { useLocale, useTranslations } from 'next-intl';
 import type { RegisterState } from '@/actions/registrants';
 
 type FormAction = (prevState: RegisterState | undefined, formData: FormData) => Promise<RegisterState>;
 type CategoryInfo = { key: string; nameEn: string; nameHe: string };
-type Teammate = { id: string; name: string; legSwim: boolean; legBike: boolean; legRun: boolean };
-type OpenGroup = { id: string; swim: string | null; bike: string | null; run: string | null; openLegs: string[] };
-
-const LATER = 'LATER';
-const NEW = 'NEW';
-const legLabelKey = { SWIM: 'roleSwimLabel', BIKE: 'roleBikeLabel', RUN: 'roleRunLabel' } as const;
 
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
@@ -42,23 +36,12 @@ export default function RegisterForm({ action, categories }: { action: FormActio
   const [legBike, setLegBike] = useState(false);
   const [legRun, setLegRun] = useState(false);
 
-  // group choice + captain flow
+  // Group choice: join the available pool (admin groups you later) or register
+  // an entire group by naming the person doing each leg.
   const [groupChoice, setGroupChoice] = useState<'AVAILABLE' | 'HAS_GROUP'>('AVAILABLE');
-  const [groupMode, setGroupMode] = useState<'CREATE' | 'JOIN'>('CREATE');
-  const [pool, setPool] = useState<Teammate[]>([]);
-  // Each leg holds a "kind" (CAPTAIN | pool id | NEW | LATER | '') plus, when NEW,
-  // the typed teammate name.
-  const [roleSwim, setRoleSwim] = useState('');
-  const [roleBike, setRoleBike] = useState('');
-  const [roleRun, setRoleRun] = useState('');
-  const [nameSwim, setNameSwim] = useState('');
-  const [nameBike, setNameBike] = useState('');
-  const [nameRun, setNameRun] = useState('');
-
-  // "join an open group" flow
-  const [openGroups, setOpenGroups] = useState<OpenGroup[]>([]);
-  const [joinGroupId, setJoinGroupId] = useState('');
-  const [joinLeg, setJoinLeg] = useState('');
+  const [swimName, setSwimName] = useState('');
+  const [bikeName, setBikeName] = useState('');
+  const [runName, setRunName] = useState('');
 
   // Age is only needed for the children's brackets (it splits 6–9 / 9–12).
   const isKids = skillLevel === 'KIDS';
@@ -72,73 +55,9 @@ export default function RegisterForm({ action, categories }: { action: FormActio
     return match ? (locale === 'he' ? match.nameHe : match.nameEn) : '';
   }, [categories, categoryKey, locale]);
 
-  const formingGroup = mode === 'TEAM' && groupChoice === 'HAS_GROUP' && !!categoryKey;
-
-  // Load the available pool for the chosen category when forming a group.
-  useEffect(() => {
-    if (!formingGroup) {
-      setPool([]);
-      return;
-    }
-    let active = true;
-    fetch(`/api/available-teammates?category=${categoryKey}`, { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((d) => {
-        if (active) setPool(d.available ?? []);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [formingGroup, categoryKey]);
-
-  // Load open groups (started by a teammate) that this person could join.
-  useEffect(() => {
-    if (!formingGroup) {
-      setOpenGroups([]);
-      return;
-    }
-    let active = true;
-    fetch(`/api/open-groups?category=${categoryKey}`, { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((d) => {
-        if (active) setOpenGroups(d.groups ?? []);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [formingGroup, categoryKey]);
-
-  // Reset the captain's leg assignments when the category changes: a pool
-  // teammate picked for the old category isn't valid for the new one.
-  useEffect(() => {
-    setRoleSwim('');
-    setRoleBike('');
-    setRoleRun('');
-    setNameSwim('');
-    setNameBike('');
-    setNameRun('');
-  }, [categoryKey]);
-
-  // Clear a stale join selection if the group/leg is no longer offered.
-  useEffect(() => {
-    if (!openGroups.some((g) => g.id === joinGroupId && g.openLegs.includes(joinLeg))) {
-      setJoinGroupId('');
-      setJoinLeg('');
-    }
-    if (openGroups.length === 0) setGroupMode('CREATE');
-  }, [openGroups]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Options for the role dropdowns: me (captain), any registered available
-  // teammate, a teammate I'll name now, or "will be added later".
-  const roleOptions = useMemo(() => {
-    const opts = [{ value: 'CAPTAIN', label: `${t('me')}${name ? ` (${name})` : ''}` }];
-    for (const tm of pool) opts.push({ value: tm.id, label: tm.name });
-    opts.push({ value: NEW, label: t('roleNew') });
-    opts.push({ value: LATER, label: t('roleLater') });
-    return opts;
-  }, [pool, name, t]);
+  // When registering an entire group, the three leg names are the members, so
+  // the single "name" field at the top is hidden.
+  const fullGroup = mode === 'TEAM' && groupChoice === 'HAS_GROUP';
 
   if (state?.success) {
     return (
@@ -160,52 +79,32 @@ export default function RegisterForm({ action, categories }: { action: FormActio
       closed: t('errorClosed'),
       'no-leg': t('errorNoLeg'),
       'roles-incomplete': t('errorRolesIncomplete'),
-      'roles-invalid': t('errorRolesInvalid'),
-      'captain-role': t('errorCaptainRole'),
-      'bad-teammate': t('errorBadTeammate'),
-      'join-leg': t('errorJoinLeg'),
-      'join-taken': t('errorJoinTaken'),
       'name-letters-only': t('errorNameLettersOnly'),
-      'duplicate': t('errorDuplicate'),
-      'leg-conflict': t('errorLegConflict'),
+      duplicate: t('errorDuplicate'),
     })[e] ?? t('errorInvalid');
-
-  const groupSummary = (g: OpenGroup) =>
-    (['SWIM', 'BIKE', 'RUN'] as const)
-      .map((leg) => {
-        const who = leg === 'SWIM' ? g.swim : leg === 'BIKE' ? g.bike : g.run;
-        return `${t(legLabelKey[leg])}: ${who ?? t('openLeg')}`;
-      })
-      .join(' · ');
 
   return (
     <form action={formAction} className="w-full max-w-md space-y-5">
       <input type="hidden" name="categoryKey" value={categoryKey} readOnly />
       <input type="hidden" name="groupChoice" value={mode === 'TEAM' ? groupChoice : ''} readOnly />
-      <input type="hidden" name="groupMode" value={formingGroup ? groupMode : ''} readOnly />
-      <input type="hidden" name="roleSwim" value={roleSwim} readOnly />
-      <input type="hidden" name="roleBike" value={roleBike} readOnly />
-      <input type="hidden" name="roleRun" value={roleRun} readOnly />
-      <input type="hidden" name="roleSwimName" value={nameSwim} readOnly />
-      <input type="hidden" name="roleBikeName" value={nameBike} readOnly />
-      <input type="hidden" name="roleRunName" value={nameRun} readOnly />
-      <input type="hidden" name="joinGroupId" value={joinGroupId} readOnly />
-      <input type="hidden" name="joinLeg" value={joinLeg} readOnly />
 
-      <div>
-        <label className="mb-1 block text-sm font-medium" htmlFor="name">
-          {t('name')}
-        </label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-lg border border-ink/20 px-4 py-2 focus:border-ink focus:outline-none"
-        />
-      </div>
+      {/* The person's own name — for a full group the three leg names stand in. */}
+      {!fullGroup && (
+        <div>
+          <label className="mb-1 block text-sm font-medium" htmlFor="name">
+            {t('name')}
+          </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full rounded-lg border border-ink/20 px-4 py-2 focus:border-ink focus:outline-none"
+          />
+        </div>
+      )}
 
       <div>
         <label className="mb-1 block text-sm font-medium" htmlFor="skillLevel">
@@ -294,92 +193,31 @@ export default function RegisterForm({ action, categories }: { action: FormActio
           )}
 
           {groupChoice === 'HAS_GROUP' && (
-            <div className="space-y-4">
-              {/* Start a new group, or join one a teammate already opened. */}
-              {openGroups.length > 0 && (
-                <div className="space-y-1">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input type="radio" checked={groupMode === 'CREATE'} onChange={() => setGroupMode('CREATE')} />
-                    {t('groupModeCreate')}
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input type="radio" checked={groupMode === 'JOIN'} onChange={() => setGroupMode('JOIN')} />
-                    {t('groupModeJoin')}
-                  </label>
-                </div>
-              )}
-
-              {groupMode === 'JOIN' && openGroups.length > 0 && (
-                <div>
-                  <p className="mb-2 text-sm">{t('joinPrompt')}</p>
-                  <div className="space-y-2">
-                    {openGroups.map((g) => (
-                      <div key={g.id} className="rounded-lg border border-ink/10 p-2">
-                        <p className="mb-1 text-sm text-ink-light">{groupSummary(g)}</p>
-                        <div className="flex flex-wrap gap-3">
-                          {g.openLegs.map((leg) => (
-                            <label key={leg} className="flex items-center gap-1.5 text-sm">
-                              <input
-                                type="radio"
-                                name="joinPick"
-                                checked={joinGroupId === g.id && joinLeg === leg}
-                                onChange={() => {
-                                  setJoinGroupId(g.id);
-                                  setJoinLeg(leg);
-                                }}
-                              />
-                              {t(legLabelKey[leg as keyof typeof legLabelKey])}
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+            <div>
+              <p className="mb-2 text-sm">{t('fullGroupPrompt')}</p>
+              <div className="space-y-2">
+                {(
+                  [
+                    ['roleSwimLabel', 'swimName', swimName, setSwimName],
+                    ['roleBikeLabel', 'bikeName', bikeName, setBikeName],
+                    ['roleRunLabel', 'runName', runName, setRunName],
+                  ] as const
+                ).map(([labelKey, fieldName, val, setter]) => (
+                  <div key={fieldName} className="flex items-center gap-2">
+                    <span className="w-20 text-sm">{t(labelKey)}</span>
+                    <input
+                      type="text"
+                      name={fieldName}
+                      required
+                      value={val}
+                      onChange={(e) => setter(e.target.value)}
+                      placeholder={t('teammateNamePlaceholder')}
+                      className="flex-1 rounded-lg border border-ink/20 px-3 py-1.5 text-sm focus:border-ink focus:outline-none"
+                    />
                   </div>
-                </div>
-              )}
-
-              {groupMode === 'CREATE' && (
-                <div>
-                  <p className="mb-2 text-sm">{t('assignRoles')}</p>
-                  <div className="space-y-2">
-                    {(
-                      [
-                        ['roleSwimLabel', roleSwim, setRoleSwim, nameSwim, setNameSwim],
-                        ['roleBikeLabel', roleBike, setRoleBike, nameBike, setNameBike],
-                        ['roleRunLabel', roleRun, setRoleRun, nameRun, setNameRun],
-                      ] as const
-                    ).map(([labelKey, val, setter, nameVal, nameSetter]) => (
-                      <div key={labelKey} className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="w-20 text-sm">{t(labelKey)}</span>
-                          <select
-                            value={val}
-                            onChange={(e) => setter(e.target.value)}
-                            className="flex-1 rounded-lg border border-ink/20 px-3 py-1.5 text-sm"
-                          >
-                            <option value="">—</option>
-                            {roleOptions.map((o) => (
-                              <option key={o.value} value={o.value}>
-                                {o.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        {val === NEW && (
-                          <input
-                            type="text"
-                            value={nameVal}
-                            onChange={(e) => nameSetter(e.target.value)}
-                            placeholder={t('teammateNamePlaceholder')}
-                            className="ml-[calc(5rem+0.5rem)] w-[calc(100%-5.5rem)] rounded-lg border border-ink/20 px-3 py-1.5 text-sm focus:border-ink focus:outline-none"
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-2 text-xs text-ink-light">{t('createGroupHint')}</p>
-                </div>
-              )}
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-ink-light">{t('fullGroupHint')}</p>
             </div>
           )}
         </div>

@@ -389,7 +389,7 @@
     "errorNoLeg": "Please choose at least one leg for a relay team.",
     "groupChoiceLabel": "Your group",
     "chooseAvailable": "Put me in a group (I'm available)",
-    "chooseHasGroup": "I have a group (I'll pick the members)",
+    "chooseHasGroup": "Register an entire group",
     "groupModeCreate": "Start a new group",
     "groupModeJoin": "Join a group a teammate already started",
     "assignRoles": "Assign the three legs. Take at least one yourself.",
@@ -404,7 +404,7 @@
     "joinPrompt": "Choose a group and the leg you'll do.",
     "noOpenGroups": "No open groups yet — start a new one above.",
     "openLeg": "open",
-    "errorRolesIncomplete": "Please set each leg to a person or to \"will be added later\".",
+    "errorRolesIncomplete": "Please enter a name for the swim, bike, and run legs.",
     "errorRolesInvalid": "The same person can't do all three legs.",
     "errorCaptainRole": "Please take at least one leg yourself.",
     "errorJoinLeg": "Please choose a group and which leg you'll do.",
@@ -412,7 +412,9 @@
     "errorBadTeammate": "One of the teammates is no longer available. Please re-pick.",
     "errorNameLettersOnly": "Name must contain letters only — no numbers allowed.",
     "errorDuplicate": "This name is already registered in this category.",
-    "errorLegConflict": "This competitor is already assigned to this leg in another group."
+    "errorLegConflict": "This competitor is already assigned to this leg in another group.",
+    "fullGroupPrompt": "Enter the name of the person doing each leg. You can put the same name on more than one leg for someone doing two or three legs.",
+    "fullGroupHint": "All three names are required."
   },
   "testdata": {
     "title": "QC / Test Data",

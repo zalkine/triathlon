@@ -17,14 +17,18 @@ export async function registerAction(
   const name = String(formData.get('name') || '').trim();
   const categoryKey = String(formData.get('categoryKey') || '');
 
-  if (!name) return { error: 'invalid' };
-  if (!/^[\p{L}\s\-']+$/u.test(name)) return { error: 'name-letters-only' };
-
   const category = await prisma.category.findUnique({ where: { key: categoryKey } });
   if (!category) return { error: 'invalid' };
 
-  const dupRegistrant = await prisma.registrant.findFirst({ where: { name, categoryId: category.id } });
-  if (dupRegistrant) return { error: 'duplicate' };
+  // Validate the single registrant name (solo entry or "available" pool member).
+  // A full group has no single name — its three leg names are validated below.
+  async function checkName(): Promise<RegisterState | null> {
+    if (!name) return { error: 'invalid' };
+    if (!/^[\p{L}\s\-']+$/u.test(name)) return { error: 'name-letters-only' };
+    const dup = await prisma.registrant.findFirst({ where: { name, categoryId: category!.id } });
+    if (dup) return { error: 'duplicate' };
+    return null;
+  }
 
   // Age is only collected for the children's brackets, where it decides the
   // 6–9 vs 9–12 split. Professional and intermediate registrants have no age
@@ -42,6 +46,8 @@ export async function registerAction(
 
   // Solo competitor: one registrant, done.
   if (category.type === 'SINGLE') {
+    const nameError = await checkName();
+    if (nameError) return nameError;
     await prisma.registrant.create({
       data: { name, age, categoryId: category.id, mode: 'SINGLE' },
     });
@@ -53,6 +59,8 @@ export async function registerAction(
   const groupChoice = String(formData.get('groupChoice') || 'AVAILABLE');
 
   if (groupChoice === 'AVAILABLE') {
+    const nameError = await checkName();
+    if (nameError) return nameError;
     const legSwim = formData.get('legSwim') === 'on';
     const legBike = formData.get('legBike') === 'on';
     const legRun = formData.get('legRun') === 'on';
@@ -74,113 +82,39 @@ export async function registerAction(
     return { success: true };
   }
 
-  // groupChoice === 'HAS_GROUP': either JOIN an open group a teammate already
-  // started, or CREATE a (possibly still-open) group and take a leg in it.
-  const groupMode = String(formData.get('groupMode') || 'CREATE');
-
-  if (groupMode === 'JOIN') {
-    const joinGroupId = String(formData.get('joinGroupId') || '');
-    const joinLeg = String(formData.get('joinLeg') || '');
-    const legField = { SWIM: 'swimRegistrantId', BIKE: 'bikeRegistrantId', RUN: 'runRegistrantId' }[joinLeg];
-    if (!joinGroupId || !legField) return { error: 'join-leg' };
-
-    const group = await prisma.group.findUnique({ where: { id: joinGroupId } });
-    if (!group || group.categoryId !== category.id) return { error: 'invalid' };
-    // The chosen leg must still be open right now.
-    if ((group as Record<string, unknown>)[legField] != null) return { error: 'join-taken' };
-
-    const joiner = await prisma.registrant.create({
-      data: { name, age, categoryId: category.id, mode: 'TEAM', groupPref: 'HAS_GROUP' },
-    });
-    // Fill the leg only if it's still open (guards against two people grabbing
-    // the same leg at once); count===0 means someone beat us to it.
-    const filled = await prisma.group.updateMany({
-      where: { id: group.id, [legField]: null },
-      data: { [legField]: joiner.id },
-    });
-    if (filled.count === 0) {
-      await prisma.registrant.delete({ where: { id: joiner.id } });
-      return { error: 'join-taken' };
-    }
-    revalidatePath('/', 'layout');
-    return { success: true };
+  // groupChoice === 'HAS_GROUP': register an entire relay group by naming the
+  // person doing each leg. The same name may be reused across legs (one person
+  // doing two or three legs); there is no distinctness requirement.
+  const legNames = {
+    SWIM: String(formData.get('swimName') || '').trim(),
+    BIKE: String(formData.get('bikeName') || '').trim(),
+    RUN: String(formData.get('runName') || '').trim(),
+  };
+  // All three legs must be named.
+  if (!legNames.SWIM || !legNames.BIKE || !legNames.RUN) return { error: 'roles-incomplete' };
+  for (const n of Object.values(legNames)) {
+    if (!/^[\p{L}\s\-']+$/u.test(n)) return { error: 'name-letters-only' };
   }
 
-  // groupMode === 'CREATE': the captain assigns all three legs at once. Each leg
-  // is one of:
-  //   "CAPTAIN"     - the captain does this leg themselves
-  //   "LATER"       - an open leg, to be filled when a teammate registers
-  //   "NEW"         - a teammate the captain names now (registered on the spot),
-  //                   with the name in role{Swim,Bike,Run}Name
-  //   "<id>"        - an existing "available" registrant picked from the pool
-  const legInputs = (['SWIM', 'BIKE', 'RUN'] as const).map((leg) => {
-    const key = leg === 'SWIM' ? 'roleSwim' : leg === 'BIKE' ? 'roleBike' : 'roleRun';
-    return { leg, kind: String(formData.get(key) || ''), name: String(formData.get(`${key}Name`) || '').trim() };
-  });
-
-  // Every leg must be explicitly set to a person or to "will be added later".
-  if (legInputs.some((l) => !l.kind)) return { error: 'roles-incomplete' };
-  // A named teammate must actually have a name typed in.
-  if (legInputs.some((l) => l.kind === 'NEW' && !l.name)) return { error: 'roles-incomplete' };
-  // The captain registers themselves, so they must take at least one leg.
-  if (!legInputs.some((l) => l.kind === 'CAPTAIN')) return { error: 'captain-role' };
-  // No single person may hold all three legs (CAPTAIN or the same pool teammate
-  // picked for every leg). Named ("NEW") teammates are always distinct people.
-  const kinds = legInputs.map((l) => l.kind);
-  if (kinds[0] === kinds[1] && kinds[1] === kinds[2] && kinds[0] !== 'NEW') return { error: 'roles-invalid' };
-
-  // Validate any picked-from-pool teammates are real, same category, and available.
-  const poolIds = [...new Set(kinds.filter((k) => !['CAPTAIN', 'LATER', 'NEW'].includes(k)))];
-  const teammates = poolIds.length
-    ? await prisma.registrant.findMany({ where: { id: { in: poolIds } } })
-    : [];
-  if (
-    teammates.length !== poolIds.length ||
-    teammates.some((t) => t.categoryId !== category.id || t.groupPref !== 'AVAILABLE')
-  ) {
-    return { error: 'bad-teammate' };
-  }
-
-  // Rule 1: NEW teammate names must contain only letters.
-  for (const l of legInputs) {
-    if (l.kind === 'NEW' && !/^[\p{L}\s\-']+$/u.test(l.name)) return { error: 'name-letters-only' };
-  }
-  // Rule 3: NEW teammate names cannot already exist in this category.
-  for (const l of legInputs) {
-    if (l.kind === 'NEW') {
-      const dup = await prisma.registrant.findFirst({ where: { name: l.name, categoryId: category.id } });
-      if (dup) return { error: 'duplicate' };
-    }
-  }
-  // Rule 2: a pool teammate cannot already be in a group doing the same leg in this category.
-  const legFieldMap = { SWIM: 'swimRegistrantId', BIKE: 'bikeRegistrantId', RUN: 'runRegistrantId' } as const;
-  for (const l of legInputs) {
-    if (!['CAPTAIN', 'LATER', 'NEW'].includes(l.kind)) {
-      const legField = legFieldMap[l.leg];
-      const conflict = await prisma.group.findFirst({ where: { categoryId: category.id, [legField]: l.kind } });
-      if (conflict) return { error: 'leg-conflict' };
-    }
-  }
-
-  // Create the captain, then any named teammates. Track the rows we make so a
+  // One registrant per distinct name; a name repeated across legs is the same
+  // person and reuses the row it already created. Track the rows we make so a
   // later DB error can't leave stray registrants behind.
-  const captain = await prisma.registrant.create({
-    data: { name, age, categoryId: category.id, mode: 'TEAM', groupPref: 'HAS_GROUP' },
-  });
-  const createdIds = [captain.id];
-
+  const byName = new Map<string, string>();
+  const createdIds: string[] = [];
   try {
-    const resolved: Record<'SWIM' | 'BIKE' | 'RUN', string | null> = { SWIM: null, BIKE: null, RUN: null };
-    for (const l of legInputs) {
-      if (l.kind === 'LATER') resolved[l.leg] = null;
-      else if (l.kind === 'CAPTAIN') resolved[l.leg] = captain.id;
-      else if (l.kind === 'NEW') {
-        const mate = await prisma.registrant.create({
-          data: { name: l.name, age: null, categoryId: category.id, mode: 'TEAM', groupPref: 'HAS_GROUP' },
+    const resolved: Record<'SWIM' | 'BIKE' | 'RUN', string> = { SWIM: '', BIKE: '', RUN: '' };
+    for (const leg of ['SWIM', 'BIKE', 'RUN'] as const) {
+      const memberName = legNames[leg];
+      let id = byName.get(memberName);
+      if (!id) {
+        const member = await prisma.registrant.create({
+          data: { name: memberName, age: null, categoryId: category.id, mode: 'TEAM', groupPref: 'HAS_GROUP' },
         });
-        createdIds.push(mate.id);
-        resolved[l.leg] = mate.id;
-      } else resolved[l.leg] = l.kind; // a validated pool id
+        id = member.id;
+        byName.set(memberName, id);
+        createdIds.push(id);
+      }
+      resolved[leg] = id;
     }
 
     await prisma.group.create({
