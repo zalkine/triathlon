@@ -10,7 +10,9 @@ Results-tracking and timing app for the Gal-On community triathlon. Bilingual (H
 
 ## Categories
 
-Eight fixed categories (defined in `src/lib/constants.ts`): Professional / Intermediate / Children 6–9 / Children 9–12, each as **Singles** (one person does the whole triathlon) or **Groups** (a 3-person relay: one swimmer, one biker, one runner). During registration the category is derived automatically from the participant's age, chosen skill level, and solo/relay choice.
+Eight timed triathlon categories (defined in `src/lib/constants.ts`): Professional / Intermediate / Children 6–9 / Children 9–12, each as **Singles** (one person does the whole triathlon) or **Groups** (a 3-person relay: one swimmer, one biker, one runner). During registration the category is derived automatically from the participant's age, chosen skill level, and solo/relay choice.
+
+Alongside them is the **Toddlers Run** (מרוץ קטנטנים) — a short fun run that only collects sign-ups. It's listed in `REGISTRATION_ONLY_CATEGORY_KEYS` in `src/lib/constants.ts`, which keeps it out of every race-day feature: no age is asked at registration, and it gets no check-in, no lottery, no heats, no schedule slot, no timing station and no ranked results. Its registrants show up on the public competitors list and in the admin's Registration roster (editable and exportable like any other), and nowhere else. To add another registration-only race later, add a category definition and put its key in that list.
 
 ## Deploying to Vercel (recommended)
 
@@ -29,7 +31,7 @@ This app is built to deploy to [Vercel](https://vercel.com) with a hosted Postgr
    | `SEED_ADMIN_PASSWORD` | your chosen initial admin password |
 
    > If you used Vercel's built-in Postgres, it may name the vars `POSTGRES_PRISMA_URL` (pooled) and `POSTGRES_URL_NON_POOLING` (direct). Just set `DATABASE_URL` = the pooled one and `DIRECT_URL` = the non-pooling one.
-4. **Deploy.** On each deploy Vercel runs `prisma migrate deploy && prisma db seed && next build`, which applies the schema and seeds the 8 categories + your admin account (idempotent — re-deploying never wipes data or resets a changed admin password).
+4. **Deploy.** On each deploy Vercel runs `prisma migrate deploy && prisma db seed && next build`, which applies the schema and seeds the categories + your admin account (idempotent — re-deploying never wipes data or resets a changed admin password; a newly added category is simply inserted alongside the existing registrations).
 5. Open your `*.vercel.app` URL. **Log in at `/login` and change the admin password** via Staff Accounts before the event.
 
 ## Running locally
