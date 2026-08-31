@@ -37,11 +37,18 @@ export default function CompetitorsView() {
     return () => clearInterval(interval);
   }, [load]);
 
-  // Count real people (headcount), so the total matches the check-in list — a
-  // relay team of three counts as three, not one.
-  const catTotal = (c: Category) => c.count;
-  const total = categories.reduce((s, c) => s + catTotal(c), 0);
-  const shown = categories.filter((c) => catTotal(c) > 0 || c.singles.length + c.groups.length + c.available.length > 0);
+  // Headcount of real people — a relay team of three counts as three, not one.
+  // Used for the overall "N registered" line, so it matches the check-in list.
+  const peopleCount = (c: Category) => c.count;
+  const total = categories.reduce((s, c) => s + peopleCount(c), 0);
+  const shown = categories.filter(
+    (c) => peopleCount(c) > 0 || c.singles.length + c.groups.length + c.available.length > 0
+  );
+
+  // A relay category is counted in teams, not people — the number beside
+  // "Professional – Groups" is how many groups have formed. The people who
+  // haven't joined one yet are counted on the "available" heading below.
+  const headingCount = (c: Category) => (c.type === 'TEAM' ? c.groups.length : peopleCount(c));
 
   const legsOf = (a: Available) =>
     [a.legSwim && t('legSwim'), a.legBike && t('legBike'), a.legRun && t('legRun')].filter(Boolean).join(' · ');
@@ -59,7 +66,7 @@ export default function CompetitorsView() {
         <div key={c.id} className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
           <h2 className="mb-3 font-semibold">
             {locale === 'he' ? c.nameHe : c.nameEn}{' '}
-            <span className="text-sm font-normal text-ink-light">({catTotal(c)})</span>
+            <span className="text-sm font-normal text-ink-light">({headingCount(c)})</span>
           </h2>
 
           {/* Solo competitors */}
@@ -104,7 +111,9 @@ export default function CompetitorsView() {
           {/* Available pool */}
           {c.available.length > 0 && (
             <div className="mt-3 space-y-2">
-              <h3 className="text-sm font-semibold text-ink-light">{t('availableTitle')}</h3>
+              <h3 className="text-sm font-semibold text-ink-light">
+                {t('availableTitle')} <span className="font-normal">({c.available.length})</span>
+              </h3>
               <ul className="divide-y divide-ink/5">
                 {c.available.map((a, i) => (
                   <li key={i} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
