@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
+import { isRegistrationOnlyCategory } from '@/lib/constants';
 
 // Test competitors are always seeded with these three named entrants so a
 // known set of names is present in every batch.
@@ -11,7 +12,9 @@ const REQUIRED_NAMES = ['מתי מתיתיהו', 'מתניה מתניהו', 'מ�
 const pick = <T>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 const randInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-function ageFor(key: string): number {
+function ageFor(key: string): number | null {
+  // Registration-only categories (the toddlers fun run) never collect an age.
+  if (isRegistrationOnlyCategory(key)) return null;
   if (key.startsWith('KIDS_6_9')) return randInt(6, 8);
   if (key.startsWith('KIDS_9_12')) return randInt(9, 12);
   return randInt(18, 55);

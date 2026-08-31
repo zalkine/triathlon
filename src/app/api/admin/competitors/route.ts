@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { isRegistrationOnlyCategory } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,9 @@ export async function GET() {
             ).length
           : 0;
       const isTeamMode = c.type === 'TEAM';
+      // Registration-only categories (the toddlers fun run) never check in and
+      // have no teams, so they can't be "missing" either.
+      const registrationOnly = isRegistrationOnlyCategory(c.key);
       const noTeam = isTeamMode && teamCount === 0;
       const multiTeam = teamCount > 1;
       return {
@@ -37,6 +41,7 @@ export async function GET() {
         categoryNameHe: c.nameHe,
         mode: c.type,
         checkedIn: r.checkedIn,
+        registrationOnly,
         teamCount,
         noTeam,
         multiTeam,

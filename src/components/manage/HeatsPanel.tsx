@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
 import { formatClock } from '@/lib/time';
+import { REGISTRATION_ONLY_CATEGORY_KEYS, isRegistrationOnlyCategory } from '@/lib/constants';
 import { generateSchedule } from '@/actions/event';
 import ConfirmForm from '@/components/ConfirmForm';
 import UnassignedRegistrants from '@/components/UnassignedRegistrants';
@@ -27,7 +28,15 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
       },
     }),
     prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } }),
-    prisma.registrant.count({ where: { entryId: null, mode: 'SINGLE' } }),
+    // Registration-only categories (the toddlers fun run) are never scheduled,
+    // so their sign-ups aren't "waiting to be placed".
+    prisma.registrant.count({
+      where: {
+        entryId: null,
+        mode: 'SINGLE',
+        category: { key: { notIn: [...REGISTRATION_ONLY_CATEGORY_KEYS] } },
+      },
+    }),
     // Only non-empty unplaced groups count as "to schedule" — a dismantled
     // (all-legs-cleared) group isn't a team and won't be placed.
     prisma.group.count({
@@ -49,7 +58,7 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
   const runGenerate = generateSchedule.bind(null, locale);
   const anyHeats = categories.some((c) => c.heats.length > 0);
 
-  const boardCategories = categories.map((c) => ({
+  const boardCategories = categories.filter((c) => !isRegistrationOnlyCategory(c.key)).map((c) => ({
     id: c.id,
     nameEn: c.nameEn,
     nameHe: c.nameHe,

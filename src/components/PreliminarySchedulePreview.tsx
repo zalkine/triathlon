@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
-import { HEAT_CAPACITY } from '@/lib/constants';
+import { HEAT_CAPACITY, REGISTRATION_ONLY_CATEGORY_KEYS } from '@/lib/constants';
 import { chunk, computeEstimatedStarts } from '@/lib/schedule';
 import { formatClockHM, formatDateTimeInputValue } from '@/lib/time';
 import { setRaceStartTime, setHeatGapMinutes } from '@/actions/event';
@@ -9,7 +9,12 @@ export default async function PreliminarySchedulePreview({ locale }: { locale: s
   const t = await getTranslations('manage');
 
   const [categories, settings] = await Promise.all([
-    prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
+    // Mirrors generateSchedule: registration-only categories (the toddlers fun
+    // run) get no heats, so they're left out of the estimate too.
+    prisma.category.findMany({
+      where: { key: { notIn: [...REGISTRATION_ONLY_CATEGORY_KEYS] } },
+      orderBy: { sortOrder: 'asc' },
+    }),
     prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } }),
   ]);
 

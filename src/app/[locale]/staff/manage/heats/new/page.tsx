@@ -1,11 +1,15 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
+import { REGISTRATION_ONLY_CATEGORY_KEYS } from '@/lib/constants';
 import { createHeat } from '@/actions/heats';
 
 export default async function NewHeatPage() {
   const t = await getTranslations('manage');
   const locale = await getLocale();
-  const categories = await prisma.category.findMany({ orderBy: { sortOrder: 'asc' } });
+  const categories = await prisma.category.findMany({
+    where: { key: { notIn: [...REGISTRATION_ONLY_CATEGORY_KEYS] } },
+    orderBy: { sortOrder: 'asc' },
+  });
   const action = createHeat.bind(null, locale);
 
   return (

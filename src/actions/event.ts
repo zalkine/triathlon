@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
 import { chunk, computeEstimatedStarts } from '@/lib/schedule';
-import { HEAT_CAPACITY, LEGS, type Leg } from '@/lib/constants';
+import { HEAT_CAPACITY, LEGS, isRegistrationOnlyCategory, type Leg } from '@/lib/constants';
 
 const LEG_FIELD: Record<Leg, 'swimRegistrantId' | 'bikeRegistrantId' | 'runRegistrantId'> = {
   SWIM: 'swimRegistrantId',
@@ -223,13 +223,18 @@ async function packSingleCategory(categoryId: string) {
  * started a category's heats are rebuilt compactly on each run (so re-running
  * never fragments heats or duplicates names); once a heat is started or a time
  * is recorded, that category is only topped up with newcomers. Then every heat
- * gets an estimated start time in race order.
+ * gets an estimated start time in race order. Registration-only categories are
+ * skipped entirely.
  */
 export async function generateSchedule(locale: string) {
   await requireRole('ADMIN');
 
   const settings = await prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } });
-  const categories = await prisma.category.findMany({ orderBy: { sortOrder: 'asc' } });
+  // Registration-only categories (the toddlers fun run) are never scheduled:
+  // they have no heats, no start times and no timing.
+  const categories = (await prisma.category.findMany({ orderBy: { sortOrder: 'asc' } })).filter(
+    (c) => !isRegistrationOnlyCategory(c.key)
+  );
   // Use the admin-configured start time if it's in the future; otherwise fall back to now+5 min.
   const raceStartTime =
     settings.raceStartTime && settings.raceStartTime > new Date()

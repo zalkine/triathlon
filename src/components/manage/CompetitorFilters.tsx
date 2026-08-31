@@ -10,6 +10,7 @@ type Competitor = {
   categoryNameHe: string;
   mode: string;
   checkedIn: boolean;
+  registrationOnly: boolean;
   teamCount: number;
   noTeam: boolean;
   multiTeam: boolean;
@@ -52,7 +53,8 @@ export default function CompetitorFilters() {
       case 'checkedIn':
         return c.checkedIn;
       case 'notCheckedIn':
-        return !c.checkedIn;
+        // A registration-only sign-up is never expected at check-in.
+        return !c.registrationOnly && !c.checkedIn;
       case 'noTeam':
         return c.noTeam;
       case 'multiTeam':

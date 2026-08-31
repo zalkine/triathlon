@@ -4,9 +4,11 @@ import { useMemo, useState } from 'react';
 import { useFormStatus, useFormState } from 'react-dom';
 import { useLocale, useTranslations } from 'next-intl';
 import type { RegisterState } from '@/actions/registrants';
+import { TODDLERS_CATEGORY_KEY } from '@/lib/constants';
 
 type FormAction = (prevState: RegisterState | undefined, formData: FormData) => Promise<RegisterState>;
 type CategoryInfo = { key: string; nameEn: string; nameHe: string };
+type SkillLevel = 'PRO' | 'INTER' | 'KIDS' | 'TODDLERS';
 
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
@@ -28,7 +30,7 @@ export default function RegisterForm({ action, categories }: { action: FormActio
 
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
-  const [skillLevel, setSkillLevel] = useState<'PRO' | 'INTER' | 'KIDS'>('PRO');
+  const [skillLevel, setSkillLevel] = useState<SkillLevel>('PRO');
   const [mode, setMode] = useState<'SINGLE' | 'TEAM'>('SINGLE');
 
   // available-pool willing legs
@@ -43,12 +45,16 @@ export default function RegisterForm({ action, categories }: { action: FormActio
   const [bikeName, setBikeName] = useState('');
   const [runName, setRunName] = useState('');
 
+  // The toddlers run is a stand-alone fun run: no age bracket, no relay teams,
+  // and its own category — so it skips the whole triathlon-shaped form below.
+  const isToddlers = skillLevel === 'TODDLERS';
+
   // Age is only needed for the children's brackets (it splits 6–9 / 9–12).
   const isKids = skillLevel === 'KIDS';
   const ageNum = Number(age);
   const validKidsAge = age !== '' && Number.isInteger(ageNum) && ageNum >= 6 && ageNum <= 12;
   const bracket = isKids ? (validKidsAge ? (ageNum < 9 ? 'KIDS_6_9' : 'KIDS_9_12') : null) : skillLevel;
-  const categoryKey = bracket ? `${bracket}_${mode}` : '';
+  const categoryKey = isToddlers ? TODDLERS_CATEGORY_KEY : bracket ? `${bracket}_${mode}` : '';
 
   const categoryName = useMemo(() => {
     const match = categories.find((c) => c.key === categoryKey);
@@ -57,7 +63,7 @@ export default function RegisterForm({ action, categories }: { action: FormActio
 
   // When registering an entire group, the three leg names are the members, so
   // the single "name" field at the top is hidden.
-  const fullGroup = mode === 'TEAM' && groupChoice === 'HAS_GROUP';
+  const fullGroup = !isToddlers && mode === 'TEAM' && groupChoice === 'HAS_GROUP';
 
   if (state?.success) {
     return (
@@ -86,7 +92,7 @@ export default function RegisterForm({ action, categories }: { action: FormActio
   return (
     <form action={formAction} className="w-full max-w-md space-y-5">
       <input type="hidden" name="categoryKey" value={categoryKey} readOnly />
-      <input type="hidden" name="groupChoice" value={mode === 'TEAM' ? groupChoice : ''} readOnly />
+      <input type="hidden" name="groupChoice" value={!isToddlers && mode === 'TEAM' ? groupChoice : ''} readOnly />
 
       {/* The person's own name — for a full group the three leg names stand in. */}
       {!fullGroup && (
@@ -113,12 +119,13 @@ export default function RegisterForm({ action, categories }: { action: FormActio
         <select
           id="skillLevel"
           value={skillLevel}
-          onChange={(e) => setSkillLevel(e.target.value as 'PRO' | 'INTER' | 'KIDS')}
+          onChange={(e) => setSkillLevel(e.target.value as SkillLevel)}
           className="w-full rounded-lg border border-ink/20 px-4 py-2 focus:border-ink focus:outline-none"
         >
           <option value="PRO">{t('professional')}</option>
           <option value="INTER">{t('intermediate')}</option>
           <option value="KIDS">{t('kids')}</option>
+          <option value="TODDLERS">{t('toddlers')}</option>
         </select>
       </div>
 
@@ -142,21 +149,25 @@ export default function RegisterForm({ action, categories }: { action: FormActio
         </div>
       )}
 
-      <div>
-        <span className="mb-1 block text-sm font-medium">{t('modeLabel')}</span>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2">
-            <input type="radio" name="modeDisplay" checked={mode === 'SINGLE'} onChange={() => setMode('SINGLE')} />
-            {t('single')}
-          </label>
-          <label className="flex items-center gap-2">
-            <input type="radio" name="modeDisplay" checked={mode === 'TEAM'} onChange={() => setMode('TEAM')} />
-            {t('team')}
-          </label>
-        </div>
-      </div>
+      {isToddlers && <p className="rounded-xl bg-surface/60 p-3 text-sm text-ink-light">{t('toddlersNote')}</p>}
 
-      {mode === 'TEAM' && (
+      {!isToddlers && (
+        <div>
+          <span className="mb-1 block text-sm font-medium">{t('modeLabel')}</span>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2">
+              <input type="radio" name="modeDisplay" checked={mode === 'SINGLE'} onChange={() => setMode('SINGLE')} />
+              {t('single')}
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="radio" name="modeDisplay" checked={mode === 'TEAM'} onChange={() => setMode('TEAM')} />
+              {t('team')}
+            </label>
+          </div>
+        </div>
+      )}
+
+      {!isToddlers && mode === 'TEAM' && (
         <div className="space-y-4 rounded-xl border border-ink/10 bg-surface/50 p-4">
           <div>
             <span className="mb-2 block text-sm font-medium">{t('groupChoiceLabel')}</span>
