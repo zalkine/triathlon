@@ -146,11 +146,11 @@
     "legSwim": "שחייה",
     "legBike": "רכיבה",
     "legRun": "ריצה",
-    "filterByCategory": "הצגת קטגוריה אחת בלבד",
+    "filterByCategory": "הצגת הקטגוריות שלכם — אפשר לבחור אחת או יותר",
     "allCategories": "הכול",
     "stationSummary": "{waiting} טרם הגיעו · {done} נרשמו",
     "filterHidingHint": "{count, plural, one {מתחרה אחד מקטגוריה אחרת מוסתר על ידי הסינון} two {שני מתחרים מקטגוריות אחרות מוסתרים על ידי הסינון} other {# מתחרים מקטגוריות אחרות מוסתרים על ידי הסינון}} — הקישו \"הכול\" אם אתם אחראים על כל המתחרים.",
-    "noEntriesInCategory": "אף מתחרה מקטגוריה זו עדיין לא במסלול.",
+    "noEntriesInCategory": "אף מתחרה מהקטגוריות שבחרתם עדיין לא במסלול.",
     "finishedAt": "נרשם בשעה {time}"
   },
   "manage": {

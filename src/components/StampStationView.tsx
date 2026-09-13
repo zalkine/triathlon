@@ -33,7 +33,7 @@ export default function StampStationView({ station }: { station: StampStation })
   const [entries, setEntries] = useState<Entry[]>([]);
   const [active, setActive] = useState(true);
   const [query, setQuery] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [manualFor, setManualFor] = useState<string | null>(null);
   const [manualValue, setManualValue] = useState('');
   const [toast, setToast] = useState<{ entryId: string; name: string; time: string } | null>(null);
@@ -42,9 +42,10 @@ export default function StampStationView({ station }: { station: StampStation })
   const offsetRef = useRef(0);
 
   const isFinish = station === 'run';
-  // Each finish-line volunteer works one category, so their choice is remembered
-  // on the device: a reload or an accidental back-navigation mid-race puts them
-  // straight back on their own race rather than the whole field.
+  // Each finish-line volunteer covers one or more categories, so their selection
+  // is remembered on the device: a reload or an accidental back-navigation
+  // mid-race puts them straight back on their own races rather than the whole
+  // field.
   const filterStorageKey = `tg:station:${station}:category`;
 
   const load = useCallback(async () => {
@@ -66,22 +67,25 @@ export default function StampStationView({ station }: { station: StampStation })
     };
   }, [load]);
 
-  // Restore the saved category filter after mount (never during render, so the
-  // server and client markup still match).
+  // Restore the saved selection after mount (never during render, so the server
+  // and client markup still match).
   useEffect(() => {
     if (!isFinish) return;
     try {
       const saved = window.localStorage.getItem(filterStorageKey);
-      if (saved) setCategoryId(saved);
+      if (!saved) return;
+      // Selections used to be a single category id stored as a bare string, so
+      // a phone that still holds one keeps its choice instead of losing it.
+      const parsed: unknown = saved.startsWith('[') ? JSON.parse(saved) : [saved];
+      if (Array.isArray(parsed)) setCategoryIds(parsed.filter((v): v is string => typeof v === 'string'));
     } catch {
-      // Private mode / blocked storage — the filter just starts on "all".
+      // Private mode / blocked storage / unreadable value — start on "all".
     }
   }, [isFinish, filterStorageKey]);
 
-  const pickCategory = (id: string) => {
-    setCategoryId(id);
+  const remember = (ids: string[]) => {
     try {
-      if (id) window.localStorage.setItem(filterStorageKey, id);
+      if (ids.length) window.localStorage.setItem(filterStorageKey, JSON.stringify(ids));
       else window.localStorage.removeItem(filterStorageKey);
     } catch {
       // Not being able to remember the choice doesn't stop them using it now.
@@ -117,27 +121,44 @@ export default function StampStationView({ station }: { station: StampStation })
 
   const catName = (c: { nameEn: string; nameHe: string }) => (locale === 'he' ? c.nameHe : c.nameEn);
 
-  // A filter for a category that has since disappeared from the list would hide
-  // everything with no way back, so fall back to "all" until it reappears.
-  const activeCategory = categories.find((c) => c.id === categoryId);
-  const effectiveCategoryId = activeCategory ? categoryId : '';
+  // Selected categories that have since left the list would hide everything with
+  // no way back, so only the ones still on screen count. An empty selection
+  // means "show everything", which is also what the "all" chip sets.
+  const selectedIds = useMemo(
+    () => categoryIds.filter((id) => categories.some((c) => c.id === id)),
+    [categoryIds, categories]
+  );
+  const isSelected = (id: string) => selectedIds.includes(id);
+
+  // Chips toggle, so one timekeeper can cover two or three races at once.
+  const toggleCategory = (id: string) => {
+    const next = isSelected(id) ? selectedIds.filter((c) => c !== id) : [...selectedIds, id];
+    setCategoryIds(next);
+    remember(next);
+  };
+
+  const showAllCategories = () => {
+    setCategoryIds([]);
+    remember([]);
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return entries.filter((e) => {
-      if (effectiveCategoryId && e.categoryId !== effectiveCategoryId) return false;
+      if (selectedIds.length > 0 && !selectedIds.includes(e.categoryId)) return false;
       if (!q) return true;
       return e.name.toLowerCase().includes(q) || e.members.some((m) => m.name.toLowerCase().includes(q));
     });
-  }, [entries, query, effectiveCategoryId]);
+  }, [entries, query, selectedIds]);
 
   const waitingShown = filtered.filter((e) => !e.stampedAt).length;
   const doneShown = filtered.length - waitingShown;
   // Competitors the category filter is holding back — worth saying out loud, so
   // nobody is left un-stamped because they were filtered off the screen.
-  const hiddenWaiting = effectiveCategoryId
-    ? entries.filter((e) => !e.stampedAt && e.categoryId !== effectiveCategoryId).length
-    : 0;
+  const hiddenWaiting =
+    selectedIds.length > 0
+      ? entries.filter((e) => !e.stampedAt && !selectedIds.includes(e.categoryId)).length
+      : 0;
 
   const afterStamp = (entry: Entry, atMs: number | undefined, displayName: string) => {
     const at = new Date(atMs ?? serverNow());
@@ -233,18 +254,18 @@ export default function StampStationView({ station }: { station: StampStation })
         className="w-full rounded-lg border border-ink/20 px-4 py-3 text-lg focus:border-ink focus:outline-none"
       />
 
-      {/* Finish line only: one volunteer per race, so they narrow the list to
-          their own category and work just that colour. */}
+      {/* Finish line only: a volunteer narrows the list to the races they're
+          covering — tapping more than one chip adds them together. */}
       {isFinish && categories.length > 1 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-ink-light">{t('filterByCategory')}</p>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => pickCategory('')}
-              aria-pressed={effectiveCategoryId === ''}
+              onClick={showAllCategories}
+              aria-pressed={selectedIds.length === 0}
               className={`cat-chip rounded-full px-3 py-1.5 text-sm font-semibold ${
-                effectiveCategoryId === '' ? '' : 'text-ink'
+                selectedIds.length === 0 ? '' : 'text-ink'
               }`}
             >
               {t('allCategories')}
@@ -253,12 +274,13 @@ export default function StampStationView({ station }: { station: StampStation })
               <button
                 key={c.id}
                 type="button"
-                onClick={() => pickCategory(c.id)}
-                aria-pressed={effectiveCategoryId === c.id}
+                onClick={() => toggleCategory(c.id)}
+                aria-pressed={isSelected(c.id)}
                 className={`cat-chip rounded-full px-3 py-1.5 text-sm font-semibold ${categoryColorClass(c.key)} ${
-                  effectiveCategoryId === c.id ? '' : 'text-ink'
+                  isSelected(c.id) ? '' : 'text-ink'
                 }`}
               >
+                {isSelected(c.id) ? '✓ ' : ''}
                 {catName(c)} · {c.waiting}
               </button>
             ))}
@@ -275,7 +297,7 @@ export default function StampStationView({ station }: { station: StampStation })
       )}
 
       {filtered.length === 0 && (
-        <p className="text-ink-light">{effectiveCategoryId ? t('noEntriesInCategory') : t('noEntries')}</p>
+        <p className="text-ink-light">{selectedIds.length > 0 ? t('noEntriesInCategory') : t('noEntries')}</p>
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
