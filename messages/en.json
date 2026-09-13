@@ -145,7 +145,13 @@
     "notStartedYet": "Heat hasn't started yet",
     "legSwim": "Swim",
     "legBike": "Bike",
-    "legRun": "Run"
+    "legRun": "Run",
+    "filterByCategory": "Show only one category",
+    "allCategories": "All",
+    "stationSummary": "{waiting} still to arrive · {done} recorded",
+    "filterHidingHint": "{count, plural, one {# competitor in another category is hidden by this filter} other {# competitors in other categories are hidden by this filter}} — tap \"All\" if you're covering the whole field.",
+    "noEntriesInCategory": "Nobody from this category is on the course yet.",
+    "finishedAt": "Recorded {time}"
   },
   "manage": {
     "dashboard": "Race Management",

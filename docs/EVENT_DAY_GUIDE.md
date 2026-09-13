@@ -79,8 +79,31 @@ Each timekeeper logs in and picks their spot from **עמדות תזמון** (Tim
 | Run / Finish | **ריצה / קו סיום** | Finish line | Tap each competitor as they cross — **this sets the final time** |
 
 At each station: type part of a name in the search box, then tap the person's
-big button to stamp their time **at that moment**. Stamped people drop off the list.
-A short **בטל** (Undo) appears for a few seconds in case of a mis-tap.
+big button to stamp their time **at that moment**. A short **בטל** (Undo) appears
+for a few seconds in case of a mis-tap.
+
+At the **swim** and **bike** stations a competitor drops off the list once
+they're stamped, keeping the working list short.
+
+**The finish line (ריצה / קו סיום) works differently** — it's the station that
+decides the results, so it's built so nothing can be lost:
+
+- **Nobody disappears.** Once you tap **הגיע/ה** (Arrived) the competitor stays
+  exactly where they were on screen and turns grey, with the time you gave them
+  (**נרשם בשעה …**). Nothing below them jumps up, so the next button you reach
+  for is still the one you meant. You can always see who you've already taken.
+- **Each race has its own colour.** Every card is tinted by category — blue for
+  professionals, teal for עממי, coral for ילדים 6-9, violet for ילדים 9-12 —
+  with singles and relay groups in two shades of the same colour.
+- **One volunteer per race.** Under the search box, tap a category chip to show
+  only that race (the number on the chip is how many are still out on the
+  course). The choice is remembered on that phone, so a reload puts the
+  volunteer back on their own race. A red banner warns how many competitors in
+  other categories the filter is hiding — tap **הכול** (All) to see everyone
+  again.
+
+> Running the finish line with two or three volunteers? Give each one a
+> category chip and they'll never be looking at each other's competitors.
 
 > **Started a heat by mistake, or need to run it again?** On the start station,
 > each running heat has **ביטול ההתחלה** (Cancel start). Tap it, confirm, and the
@@ -122,4 +145,6 @@ A short **בטל** (Undo) appears for a few seconds in case of a mis-tap.
   **התחל עכשיו** exactly on "GO!". If the heat has to start over, tap
   **ביטול ההתחלה** (Cancel start) on it and send it off again.
 - **Finish-line timekeeper (most important):** log in → **עמדות תזמון → ריצה / קו
-  סיום** → watch for each arriving competitor, tap their button the moment they cross.
+  סיום** → tap your category chip if you're only covering one race, then watch
+  for each arriving competitor and tap their button the moment they cross. Their
+  card turns grey with the recorded time and stays where it is.

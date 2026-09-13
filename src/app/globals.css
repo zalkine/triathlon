@@ -56,3 +56,54 @@
 html {
   scroll-behavior: smooth;
 }
+
+/*
+ * Finish-line category colours.
+ *
+ * Each category sets a tint (--cat-bg) and a matching accent (--cat-accent);
+ * `.cat-card` paints a competitor's card with them and `.cat-chip` paints the
+ * matching filter chip, so the chip a timekeeper taps is visibly the same
+ * colour as the cards it leaves on screen. Singles and groups of the same race
+ * share a hue at two lightness levels (blue = professional, teal =
+ * intermediate, coral = children 6–9, violet = children 9–12).
+ *
+ * Both values flip for dark mode: the light tints are pale (dark `text-ink` on
+ * top) and the dark ones deep (near-white `text-ink` on top), and the accents
+ * swap with them, so `.cat-chip[aria-pressed='true']` — accent background,
+ * surface-coloured text — stays legible in either theme. A category with no
+ * class falls back to the plain surface card.
+ */
+.cat-card {
+  background-color: var(--cat-bg, rgb(var(--surface)));
+  border-inline-start: 6px solid var(--cat-accent, transparent);
+}
+
+.cat-chip {
+  background-color: var(--cat-bg, transparent);
+  border: 2px solid var(--cat-accent, rgb(var(--ink) / 0.25));
+}
+
+.cat-chip[aria-pressed='true'] {
+  background-color: var(--cat-accent, rgb(var(--ink)));
+  color: rgb(var(--surface));
+}
+
+.cat-pro-single    { --cat-bg: #d3e4f6; --cat-accent: #2f79ad; }
+.cat-pro-team      { --cat-bg: #e8f1fb; --cat-accent: #4f9dd6; }
+.cat-inter-single  { --cat-bg: #cfe7e7; --cat-accent: #1f6d72; }
+.cat-inter-team    { --cat-bg: #e4f2f1; --cat-accent: #2f9aa0; }
+.cat-kids69-single { --cat-bg: #f9ddd6; --cat-accent: #bf4632; }
+.cat-kids69-team   { --cat-bg: #fdeee7; --cat-accent: #ec6a52; }
+.cat-kids912-single{ --cat-bg: #dfd8f0; --cat-accent: #5f4f9c; }
+.cat-kids912-team  { --cat-bg: #eee9f8; --cat-accent: #8878c0; }
+
+/* Dark tints step *up* from the page (#0f1a1f) rather than down, so every card
+   still reads as a card; within a pair the group shade is the brighter one. */
+:root.dark .cat-pro-single    { --cat-bg: #17323f; --cat-accent: #a6cded; }
+:root.dark .cat-pro-team      { --cat-bg: #1f4a63; --cat-accent: #a6cded; }
+:root.dark .cat-inter-single  { --cat-bg: #143537; --cat-accent: #8fccce; }
+:root.dark .cat-inter-team    { --cat-bg: #1b5155; --cat-accent: #8fccce; }
+:root.dark .cat-kids69-single { --cat-bg: #3a231e; --cat-accent: #f4a696; }
+:root.dark .cat-kids69-team   { --cat-bg: #5a352c; --cat-accent: #f4a696; }
+:root.dark .cat-kids912-single{ --cat-bg: #272140; --cat-accent: #b9aee0; }
+:root.dark .cat-kids912-team  { --cat-bg: #3a3168; --cat-accent: #b9aee0; }

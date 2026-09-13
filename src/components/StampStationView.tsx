@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { stampEntryTime, undoEntryTime } from '@/actions/entries';
 import { formatClock, formatHeatName, israelClockToMs } from '@/lib/time';
 import { useWakeLock } from '@/lib/useWakeLock';
-import type { Station } from '@/lib/constants';
+import { categoryColorClass, type Station } from '@/lib/constants';
 
 type Member = { id: string; name: string; leg: string | null };
 type Entry = {
@@ -13,11 +13,18 @@ type Entry = {
   name: string;
   heatName: string;
   heatStartTime: string | null;
+  categoryId: string;
+  categoryKey: string;
   categoryNameEn: string;
   categoryNameHe: string;
+  stampedAt: string | null;
   members: Member[];
 };
 type StampStation = Exclude<Station, 'start'>;
+
+// How long after a stamp the timekeeper can still take it back themselves
+// (matches the window enforced by `undoEntryTime` on the server).
+const UNDO_WINDOW_MS = 15_000;
 
 export default function StampStationView({ station }: { station: StampStation }) {
   const locale = useLocale();
@@ -26,6 +33,7 @@ export default function StampStationView({ station }: { station: StampStation })
   const [entries, setEntries] = useState<Entry[]>([]);
   const [active, setActive] = useState(true);
   const [query, setQuery] = useState('');
+  const [categoryId, setCategoryId] = useState('');
   const [manualFor, setManualFor] = useState<string | null>(null);
   const [manualValue, setManualValue] = useState('');
   const [toast, setToast] = useState<{ entryId: string; name: string; time: string } | null>(null);
@@ -34,6 +42,10 @@ export default function StampStationView({ station }: { station: StampStation })
   const offsetRef = useRef(0);
 
   const isFinish = station === 'run';
+  // Each finish-line volunteer works one category, so their choice is remembered
+  // on the device: a reload or an accidental back-navigation mid-race puts them
+  // straight back on their own race rather than the whole field.
+  const filterStorageKey = `tg:station:${station}:category`;
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/stations/${station}`, { cache: 'no-store' });
@@ -54,25 +66,91 @@ export default function StampStationView({ station }: { station: StampStation })
     };
   }, [load]);
 
+  // Restore the saved category filter after mount (never during render, so the
+  // server and client markup still match).
+  useEffect(() => {
+    if (!isFinish) return;
+    try {
+      const saved = window.localStorage.getItem(filterStorageKey);
+      if (saved) setCategoryId(saved);
+    } catch {
+      // Private mode / blocked storage — the filter just starts on "all".
+    }
+  }, [isFinish, filterStorageKey]);
+
+  const pickCategory = (id: string) => {
+    setCategoryId(id);
+    try {
+      if (id) window.localStorage.setItem(filterStorageKey, id);
+      else window.localStorage.removeItem(filterStorageKey);
+    } catch {
+      // Not being able to remember the choice doesn't stop them using it now.
+    }
+  };
+
   // Keep the timekeeper's device awake while this station is live, so it never
   // locks between athletes and forces a password unlock mid-stamp.
   useWakeLock(active);
 
   const serverNow = () => Date.now() + offsetRef.current;
 
+  // The categories actually on this station's list, in the order they appear
+  // (the API returns the finish list already grouped by category).
+  const categories = useMemo(() => {
+    const seen = new Map<string, { id: string; key: string; nameEn: string; nameHe: string; waiting: number }>();
+    for (const e of entries) {
+      const found = seen.get(e.categoryId);
+      if (found) {
+        if (!e.stampedAt) found.waiting += 1;
+      } else {
+        seen.set(e.categoryId, {
+          id: e.categoryId,
+          key: e.categoryKey,
+          nameEn: e.categoryNameEn,
+          nameHe: e.categoryNameHe,
+          waiting: e.stampedAt ? 0 : 1,
+        });
+      }
+    }
+    return [...seen.values()];
+  }, [entries]);
+
+  const catName = (c: { nameEn: string; nameHe: string }) => (locale === 'he' ? c.nameHe : c.nameEn);
+
+  // A filter for a category that has since disappeared from the list would hide
+  // everything with no way back, so fall back to "all" until it reappears.
+  const activeCategory = categories.find((c) => c.id === categoryId);
+  const effectiveCategoryId = activeCategory ? categoryId : '';
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return entries;
-    return entries.filter(
-      (e) => e.name.toLowerCase().includes(q) || e.members.some((m) => m.name.toLowerCase().includes(q))
-    );
-  }, [entries, query]);
+    return entries.filter((e) => {
+      if (effectiveCategoryId && e.categoryId !== effectiveCategoryId) return false;
+      if (!q) return true;
+      return e.name.toLowerCase().includes(q) || e.members.some((m) => m.name.toLowerCase().includes(q));
+    });
+  }, [entries, query, effectiveCategoryId]);
 
-  const removeAndToast = (entry: Entry, atMs: number | undefined, displayName: string) => {
-    setEntries((prev) => prev.filter((e) => e.id !== entry.id));
+  const waitingShown = filtered.filter((e) => !e.stampedAt).length;
+  const doneShown = filtered.length - waitingShown;
+  // Competitors the category filter is holding back — worth saying out loud, so
+  // nobody is left un-stamped because they were filtered off the screen.
+  const hiddenWaiting = effectiveCategoryId
+    ? entries.filter((e) => !e.stampedAt && e.categoryId !== effectiveCategoryId).length
+    : 0;
+
+  const afterStamp = (entry: Entry, atMs: number | undefined, displayName: string) => {
+    const at = new Date(atMs ?? serverNow());
+    setEntries((prev) =>
+      isFinish
+        ? // Finish line: keep them exactly where they are and just mark them
+          // done, so the list never reshuffles under the timekeeper.
+          prev.map((e) => (e.id === entry.id ? { ...e, stampedAt: at.toISOString() } : e))
+        : prev.filter((e) => e.id !== entry.id)
+    );
     setManualFor(null);
-    setToast({ entryId: entry.id, name: displayName, time: formatClock(new Date(atMs ?? serverNow()), locale) });
-    setTimeout(() => setToast((cur) => (cur?.entryId === entry.id ? null : cur)), 15000);
+    setToast({ entryId: entry.id, name: displayName, time: formatClock(at, locale) });
+    setTimeout(() => setToast((cur) => (cur?.entryId === entry.id ? null : cur)), UNDO_WINDOW_MS);
   };
 
   // On the finish line the person crossing is the runner, so the toast/name a
@@ -86,7 +164,7 @@ export default function StampStationView({ station }: { station: StampStation })
   const handleStamp = (entry: Entry) => {
     startTransition(async () => {
       const result = await stampEntryTime(entry.id, station);
-      if (result.ok) removeAndToast(entry, undefined, primaryName(entry));
+      if (result.ok) afterStamp(entry, undefined, primaryName(entry));
       else load();
     });
   };
@@ -96,20 +174,19 @@ export default function StampStationView({ station }: { station: StampStation })
     if (atMs == null) return;
     startTransition(async () => {
       const result = await stampEntryTime(entry.id, station, atMs);
-      if (result.ok) removeAndToast(entry, atMs, primaryName(entry));
+      if (result.ok) afterStamp(entry, atMs, primaryName(entry));
       else load();
     });
   };
 
-  const handleUndo = () => {
-    if (!toast) return;
-    const entryId = toast.entryId;
+  const handleUndo = (entryId: string) => {
     startTransition(async () => {
       const result = await undoEntryTime(entryId, station);
       if (result.ok) {
-        setToast(null);
-        load();
+        setToast((cur) => (cur?.entryId === entryId ? null : cur));
+        setEntries((prev) => prev.map((e) => (e.id === entryId ? { ...e, stampedAt: null } : e)));
       }
+      load();
     });
   };
 
@@ -138,7 +215,51 @@ export default function StampStationView({ station }: { station: StampStation })
         placeholder={t('search')}
         className="w-full rounded-lg border border-ink/20 px-4 py-3 text-lg focus:border-ink focus:outline-none"
       />
-      {filtered.length === 0 && <p className="text-ink-light">{t('noEntries')}</p>}
+
+      {/* Finish line only: one volunteer per race, so they narrow the list to
+          their own category and work just that colour. */}
+      {isFinish && categories.length > 1 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-ink-light">{t('filterByCategory')}</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => pickCategory('')}
+              aria-pressed={effectiveCategoryId === ''}
+              className={`cat-chip rounded-full px-3 py-1.5 text-sm font-semibold ${
+                effectiveCategoryId === '' ? '' : 'text-ink'
+              }`}
+            >
+              {t('allCategories')}
+            </button>
+            {categories.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => pickCategory(c.id)}
+                aria-pressed={effectiveCategoryId === c.id}
+                className={`cat-chip rounded-full px-3 py-1.5 text-sm font-semibold ${categoryColorClass(c.key)} ${
+                  effectiveCategoryId === c.id ? '' : 'text-ink'
+                }`}
+              >
+                {catName(c)} · {c.waiting}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-ink-light">
+            {t('stationSummary', { waiting: waitingShown, done: doneShown })}
+          </p>
+          {hiddenWaiting > 0 && (
+            <p className="rounded-lg bg-run/15 px-3 py-2 text-sm font-medium text-run-dark">
+              ⚠ {t('filterHidingHint', { count: hiddenWaiting })}
+            </p>
+          )}
+        </div>
+      )}
+
+      {filtered.length === 0 && (
+        <p className="text-ink-light">{effectiveCategoryId ? t('noEntriesInCategory') : t('noEntries')}</p>
+      )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {filtered.map((e) => {
@@ -148,12 +269,22 @@ export default function StampStationView({ station }: { station: StampStation })
           const runner = isFinish ? e.members.find((m) => m.leg === 'RUN') : undefined;
           const otherMembers = isFinish ? e.members.filter((m) => m.leg !== 'RUN') : [];
           const headline = runner ? runner.name : e.name;
+          // Already recorded: the card stays in place and goes grey instead of
+          // vanishing, so the timekeeper can see who they've already taken.
+          const stampedMs = e.stampedAt ? new Date(e.stampedAt).getTime() : null;
+          const done = stampedMs != null;
+          const canUndo = stampedMs != null && serverNow() - stampedMs < UNDO_WINDOW_MS;
           return (
-            <div key={e.id} className="rounded-2xl bg-surface p-4 shadow-sm">
+            <div
+              key={e.id}
+              className={`rounded-2xl p-4 shadow-sm ${isFinish ? `cat-card ${categoryColorClass(e.categoryKey)}` : 'bg-surface'} ${
+                done ? 'opacity-70' : ''
+              }`}
+            >
               <div className="text-xs text-ink-light">
                 {locale === 'he' ? e.categoryNameHe : e.categoryNameEn} · {formatHeatName(e.heatName, locale)}
               </div>
-              <div className="mt-0.5 text-xl font-bold">{headline}</div>
+              <div className={`mt-0.5 text-xl font-bold ${done ? 'text-ink-light' : ''}`}>{headline}</div>
               {isFinish && (runner || otherMembers.length > 0) && (
                 <div className="mt-0.5 space-y-0.5 text-xs text-ink-light">
                   {runner && <div className="font-medium">{e.name}</div>}
@@ -169,7 +300,22 @@ export default function StampStationView({ station }: { station: StampStation })
                 </div>
               )}
 
-              {manualFor === e.id ? (
+              {done ? (
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold tabular-nums text-ink-light">
+                    ✓ {t('finishedAt', { time: formatClock(new Date(stampedMs as number), locale) })}
+                  </span>
+                  {canUndo && (
+                    <button
+                      onClick={() => handleUndo(e.id)}
+                      disabled={isPending}
+                      className="text-sm font-semibold text-ink-light underline disabled:opacity-50"
+                    >
+                      {tc('undo')}
+                    </button>
+                  )}
+                </div>
+              ) : manualFor === e.id ? (
                 <div className="mt-3 space-y-2">
                   <p className="text-xs text-ink-light">{t('manualHint')}</p>
                   <div className="flex items-center gap-2">
@@ -219,7 +365,7 @@ export default function StampStationView({ station }: { station: StampStation })
       {toast && (
         <div className="fixed bottom-6 start-6 z-10 flex items-center gap-3 rounded-xl bg-ink px-4 py-3 text-cream shadow-lg">
           <span>{t('stamped', { name: toast.name, time: toast.time })}</span>
-          <button onClick={handleUndo} className="font-semibold underline">
+          <button onClick={() => handleUndo(toast.entryId)} className="font-semibold underline">
             {tc('undo')}
           </button>
         </div>

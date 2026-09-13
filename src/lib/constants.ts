@@ -51,5 +51,26 @@ export function isRegistrationOnlyCategory(key: string): boolean {
   return REGISTRATION_ONLY_CATEGORY_KEYS.includes(key);
 }
 
+// Race-day colour coding for the finish line: one tint per timed category, so the
+// timekeeper can see at a glance which race the competitor in front of them is
+// running. Singles and groups of the same race share a hue at two lightness
+// levels. The classes themselves live in globals.css (they flip for dark mode);
+// a category with no entry here — the registration-only toddlers run, or any
+// category added later — falls back to the plain card background.
+export const CATEGORY_COLOR_CLASS: Record<string, string> = {
+  PRO_SINGLE: 'cat-pro-single',
+  PRO_TEAM: 'cat-pro-team',
+  INTER_SINGLE: 'cat-inter-single',
+  INTER_TEAM: 'cat-inter-team',
+  KIDS_6_9_SINGLE: 'cat-kids69-single',
+  KIDS_6_9_TEAM: 'cat-kids69-team',
+  KIDS_9_12_SINGLE: 'cat-kids912-single',
+  KIDS_9_12_TEAM: 'cat-kids912-team',
+};
+
+export function categoryColorClass(key: string | null | undefined): string {
+  return (key && CATEGORY_COLOR_CLASS[key]) || '';
+}
+
 // Max competitors/teams scheduled into a single heat (pool holds 8 lanes at once).
 export const HEAT_CAPACITY = 8;
