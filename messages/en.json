@@ -128,7 +128,8 @@
     "legBike": "Bike",
     "legRun": "Run",
     "poolFinishHint": "The start-line timekeeper is at the pool — you can also record swim-exit times here.",
-    "notActiveYet": "The competition hasn't been activated yet. Check back once the admin starts it."
+    "notActiveYet": "The competition hasn't been activated yet. Check back once the admin starts it.",
+    "cancelStartHint": "Started by mistake or need to run this heat again? Cancel the start — the heat returns to the list below, ready to go again."
   },
   "stationStamp": {
     "title": "Stamp Times",
@@ -339,7 +340,8 @@
     "addDuplicateAnyway": "Name already exists — add anyway",
     "assignPick": "Assign competitor…",
     "assignPickHint": "Assign anyone to this leg. Someone already in another group is added here too (e.g. runs in one group and swims in another).",
-    "alreadyGrouped": "already in a group"
+    "alreadyGrouped": "already in a group",
+    "startedAtLabel": "Started {time}"
   },
   "info": {
     "title": "Rules & Trails",
@@ -501,6 +503,9 @@
     "back": "Back",
     "close": "Close",
     "undo": "Undo",
-    "undone": "Undone"
+    "undone": "Undone",
+    "cancelStart": "Cancel start",
+    "confirmCancelStart": "Cancel the start of this heat? Its clock resets and the heat goes back to the upcoming list, ready to be started again. Nobody is removed from the race.",
+    "confirmCancelStartWithTimes": "Cancel the start of this heat? Its clock resets and the heat goes back to the upcoming list, ready to be started again. {count, plural, one {# time already stamped in this heat will be cleared, because it was measured against the start you are cancelling} other {# times already stamped in this heat will be cleared, because they were measured against the start you are cancelling}}. Nobody is removed from the race."
   }
 }

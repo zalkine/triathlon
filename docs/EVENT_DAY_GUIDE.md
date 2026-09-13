@@ -82,6 +82,14 @@ At each station: type part of a name in the search box, then tap the person's
 big button to stamp their time **at that moment**. Stamped people drop off the list.
 A short **בטל** (Undo) appears for a few seconds in case of a mis-tap.
 
+> **Started a heat by mistake, or need to run it again?** On the start station,
+> each running heat has **ביטול ההתחלה** (Cancel start). Tap it, confirm, and the
+> heat drops back into the list below, ready to be sent off again — the clock is
+> reset and any times already recorded *in that heat* are cleared with it (they
+> were measured against the cancelled start). Nobody is removed from the race and
+> no other heat is affected. An admin can do the same from **ניהול תחרות → מקצים**
+> (Manage Race → Heats) or from the heat's own page.
+
 > Only the finish (**ריצה / קו סיום**) stamp is required for a result. The swim
 > and bike stations are optional splits — use them only if you have enough
 > volunteers.
@@ -102,11 +110,16 @@ A short **בטל** (Undo) appears for a few seconds in case of a mis-tap.
   remove the wrong entry from its heat if it was already placed.
 - **A time looks impossible:** check the heat's **start time** first — every result
   is finish minus start, so a wrong start throws off the whole heat.
+- **The whole heat has to be re-run:** **ביטול ההתחלה** (Cancel start) on the
+  heats board or the heat page — it resets that heat's clock so the start line can
+  send it off again. Prefer editing the start time if the heat actually ran and
+  only the recorded moment was wrong.
 
 ## Roles recap for volunteers (hand this out)
 
 - **Check-in volunteer:** log in → **רישום הגעה** → find name → tap to mark arrived.
 - **Start-line timekeeper:** log in → **עמדות תזמון → התחלה** → announce, then
-  **התחל עכשיו** exactly on "GO!".
+  **התחל עכשיו** exactly on "GO!". If the heat has to start over, tap
+  **ביטול ההתחלה** (Cancel start) on it and send it off again.
 - **Finish-line timekeeper (most important):** log in → **עמדות תזמון → ריצה / קו
   סיום** → watch for each arriving competitor, tap their button the moment they cross.

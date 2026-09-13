@@ -5,11 +5,20 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { moveEntry } from '@/actions/entries';
 import { createHeatForCategory, removeHeat } from '@/actions/heats';
-import { formatHeatName } from '@/lib/time';
+import { formatClock, formatHeatName } from '@/lib/time';
+import CancelHeatStartButton from '@/components/CancelHeatStartButton';
 
 export type BoardMember = { id: string; name: string; leg: string | null };
 export type BoardEntry = { id: string; name: string; members: BoardMember[] };
-export type BoardHeat = { id: string; name: string; entries: BoardEntry[] };
+export type BoardHeat = {
+  id: string;
+  name: string;
+  /** ISO start time once the heat has been sent off, else null. */
+  startTime: string | null;
+  /** Leg times recorded in this heat — shown in the cancel-start confirmation. */
+  stampedTimes: number;
+  entries: BoardEntry[];
+};
 export type BoardCategory = { id: string; nameEn: string; nameHe: string; heats: BoardHeat[] };
 
 // Admin heats organiser. Every heat in a category is shown side by side (they
@@ -119,6 +128,19 @@ export default function HeatsBoard({ categories }: { categories: BoardCategory[]
                         </button>
                       </span>
                     </div>
+
+                    {heat.startTime && (
+                      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-run/10 px-2 py-1">
+                        <span className="text-xs font-medium text-run-dark">
+                          ▶ {t('startedAtLabel', { time: formatClock(new Date(heat.startTime), locale) })}
+                        </span>
+                        <CancelHeatStartButton
+                          heatId={heat.id}
+                          stampedTimes={heat.stampedTimes}
+                          className="text-xs font-semibold text-run-dark underline"
+                        />
+                      </div>
+                    )}
 
                     {heat.entries.length === 0 ? (
                       <p className="rounded-lg border border-dashed border-ink/15 px-2 py-4 text-center text-xs text-ink-light">

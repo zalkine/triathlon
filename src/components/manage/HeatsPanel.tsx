@@ -65,6 +65,11 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
     heats: c.heats.map((h) => ({
       id: h.id,
       name: h.name,
+      startTime: h.startTime ? h.startTime.toISOString() : null,
+      stampedTimes: h.entries.reduce(
+        (n, e) => n + (e.swimTime ? 1 : 0) + (e.bikeTime ? 1 : 0) + (e.runTime ? 1 : 0),
+        0
+      ),
       entries: h.entries.map((e) => ({
         id: e.id,
         name: e.name,

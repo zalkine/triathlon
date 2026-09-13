@@ -6,6 +6,7 @@ import { createEntry, deleteEntry } from '@/actions/entries';
 import { deleteHeat } from '@/actions/heats';
 import { formatHeatName } from '@/lib/time';
 import HeatStartTimeEditor from '@/components/HeatStartTimeEditor';
+import CancelHeatStartButton from '@/components/CancelHeatStartButton';
 import TimeFieldEditor from '@/components/TimeFieldEditor';
 import MembersEditor from '@/components/MembersEditor';
 import MoveEntryControl from '@/components/MoveEntryControl';
@@ -43,6 +44,13 @@ export default async function HeatDetailPage({
     nameHe: h.category.nameHe,
   }));
 
+  // Leg times recorded in this heat — named in the "cancel start" confirmation,
+  // since cancelling the start clears them along with the heat's clock.
+  const stampedTimes = heat.entries.reduce(
+    (n, e) => n + (e.swimTime ? 1 : 0) + (e.bikeTime ? 1 : 0) + (e.runTime ? 1 : 0),
+    0
+  );
+
   const createEntryAction = createEntry.bind(null, locale, heatId);
   const deleteHeatAction = deleteHeat.bind(null, locale, heatId);
 
@@ -66,7 +74,12 @@ export default async function HeatDetailPage({
 
       <div>
         <p className="mb-1 text-sm font-medium text-ink-light">{t('startTime')}</p>
-        <HeatStartTimeEditor heatId={heat.id} value={heat.startTime?.toISOString() ?? null} />
+        <div className="flex flex-wrap items-center gap-4">
+          <HeatStartTimeEditor heatId={heat.id} value={heat.startTime?.toISOString() ?? null} />
+          {/* Restart this heat: clears its clock (and the times measured against
+              it) without touching the roster. */}
+          {heat.startTime && <CancelHeatStartButton heatId={heat.id} stampedTimes={stampedTimes} />}
+        </div>
       </div>
 
       <div className="space-y-3">

@@ -91,6 +91,44 @@ export async function undoHeatStart(heatId: string) {
   return { ok: true as const };
 }
 
+// Cancel a start that shouldn't stand: a false start, a heat sent off by
+// mistake, or anything on the course that forces the heat to be run again.
+// Available to the admin and to the start-line timekeeper — unlike the 15-second
+// `undoHeatStart` misclick window, this stays available for as long as the heat
+// is on the clock.
+//
+// Nothing is deleted: the heat, its roster, every competitor and every
+// registration stay exactly as they are. Only this heat's clock is wound back to
+// "not started", so the start-line timekeeper can confirm the roster and send it
+// off again. Leg times already stamped in this heat are cleared with it, because
+// they were measured against the start being cancelled and would otherwise
+// produce nonsense results (the same rule `moveEntry` applies). The count of
+// cleared stamps is returned so the caller can say what it reset.
+export async function cancelHeatStart(heatId: string) {
+  const session = await requireSession();
+  if (session.role !== 'ADMIN' && session.role !== 'TIMEKEEPER') throw new Error('FORBIDDEN');
+
+  const heat = await prisma.heat.findUnique({ where: { id: heatId }, include: { entries: true } });
+  if (!heat) return { error: 'no-heat' as const };
+  if (!heat.startTime) return { error: 'not-started' as const };
+
+  const clearedStamps = heat.entries.reduce(
+    (n, e) => n + (e.swimTime ? 1 : 0) + (e.bikeTime ? 1 : 0) + (e.runTime ? 1 : 0),
+    0
+  );
+
+  await prisma.$transaction([
+    prisma.entry.updateMany({
+      where: { heatId },
+      data: { swimTime: null, bikeTime: null, runTime: null },
+    }),
+    prisma.heat.update({ where: { id: heatId }, data: { startTime: null } }),
+  ]);
+
+  revalidatePath('/', 'layout');
+  return { ok: true as const, clearedStamps };
+}
+
 // Admin-only manual correction of a heat's start time (set, change, or clear).
 export async function setHeatStartTime(locale: string, heatId: string, isoValue: string) {
   await requireRole('ADMIN');

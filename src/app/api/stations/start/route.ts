@@ -48,6 +48,9 @@ export async function GET() {
         name: e.name,
         scratched: e.scratched,
         done: !!e.runTime,
+        // How many leg times are already recorded for this competitor — summed
+        // per heat so "cancel start" can say what it would reset.
+        stamps: (e.swimTime ? 1 : 0) + (e.bikeTime ? 1 : 0) + (e.runTime ? 1 : 0),
         members: e.members.filter((m) => m.leg).map((m) => ({ id: m.id, name: m.name, leg: m.leg })),
       })),
     })),

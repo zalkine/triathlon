@@ -5,10 +5,11 @@ import { useLocale, useTranslations } from 'next-intl';
 import { createHeatForCategory, stampHeatStart, undoHeatStart } from '@/actions/heats';
 import { addRaceEntry, moveEntry, removeRaceEntry, renameEntry, renameMember, setEntryScratched } from '@/actions/entries';
 import { formatClock, formatDuration, formatHeatName } from '@/lib/time';
+import CancelHeatStartButton from '@/components/CancelHeatStartButton';
 import { useWakeLock } from '@/lib/useWakeLock';
 
 type Member = { id: string; name: string; leg: string | null };
-type Entry = { id: string; name: string; scratched: boolean; done: boolean; members: Member[] };
+type Entry = { id: string; name: string; scratched: boolean; done: boolean; stamps: number; members: Member[] };
 type Heat = {
   id: string;
   name: string;
@@ -178,7 +179,10 @@ export default function StartStationView() {
     <div className="space-y-8">
       {running.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold">{t('running')}</h2>
+          <div>
+            <h2 className="text-lg font-semibold">{t('running')}</h2>
+            <p className="text-xs text-ink-light">{t('cancelStartHint')}</p>
+          </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {running.map((h) => {
               const startMs = new Date(h.startTime as string).getTime();
@@ -196,11 +200,23 @@ export default function StartStationView() {
                   <div className="mt-2 font-mono text-5xl font-black tabular-nums tracking-tight">
                     {formatDuration(elapsed)}
                   </div>
-                  {canUndo && (
-                    <button onClick={() => handleUndo(h)} disabled={isPending} className="mt-2 text-sm underline opacity-90">
-                      {tc('undo')}
-                    </button>
-                  )}
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    {canUndo ? (
+                      <button onClick={() => handleUndo(h)} disabled={isPending} className="text-sm underline opacity-90">
+                        {tc('undo')}
+                      </button>
+                    ) : (
+                      <span />
+                    )}
+                    {/* Escape hatch beyond the quick-undo window: wind this heat's
+                        clock back so it can be sent off again. */}
+                    <CancelHeatStartButton
+                      heatId={h.id}
+                      stampedTimes={h.entries.reduce((n, e) => n + (e.stamps ?? 0), 0)}
+                      onCancelled={load}
+                      className="rounded-full border border-cream/40 px-3 py-1 text-xs font-semibold text-cream hover:bg-cream/10"
+                    />
+                  </div>
                 </div>
               );
             })}

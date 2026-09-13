@@ -5,7 +5,7 @@ Results-tracking and timing app for the Gal-On community triathlon. Bilingual (H
 ## Who uses it
 
 - **Public**: register for the race, view the live schedule and auto-ranked results — no login required.
-- **Timekeepers**: log in and work a "station" (Check-In, or Start / Swim / Bike / Run timing), stamping times with one tap as competitors pass. Can't overwrite an already-stamped time (only a short "undo" window for a misclick).
+- **Timekeepers**: log in and work a "station" (Check-In, or Start / Swim / Bike / Run timing), stamping times with one tap as competitors pass. Can't overwrite an already-stamped time (only a short "undo" window for a misclick) — except at the Start station, where a heat that was sent off by mistake or has to be run again can be reset with **Cancel start**.
 - **Admins**: everything a timekeeper can do, plus open/close registration, run the group-formation lottery, generate the schedule, activate the competition, create/edit heats, manually correct any time, and manage staff accounts.
 
 ## Categories
@@ -71,7 +71,8 @@ Open http://localhost:3000 — it redirects to `/he` (Hebrew) by default; switch
 7. Timekeepers each pick their **station** (`/staff/stations`): Start line, pool/swim exit, bike-in, finish line. When a heat is called, the Start-station timekeeper announces "on your marks… GO!" and taps **Start Now**, stamping the heat's start time and beginning the clock.
 8. As competitors reach each downstream station, that timekeeper searches for the name/team and taps to stamp the time. Finish-line stamps are the ones that determine the overall time.
 9. `/results` ranks competitors live within their category (fastest total time first) as soon as both a start and a finish time exist.
-10. If a time was mis-stamped, an admin can correct it directly on the heat's page (`/staff/manage/heats/[heatId]`).
+10. If a heat has to be started over — a false start, a missing competitor, anything that goes wrong on the course — **Cancel start** puts it back on the start line. It's on the running-heat card at the Start station, on the admin's Heats board, and on the heat's own page. It clears only that heat's clock and the leg times measured against it (those would otherwise rank against a start that never happened); the heat, its roster and every registration are left untouched, and the start-line timekeeper simply confirms the roster and taps **Start Now** again.
+11. If a time was mis-stamped, an admin can correct it directly on the heat's page (`/staff/manage/heats/[heatId]`).
 
 Heats can also be created and populated manually from `/staff/manage` if you'd rather not use self-registration + lottery for a given category.
 
