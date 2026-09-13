@@ -153,12 +153,18 @@ export default function StampStationView({ station }: { station: StampStation })
     setTimeout(() => setToast((cur) => (cur?.entryId === entry.id ? null : cur)), UNDO_WINDOW_MS);
   };
 
+  // An open relay leg is stored as a placeholder name, which is no use as the
+  // headline — fall back to the entry's own name for those.
+  const realName = (name: string | undefined) => {
+    const trimmed = (name ?? '').trim();
+    return trimmed && trimmed !== '—' && trimmed !== '?' ? trimmed : null;
+  };
+
   // On the finish line the person crossing is the runner, so the toast/name a
   // timekeeper reads back should be the runner, not the whole team.
   const primaryName = (entry: Entry) => {
     if (!isFinish) return entry.name;
-    const runner = entry.members.find((m) => m.leg === 'RUN');
-    return runner ? runner.name : entry.name;
+    return realName(entry.members.find((m) => m.leg === 'RUN')?.name) ?? entry.name;
   };
 
   const handleStamp = (entry: Entry) => {
@@ -197,6 +203,17 @@ export default function StampStationView({ station }: { station: StampStation })
 
   const legLabel = (leg: string | null) =>
     leg === 'SWIM' ? t('legSwim') : leg === 'BIKE' ? t('legBike') : leg === 'RUN' ? t('legRun') : '';
+
+  // The lottery names a relay entry after its own members ("swimmer / biker /
+  // runner"), so printing that under the runner just repeats all three names and
+  // competes with the one name the finish line cares about. Only show the entry
+  // name when a human has given the team a name of their own.
+  const isAutoTeamName = (entry: Entry) => {
+    const parts = entry.name.split('/').map((p) => p.trim()).filter(Boolean);
+    if (parts.length === 0) return false;
+    const memberNames = new Set(entry.members.map((m) => m.name.trim()));
+    return parts.every((p) => memberNames.has(p));
+  };
 
   if (!active) return <p className="text-ink-light">{t('notStartedYet')}</p>;
 
@@ -266,9 +283,13 @@ export default function StampStationView({ station }: { station: StampStation })
           // Finish line: the runner is the headline; the team name and the other
           // two members are shown small so the timekeeper stamps the runner and
           // isn't confused by an earlier-leg member wandering past the line.
-          const runner = isFinish ? e.members.find((m) => m.leg === 'RUN') : undefined;
+          // The finish line is the runner's line: their name is the headline and the
+          // rest of the relay is supporting detail underneath, in small type.
+          const runnerName = isFinish ? realName(e.members.find((m) => m.leg === 'RUN')?.name) : null;
           const otherMembers = isFinish ? e.members.filter((m) => m.leg !== 'RUN') : [];
-          const headline = runner ? runner.name : e.name;
+          const headline = runnerName ?? e.name;
+          // Shown only when it adds something the headline and the legs don't.
+          const teamName = runnerName && !isAutoTeamName(e) ? e.name : null;
           // Already recorded: the card stays in place and goes grey instead of
           // vanishing, so the timekeeper can see who they've already taken.
           const stampedMs = e.stampedAt ? new Date(e.stampedAt).getTime() : null;
@@ -285,9 +306,9 @@ export default function StampStationView({ station }: { station: StampStation })
                 {locale === 'he' ? e.categoryNameHe : e.categoryNameEn} · {formatHeatName(e.heatName, locale)}
               </div>
               <div className={`mt-0.5 text-xl font-bold ${done ? 'text-ink-light' : ''}`}>{headline}</div>
-              {isFinish && (runner || otherMembers.length > 0) && (
+              {isFinish && (teamName || otherMembers.length > 0) && (
                 <div className="mt-0.5 space-y-0.5 text-xs text-ink-light">
-                  {runner && <div className="font-medium">{e.name}</div>}
+                  {teamName && <div className="font-medium">{teamName}</div>}
                   {otherMembers.length > 0 && (
                     <div className="flex flex-wrap gap-x-3">
                       {otherMembers.map((m) => (

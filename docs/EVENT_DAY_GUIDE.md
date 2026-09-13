@@ -92,6 +92,11 @@ decides the results, so it's built so nothing can be lost:
   exactly where they were on screen and turns grey, with the time you gave them
   (**נרשם בשעה …**). Nothing below them jumps up, so the next button you reach
   for is still the one you meant. You can always see who you've already taken.
+- **A relay shows its runner.** The big name on the card is the person actually
+  running the last leg — the one who will cross the line in front of you. The
+  swimmer and biker are listed underneath in small type, just so you can
+  identify the team. (If the team has been given a name of its own, that appears
+  small too.)
 - **Each race has its own colour.** Every card is tinted by category — blue for
   professionals, teal for עממי, coral for ילדים 6-9, violet for ילדים 9-12 —
   with singles and relay groups in two shades of the same colour.
