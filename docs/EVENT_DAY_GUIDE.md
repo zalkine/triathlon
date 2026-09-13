@@ -92,6 +92,10 @@ decides the results, so it's built so nothing can be lost:
   exactly where they were on screen and turns grey, with the time you gave them
   (**נרשם בשעה …**). Nothing below them jumps up, so the next button you reach
   for is still the one you meant. You can always see who you've already taken.
+- **Names are in A–Z order inside each race.** Hear a name, find it — you don't
+  have to read every card. Competitors from different heats of the same race sit
+  together in one alphabetical run (each card still says which heat), and the
+  order never changes as people finish.
 - **A relay shows its runner.** The big name on the card is the person actually
   running the last leg — the one who will cross the line in front of you. The
   swimmer and biker are listed underneath in small type, just so you can

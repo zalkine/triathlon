@@ -98,6 +98,23 @@ export default function StampStationView({ station }: { station: StampStation })
 
   const serverNow = () => Date.now() + offsetRef.current;
 
+  // An open relay leg is stored as a placeholder name, which is no use as the
+  // headline — fall back to the entry's own name for those.
+  const realName = (name: string | undefined) => {
+    const trimmed = (name ?? '').trim();
+    return trimmed && trimmed !== '—' && trimmed !== '?' ? trimmed : null;
+  };
+
+  // The name a timekeeper actually reads on the card: on the finish line the
+  // person crossing is the runner, not the whole team. The card headline, the
+  // A–Z ordering and the stamp confirmation all go through here, so they can't
+  // drift apart.
+  const primaryName = (entry: Entry) => {
+    if (!isFinish) return entry.name;
+    return realName(entry.members.find((m) => m.leg === 'RUN')?.name) ?? entry.name;
+  };
+
+
   // The categories actually on this station's list, in the order they appear
   // (the API returns the finish list already grouped by category).
   const categories = useMemo(() => {
@@ -142,14 +159,34 @@ export default function StampStationView({ station }: { station: StampStation })
     remember([]);
   };
 
+  // Finish-line order: categories in race order (as the API returns them), and
+  // within a category the competitors A–Z by the name on the card — so a
+  // timekeeper who hears a name can find it without reading every card. The
+  // order depends only on names, never on who has been stamped, so nobody moves
+  // once the race is under way.
+  const ordered = useMemo(() => {
+    if (!isFinish) return entries;
+    const categoryRank = new Map<string, number>();
+    for (const e of entries) {
+      if (!categoryRank.has(e.categoryId)) categoryRank.set(e.categoryId, categoryRank.size);
+    }
+    const collator = new Intl.Collator(locale, { sensitivity: 'base', numeric: true });
+    return [...entries].sort(
+      (a, b) =>
+        (categoryRank.get(a.categoryId) ?? 0) - (categoryRank.get(b.categoryId) ?? 0) ||
+        collator.compare(primaryName(a), primaryName(b))
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries, isFinish, locale]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return entries.filter((e) => {
+    return ordered.filter((e) => {
       if (selectedIds.length > 0 && !selectedIds.includes(e.categoryId)) return false;
       if (!q) return true;
       return e.name.toLowerCase().includes(q) || e.members.some((m) => m.name.toLowerCase().includes(q));
     });
-  }, [entries, query, selectedIds]);
+  }, [ordered, query, selectedIds]);
 
   const waitingShown = filtered.filter((e) => !e.stampedAt).length;
   const doneShown = filtered.length - waitingShown;
@@ -172,20 +209,6 @@ export default function StampStationView({ station }: { station: StampStation })
     setManualFor(null);
     setToast({ entryId: entry.id, name: displayName, time: formatClock(at, locale) });
     setTimeout(() => setToast((cur) => (cur?.entryId === entry.id ? null : cur)), UNDO_WINDOW_MS);
-  };
-
-  // An open relay leg is stored as a placeholder name, which is no use as the
-  // headline — fall back to the entry's own name for those.
-  const realName = (name: string | undefined) => {
-    const trimmed = (name ?? '').trim();
-    return trimmed && trimmed !== '—' && trimmed !== '?' ? trimmed : null;
-  };
-
-  // On the finish line the person crossing is the runner, so the toast/name a
-  // timekeeper reads back should be the runner, not the whole team.
-  const primaryName = (entry: Entry) => {
-    if (!isFinish) return entry.name;
-    return realName(entry.members.find((m) => m.leg === 'RUN')?.name) ?? entry.name;
   };
 
   const handleStamp = (entry: Entry) => {
@@ -307,11 +330,10 @@ export default function StampStationView({ station }: { station: StampStation })
           // isn't confused by an earlier-leg member wandering past the line.
           // The finish line is the runner's line: their name is the headline and the
           // rest of the relay is supporting detail underneath, in small type.
-          const runnerName = isFinish ? realName(e.members.find((m) => m.leg === 'RUN')?.name) : null;
           const otherMembers = isFinish ? e.members.filter((m) => m.leg !== 'RUN') : [];
-          const headline = runnerName ?? e.name;
+          const headline = primaryName(e);
           // Shown only when it adds something the headline and the legs don't.
-          const teamName = runnerName && !isAutoTeamName(e) ? e.name : null;
+          const teamName = isFinish && headline !== e.name && !isAutoTeamName(e) ? e.name : null;
           // Already recorded: the card stays in place and goes grey instead of
           // vanishing, so the timekeeper can see who they've already taken.
           const stampedMs = e.stampedAt ? new Date(e.stampedAt).getTime() : null;
