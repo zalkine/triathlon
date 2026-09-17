@@ -52,6 +52,31 @@ Do this once sign-ups are done (e.g. the day before, or morning of).
 > Prefer to build heats by hand instead? Use **ניהול תחרות → מקצה חדש**
 > (New Heat) and add competitors manually.
 
+### Only three or four people in a category? Start two categories together
+
+A heat of three swimmers leaves five empty lanes and still costs a full turn of
+the pool. **ניהול תחרות → מקצים** (Manage Race → Heats) lets an admin — and only
+an admin — combine heats from **different categories** into one **זינוק משולב**
+(combined start):
+
+1. Tick the heats you want to send off together (they can be in any category).
+2. Tap **אחדו לזינוק אחד** (Combine into one start).
+
+From then on those heats are one wave: the start line sees a single card with
+everyone on it and one **GO**, so they all enter the water on the same gun. The
+app warns you if the combined field is bigger than the pool's 8 lanes, but lets
+you go ahead if you know some of them won't be there.
+
+What does *not* change: each competitor stays in their own category and is
+ranked only against their own category, so a 6–9 child is never ranked against a
+professional. The schedule tells everyone which races share their start, and the
+heats can be split apart again at any time with **פיצול** (Split) — no times or
+rosters are touched.
+
+> Re-running the lottery won't undo a combination you've made. New arrivals are
+> put into a fresh heat rather than squeezed into a combined wave, so a wave you
+> sized never grows behind your back.
+
 ## Phase 3 — Race day
 
 ### 1. Check-in (at the gathering area) — timekeeper or admin
@@ -121,6 +146,10 @@ decides the results, so it's built so nothing can be lost:
 > were measured against the cancelled start). Nobody is removed from the race and
 > no other heat is affected. An admin can do the same from **ניהול תחרות → מקצים**
 > (Manage Race → Heats) or from the heat's own page.
+>
+> A **combined start** goes back to the start line whole: cancelling it resets
+> every heat in that wave, because they all ran against the one gun. The
+> confirmation says how many recorded times that clears.
 
 > Only the finish (**ריצה / קו סיום**) stamp is required for a result. The swim
 > and bike stations are optional splits — use them only if you have enough

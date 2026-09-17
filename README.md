@@ -6,7 +6,7 @@ Results-tracking and timing app for the Gal-On community triathlon. Bilingual (H
 
 - **Public**: register for the race, view the live schedule and auto-ranked results — no login required.
 - **Timekeepers**: log in and work a "station" (Check-In, or Start / Swim / Bike / Run timing), stamping times with one tap as competitors pass. Can't overwrite an already-stamped time (only a short "undo" window for a misclick) — except at the Start station, where a heat that was sent off by mistake or has to be run again can be reset with **Cancel start**.
-- **Admins**: everything a timekeeper can do, plus open/close registration, run the group-formation lottery, generate the schedule, activate the competition, create/edit heats, manually correct any time, and manage staff accounts.
+- **Admins**: everything a timekeeper can do, plus open/close registration, run the group-formation lottery, generate the schedule, activate the competition, create/edit heats, combine heats from different categories into a single start, manually correct any time, and manage staff accounts.
 
 ## Categories
 
@@ -77,6 +77,16 @@ Open http://localhost:3000 — it redirects to `/he` (Hebrew) by default; switch
 11. If a time was mis-stamped, an admin can correct it directly on the heat's page (`/staff/manage/heats/[heatId]`).
 
 Heats can also be created and populated manually from `/staff/manage` if you'd rather not use self-registration + lottery for a given category.
+
+### Combined starts — filling the pool from two categories at once
+
+Categories that only drew three or four competitors would each take a whole turn of the pool with most lanes empty. On the admin's Heats board (`/staff/manage`, Heats tab) an admin — and only an admin — can tick heats from **different categories** and **combine them into one start**. Heats sharing a start carry the same `Heat.waveId`, and from then on:
+
+- the Start station shows them as **one card** with every roster on it and a single **GO**, so all of them take the same gun time (a wave can never end up with two different start times: start, quick-undo, cancel-start and an admin's manual start-time correction all apply to the whole wave);
+- the schedule gives the wave **one slot**, lasting as long as the slowest category in it, and tells competitors which other races share their start;
+- **nothing about results changes** — a heat still belongs to exactly one category, so every competitor is ranked only within their own category. Combining is purely about who is in the water together.
+
+Combining is capped at the pool's lane count (`HEAT_CAPACITY`); going over it takes an explicit confirmation. Heats that have already been sent off can't be combined, a combined start can be split apart again at any time (rosters and times untouched), and re-running the lottery preserves the arrangement — latecomers go into a fresh heat rather than enlarging a wave the admin has already sized.
 
 ## Notes
 

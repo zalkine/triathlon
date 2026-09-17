@@ -5,7 +5,7 @@ import { REGISTRATION_ONLY_CATEGORY_KEYS, isRegistrationOnlyCategory } from '@/l
 import { generateSchedule } from '@/actions/event';
 import ConfirmForm from '@/components/ConfirmForm';
 import UnassignedRegistrants from '@/components/UnassignedRegistrants';
-import HeatsBoard from './HeatsBoard';
+import HeatsBoard, { type BoardWave } from './HeatsBoard';
 import SyncHeatsWithRoster from './SyncHeatsWithRoster';
 import CsvLink from './CsvLink';
 
@@ -58,7 +58,22 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
   const runGenerate = generateSchedule.bind(null, locale);
   const anyHeats = categories.some((c) => c.heats.length > 0);
 
-  const boardCategories = categories.filter((c) => !isRegistrationOnlyCategory(c.key)).map((c) => ({
+  const timedCategories = categories.filter((c) => !isRegistrationOnlyCategory(c.key));
+
+  // Leg times per heat, and — for heats combined into a shared start — per wave,
+  // since cancelling one sends the whole wave back to the start line and the
+  // confirmation has to say how many stamps that clears.
+  const countStamps = (entries: { swimTime: Date | null; bikeTime: Date | null; runTime: Date | null }[]) =>
+    entries.reduce((n, e) => n + (e.swimTime ? 1 : 0) + (e.bikeTime ? 1 : 0) + (e.runTime ? 1 : 0), 0);
+  const waveStamps = new Map<string, number>();
+  for (const c of timedCategories) {
+    for (const h of c.heats) {
+      if (!h.waveId) continue;
+      waveStamps.set(h.waveId, (waveStamps.get(h.waveId) ?? 0) + countStamps(h.entries));
+    }
+  }
+
+  const boardCategories = timedCategories.map((c) => ({
     id: c.id,
     nameEn: c.nameEn,
     nameHe: c.nameHe,
@@ -66,10 +81,8 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
       id: h.id,
       name: h.name,
       startTime: h.startTime ? h.startTime.toISOString() : null,
-      stampedTimes: h.entries.reduce(
-        (n, e) => n + (e.swimTime ? 1 : 0) + (e.bikeTime ? 1 : 0) + (e.runTime ? 1 : 0),
-        0
-      ),
+      stampedTimes: h.waveId ? (waveStamps.get(h.waveId) ?? 0) : countStamps(h.entries),
+      waveId: h.waveId,
       entries: h.entries.map((e) => ({
         id: e.id,
         name: e.name,
@@ -79,6 +92,23 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
       })),
     })),
   }));
+
+  // Combined starts, numbered in the order they appear down the board, so each
+  // heat card can say which wave it belongs to and which heats leave with it.
+  const waves: BoardWave[] = [];
+  const waveIndex = new Map<string, BoardWave>();
+  for (const c of timedCategories) {
+    for (const h of c.heats) {
+      if (!h.waveId) continue;
+      let wave = waveIndex.get(h.waveId);
+      if (!wave) {
+        wave = { id: h.waveId, number: waves.length + 1, heats: [] };
+        waveIndex.set(h.waveId, wave);
+        waves.push(wave);
+      }
+      wave.heats.push({ id: h.id, name: h.name, categoryNameEn: c.nameEn, categoryNameHe: c.nameHe });
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -107,7 +137,7 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
         </div>
       </div>
 
-      <HeatsBoard categories={boardCategories} />
+      <HeatsBoard categories={boardCategories} waves={waves} />
 
       <UnassignedRegistrants locale={locale} />
 

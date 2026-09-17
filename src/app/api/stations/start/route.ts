@@ -19,11 +19,18 @@ export async function GET() {
 
   // Keep a heat on the board while it's actionable: not started yet (roster + GO),
   // or started but not every live competitor has finished (running stopwatch).
-  const board = heats.filter((h) => {
+  const actionable = (h: (typeof heats)[number]) => {
     if (!h.startTime) return true;
     const live = h.entries.filter((e) => !e.scratched);
     return live.length === 0 || live.some((e) => !e.runTime);
-  });
+  };
+
+  // Heats combined into one start stay on the board as long as *any* of them is
+  // actionable, so the station always shows a wave whole. Letting one half drop
+  // off early would leave the timekeeper cancelling a start whose confirmation
+  // counted only the times it could still see.
+  const liveWaves = new Set(heats.filter((h) => h.waveId && actionable(h)).map((h) => h.waveId));
+  const board = heats.filter((h) => actionable(h) || (h.waveId && liveWaves.has(h.waveId)));
 
   return NextResponse.json({
     active: true,
@@ -42,6 +49,9 @@ export async function GET() {
       name: h.name,
       categoryNameEn: h.category.nameEn,
       categoryNameHe: h.category.nameHe,
+      // Heats the admin combined into one start share a waveId; the station
+      // groups them into a single card with one GO, so they take one gun time.
+      waveId: h.waveId,
       startTime: h.startTime ? h.startTime.toISOString() : null,
       entries: h.entries.map((e) => ({
         id: e.id,

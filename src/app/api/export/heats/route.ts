@@ -22,8 +22,17 @@ export async function GET() {
     },
   });
 
+  // Number the combined starts so the sheet shows which heats leave together;
+  // an uncombined heat leaves the column blank.
+  const waveNumbers = new Map<string, number>();
+  for (const cat of categories) {
+    for (const heat of cat.heats) {
+      if (heat.waveId && !waveNumbers.has(heat.waveId)) waveNumbers.set(heat.waveId, waveNumbers.size + 1);
+    }
+  }
+
   const rows: (string | number | null)[][] = [
-    ['Category', 'Heat', 'Estimated start', 'Actual start', 'Entry', 'Swim', 'Bike', 'Run', 'Scratched'],
+    ['Category', 'Heat', 'Combined start', 'Estimated start', 'Actual start', 'Entry', 'Swim', 'Bike', 'Run', 'Scratched'],
   ];
 
   for (const cat of categories) {
@@ -33,6 +42,7 @@ export async function GET() {
         rows.push([
           cat.nameEn,
           heat.name,
+          heat.waveId ? `Combined ${waveNumbers.get(heat.waveId)}` : '',
           heat.estimatedStart ? formatClock(heat.estimatedStart, 'en') : '',
           heat.startTime ? formatClock(heat.startTime, 'en') : '',
           entry.name,

@@ -44,12 +44,25 @@ export default async function HeatDetailPage({
     nameHe: h.category.nameHe,
   }));
 
+  // Heats this one was combined with: they are sent off by a single gun, so the
+  // start-time editor and "cancel start" below act on all of them together. The
+  // combination itself is made and undone on the Heats board.
+  const waveHeats = heat.waveId
+    ? await prisma.heat.findMany({
+        where: { waveId: heat.waveId, id: { not: heatId } },
+        include: { category: true, entries: true },
+        orderBy: [{ category: { sortOrder: 'asc' } }, { createdAt: 'asc' }],
+      })
+    : [];
+
   // Leg times recorded in this heat — named in the "cancel start" confirmation,
-  // since cancelling the start clears them along with the heat's clock.
-  const stampedTimes = heat.entries.reduce(
-    (n, e) => n + (e.swimTime ? 1 : 0) + (e.bikeTime ? 1 : 0) + (e.runTime ? 1 : 0),
-    0
-  );
+  // since cancelling the start clears them along with the heat's clock. A
+  // combined start goes back to the start line whole, so the times in the heats
+  // it leaves with are counted too.
+  const countStamps = (entries: { swimTime: Date | null; bikeTime: Date | null; runTime: Date | null }[]) =>
+    entries.reduce((n, e) => n + (e.swimTime ? 1 : 0) + (e.bikeTime ? 1 : 0) + (e.runTime ? 1 : 0), 0);
+  const stampedTimes =
+    countStamps(heat.entries) + waveHeats.reduce((n, h) => n + countStamps(h.entries), 0);
 
   const createEntryAction = createEntry.bind(null, locale, heatId);
   const deleteHeatAction = deleteHeat.bind(null, locale, heatId);
@@ -71,6 +84,15 @@ export default async function HeatDetailPage({
           </button>
         </ConfirmForm>
       </div>
+
+      {waveHeats.length > 0 && (
+        <p className="rounded-2xl bg-swim/15 px-4 py-3 text-sm font-medium text-swim-dark">
+          🔗 {t('combinedStartNotice')}:{' '}
+          {waveHeats
+            .map((h) => `${locale === 'he' ? h.category.nameHe : h.category.nameEn} · ${formatHeatName(h.name, locale)}`)
+            .join(' · ')}
+        </p>
+      )}
 
       <div>
         <p className="mb-1 text-sm font-medium text-ink-light">{t('startTime')}</p>

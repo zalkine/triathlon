@@ -41,6 +41,14 @@ model Category {
   groups            Group[]
 }
 
+// A heat always belongs to exactly one category, so results are always ranked
+// within a category. `waveId` is how two or more heats — typically from
+// *different* categories with only a handful of competitors each — are combined
+// into a single start: every heat sharing a waveId is presented as one wave at
+// the start station, sent off by one GO, and given one estimated start time on
+// the schedule. Only an admin can combine or split a wave. It is deliberately a
+// plain opaque id rather than a table: wave membership carries no data of its
+// own, and clearing the field is all it takes to split a wave apart.
 model Heat {
   id             String    @id @default(cuid())
   categoryId     String
@@ -48,10 +56,12 @@ model Heat {
   name           String
   startTime      DateTime?
   estimatedStart DateTime?
+  waveId         String?
   createdAt      DateTime  @default(now())
   entries        Entry[]
 
   @@index([categoryId])
+  @@index([waveId])
 }
 
 model Entry {

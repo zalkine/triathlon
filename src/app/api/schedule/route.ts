@@ -24,6 +24,23 @@ export async function GET(request: Request) {
     },
   });
 
+  // A heat combined with others starts alongside them, so the schedule says
+  // which races share that dip — a competitor reading their own category still
+  // sees their own heat and time, plus who is in the water with them.
+  const combined = await prisma.heat.findMany({
+    where: { waveId: { not: null } },
+    select: { id: true, name: true, waveId: true, category: { select: { nameEn: true, nameHe: true } } },
+  });
+  const partners = new Map<string, { nameEn: string; nameHe: string }[]>();
+  for (const heat of combined) {
+    for (const other of combined) {
+      if (other.waveId !== heat.waveId || other.id === heat.id) continue;
+      const list = partners.get(heat.id) ?? [];
+      list.push({ nameEn: other.category.nameEn, nameHe: other.category.nameHe });
+      partners.set(heat.id, list);
+    }
+  }
+
   return NextResponse.json({
     published: true,
     categories: categories.map((c) => ({
@@ -36,6 +53,7 @@ export async function GET(request: Request) {
         entryCount: h._count.entries,
         estimatedStart: h.estimatedStart?.toISOString() ?? null,
         startTime: h.startTime?.toISOString() ?? null,
+        startsWith: partners.get(h.id) ?? [],
       })),
     })),
   });

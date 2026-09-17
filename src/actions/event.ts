@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
-import { chunk, computeEstimatedStarts } from '@/lib/schedule';
+import { chunk, computeSlotStarts } from '@/lib/schedule';
 import { HEAT_CAPACITY, LEGS, isRegistrationOnlyCategory, type Leg } from '@/lib/constants';
 
 const LEG_FIELD: Record<Leg, 'swimRegistrantId' | 'bikeRegistrantId' | 'runRegistrantId'> = {
@@ -124,11 +124,31 @@ async function createGroupEntry(heatId: string, group: GroupRow, nameOf: Map<str
   await prisma.group.update({ where: { id: group.id }, data: { entryId: entry.id } });
 }
 
-// A category is "locked" once timing has begun — a heat has been started or any
-// leg time recorded. We never rebuild a locked category (that would lose times);
-// we only top up its heats with newcomers.
-function isLocked(heats: { startTime: Date | null; entries: { swimTime: Date | null; bikeTime: Date | null; runTime: Date | null }[] }[]) {
-  return heats.some((h) => h.startTime || h.entries.some((e) => e.swimTime || e.bikeTime || e.runTime));
+// A category is "pinned" once its heats must not be thrown away and rebuilt:
+//   - timing has begun (a heat was started or a leg time recorded) — rebuilding
+//     would lose the times;
+//   - or the admin combined one of its heats into a shared start — rebuilding
+//     would silently undo that arrangement.
+// A pinned category is only topped up with newcomers, never repacked.
+function isPinned(
+  heats: {
+    startTime: Date | null;
+    waveId: string | null;
+    entries: { swimTime: Date | null; bikeTime: Date | null; runTime: Date | null }[];
+  }[]
+) {
+  return heats.some(
+    (h) => h.startTime || h.waveId || h.entries.some((e) => e.swimTime || e.bikeTime || e.runTime)
+  );
+}
+
+// Heats a late arrival may be dropped into. A heat combined into a shared start
+// is skipped: the admin sized that wave against the other categories sharing the
+// pool with it, and this category can't see those lanes from here — so a
+// newcomer goes into a fresh heat at the end of the category rather than
+// quietly pushing a combined wave past the pool's capacity.
+function topUpTargets<T extends { waveId: string | null }>(heats: T[]): T[] {
+  return heats.filter((h) => !h.waveId);
 }
 
 // Pack a TEAM category's groups into as few heats as possible (HEAT_CAPACITY per
@@ -147,7 +167,7 @@ async function packTeamCategory(categoryId: string) {
   // they'd only make an all-"—" junk entry. They stay as an editable blank row.
   const activeGroups = groups.filter((g) => g.swimRegistrantId || g.bikeRegistrantId || g.runRegistrantId);
 
-  if (!isLocked(heats)) {
+  if (!isPinned(heats)) {
     if (heats.length > 0) await prisma.heat.deleteMany({ where: { categoryId } });
     await prisma.group.updateMany({ where: { categoryId }, data: { entryId: null } });
     const chunks = chunk(activeGroups, HEAT_CAPACITY);
@@ -161,7 +181,7 @@ async function packTeamCategory(categoryId: string) {
   const unscheduled = activeGroups.filter((g) => !g.entryId);
   if (unscheduled.length === 0) return;
   let idx = 0;
-  for (const h of heats) {
+  for (const h of topUpTargets(heats)) {
     let free = HEAT_CAPACITY - h.entries.length;
     while (free > 0 && idx < unscheduled.length) {
       await createGroupEntry(h.id, unscheduled[idx++], nameOf);
@@ -187,7 +207,7 @@ async function packSingleCategory(categoryId: string) {
     await prisma.registrant.update({ where: { id: r.id }, data: { entryId: entry.id } });
   };
 
-  if (!isLocked(heats)) {
+  if (!isPinned(heats)) {
     if (heats.length > 0) await prisma.heat.deleteMany({ where: { categoryId } });
     await prisma.registrant.updateMany({ where: { categoryId }, data: { entryId: null } });
     const chunks = chunk(registrants, HEAT_CAPACITY);
@@ -201,7 +221,7 @@ async function packSingleCategory(categoryId: string) {
   const pending = registrants.filter((r) => !r.entryId);
   if (pending.length === 0) return;
   let idx = 0;
-  for (const h of heats) {
+  for (const h of topUpTargets(heats)) {
     let free = HEAT_CAPACITY - h.entries.length;
     while (free > 0 && idx < pending.length) {
       await addSolo(h.id, pending[idx++]);
@@ -222,9 +242,11 @@ async function packSingleCategory(categoryId: string) {
  * as possible (up to HEAT_CAPACITY each), named Heat 1..N. Before any timing has
  * started a category's heats are rebuilt compactly on each run (so re-running
  * never fragments heats or duplicates names); once a heat is started or a time
- * is recorded, that category is only topped up with newcomers. Then every heat
- * gets an estimated start time in race order. Registration-only categories are
- * skipped entirely.
+ * is recorded — or the admin combined one of its heats into a shared start —
+ * that category is only topped up with newcomers. Then every heat gets an
+ * estimated start time in race order, heats combined into one start counting as
+ * a single slot since they use the pool once between them. Registration-only
+ * categories are skipped entirely.
  */
 export async function generateSchedule(locale: string) {
   await requireRole('ADMIN');
@@ -249,25 +271,48 @@ export async function generateSchedule(locale: string) {
     }
   }
 
-  const allHeatsByCategory = await Promise.all(
-    categories.map((category) =>
-      prisma.heat.findMany({ where: { categoryId: category.id }, orderBy: { createdAt: 'asc' } })
-    )
-  );
+  // Lay the heats out in race order as pool slots. A heat normally gets a slot of
+  // its own; heats the admin combined into one start (same waveId) share a single
+  // slot, because they go into the water together — so the wave is scheduled once
+  // and takes as long as the slowest category in it. A wave runs at the point in
+  // the running order of its earliest category, which for an uncombined field
+  // reproduces exactly the old order: every category's heats back to back, in
+  // category order.
+  const orderOfCategory = new Map(categories.map((c, i) => [c.id, i]));
+  const heats = await prisma.heat.findMany({
+    where: { categoryId: { in: categories.map((c) => c.id) } },
+    orderBy: { createdAt: 'asc' },
+  });
 
-  const blocks = categories.map((category, i) => ({
-    categoryId: category.id,
-    estDurationMinutes: category.estDurationMinutes,
-    heatCount: allHeatsByCategory[i].length,
-  }));
-  const startsByBlock = computeEstimatedStarts(blocks, raceStartTime, settings.heatGapMinutes);
-
-  for (let i = 0; i < categories.length; i++) {
-    const heats = allHeatsByCategory[i];
-    const starts = startsByBlock[i];
-    for (let h = 0; h < heats.length; h++) {
-      await prisma.heat.update({ where: { id: heats[h].id }, data: { estimatedStart: starts[h] } });
+  type Slot = { heatIds: string[]; estDurationMinutes: number; categoryOrder: number; sequence: number };
+  const slotByKey = new Map<string, Slot>();
+  heats.forEach((heat, sequence) => {
+    const category = categories[orderOfCategory.get(heat.categoryId) as number];
+    const slot = slotByKey.get(heat.waveId ?? heat.id);
+    if (slot) {
+      slot.heatIds.push(heat.id);
+      slot.estDurationMinutes = Math.max(slot.estDurationMinutes, category.estDurationMinutes);
+      slot.categoryOrder = Math.min(slot.categoryOrder, orderOfCategory.get(heat.categoryId) as number);
+    } else {
+      slotByKey.set(heat.waveId ?? heat.id, {
+        heatIds: [heat.id],
+        estDurationMinutes: category.estDurationMinutes,
+        categoryOrder: orderOfCategory.get(heat.categoryId) as number,
+        sequence,
+      });
     }
+  });
+
+  const slots = [...slotByKey.values()].sort(
+    (a, b) => a.categoryOrder - b.categoryOrder || a.sequence - b.sequence
+  );
+  const starts = computeSlotStarts(slots, raceStartTime, settings.heatGapMinutes);
+
+  for (let i = 0; i < slots.length; i++) {
+    await prisma.heat.updateMany({
+      where: { id: { in: slots[i].heatIds } },
+      data: { estimatedStart: starts[i] },
+    });
   }
 
   await prisma.eventSettings.update({

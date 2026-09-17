@@ -129,7 +129,9 @@
     "legRun": "Run",
     "poolFinishHint": "The start-line timekeeper is at the pool — you can also record swim-exit times here.",
     "notActiveYet": "The competition hasn't been activated yet. Check back once the admin starts it.",
-    "cancelStartHint": "Started by mistake or need to run this heat again? Cancel the start — the heat returns to the list below, ready to go again."
+    "cancelStartHint": "Started by mistake or need to run this heat again? Cancel the start — the heat returns to the list below, ready to go again.",
+    "combinedStartHint": "{count, plural, one {# race} other {# races}} start together — one GO sends off all {competitors} competitors below.",
+    "addPlaceholderTo": "Add a competitor to {heat}…"
   },
   "stationStamp": {
     "title": "Stamp Times",
@@ -347,7 +349,22 @@
     "assignPick": "Assign competitor…",
     "assignPickHint": "Assign anyone to this leg. Someone already in another group is added here too (e.g. runs in one group and swims in another).",
     "alreadyGrouped": "already in a group",
-    "startedAtLabel": "Started {time}"
+    "startedAtLabel": "Started {time}",
+    "combinedStartsTitle": "Combined starts",
+    "combinedStartsHint": "Categories with only a few competitors can share a start so the pool goes in full. Tick heats from different categories and combine them: they keep their own rosters and each competitor is still ranked only inside their own category — the start line just sends them off together with one GO.",
+    "selectForCombinedStart": "Pick this heat for a combined start",
+    "heatsSelected": "{count, plural, =0 {No heats picked} one {# heat picked} other {# heats picked}}",
+    "combineSelected": "Combine into one start",
+    "clearSelection": "Clear",
+    "combinedStartNumber": "Combined start {number}",
+    "startsWith": "Goes off with",
+    "splitCombinedStart": "Split",
+    "leaveCombinedStart": "Take out",
+    "confirmSplitWave": "Split this combined start so each heat goes off on its own again? Nobody leaves the race and no times are touched.",
+    "combineOverCapacity": "Combined, these heats put {total} competitors in the pool — more than the {capacity} lanes. Combine anyway?",
+    "combineStartedError": "A heat that has already been sent off can't be combined. Cancel its start first.",
+    "combineFailed": "Those heats could not be combined.",
+    "combinedStartNotice": "Combined start — this heat goes off, and is cancelled, together with"
   },
   "info": {
     "title": "Rules & Trails",
@@ -467,7 +484,8 @@
     "notGenerated": "The schedule hasn't been published yet.",
     "estimatedStart": "Estimated Start",
     "heat": "Heat",
-    "competitors": "Competitors"
+    "competitors": "Competitors",
+    "startsTogetherWith": "Starts together with"
   },
   "competitors": {
     "title": "Registered Competitors",
