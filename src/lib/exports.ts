@@ -14,15 +14,32 @@ export type ExportRows = (string | number | null)[][];
 const splitOf = (from: Date | null, to: Date | null): string =>
   from && to ? formatDuration(to.getTime() - from.getTime()) : '';
 
-/** Everyone who signed up, with the bracket they registered in and the field they race in. */
+/**
+ * Everyone who signed up, with the bracket they registered in, the field they
+ * race in, and the heat they have been put in. The heat column is what makes
+ * this printable once an admin has organised the running order by hand: sort or
+ * filter on it and anyone still unplaced stands out as "not placed".
+ */
 export async function competitorRows(): Promise<ExportRows> {
-  const [categories, fields] = await Promise.all([
+  const [categories, fields, heats] = await Promise.all([
     prisma.category.findMany({
       orderBy: { sortOrder: 'asc' },
       include: { registrants: { orderBy: { createdAt: 'asc' } } },
     }),
     racingCategories(),
+    prisma.heat.findMany({ include: { entries: { include: { members: true } } } }),
   ]);
+
+  // Which heat each registrant ends up in. A solo competitor points at their own
+  // entry; a relay member is found through the entry's leg members, so team
+  // members get their team's heat rather than a blank.
+  const heatOfRegistrant = new Map<string, string>();
+  for (const heat of heats) {
+    for (const entry of heat.entries) {
+      for (const m of entry.members) if (m.registrantId) heatOfRegistrant.set(m.registrantId, heat.name);
+    }
+  }
+  const heatOfEntry = new Map(heats.flatMap((h) => h.entries.map((e) => [e.id, h.name] as const)));
 
   // The roster keeps the bracket each person actually registered in — the admin
   // needs it to manage age groups — and names the field they race in beside it,
@@ -31,16 +48,18 @@ export async function competitorRows(): Promise<ExportRows> {
   for (const f of fields) for (const id of f.memberIds) fieldName.set(id, f.nameEn);
 
   const rows: ExportRows = [
-    ['Category', 'Races as', 'Name', 'Age', 'Type', 'Group preference', 'Swim', 'Bike', 'Run', 'Checked in', 'Registered at'],
+    ['Category', 'Races as', 'Name', 'Age', 'Type', 'Heat', 'Group preference', 'Swim', 'Bike', 'Run', 'Checked in', 'Registered at'],
   ];
   for (const cat of categories) {
     for (const r of cat.registrants) {
+      const heat = heatOfRegistrant.get(r.id) ?? (r.entryId ? heatOfEntry.get(r.entryId) : undefined);
       rows.push([
         cat.nameEn,
         fieldName.get(cat.id) ?? cat.nameEn,
         r.name,
         r.age ?? '',
         r.mode,
+        heat ?? 'not placed',
         r.groupPref ?? '',
         r.legSwim ? 'Y' : '',
         r.legBike ? 'Y' : '',

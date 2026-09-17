@@ -96,7 +96,9 @@ The absorbed bracket points at the one that keeps the racing via `Category.merge
 
 Every screen that shows the *race* follows the merge: the public competitors list, the schedule, the check-in station, the start line, results, the admin's scores review and the heats/results CSVs. The two screens that deliberately keep the real brackets are **registration** (the bracket is derived from age, so it has to stay) and the admin's **Registration roster** (where an admin manages who is in which bracket); the competitors CSV shows both, as `Category` and `Races as`.
 
-**Registration is untouched** — a 7-year-old still registers under 6-9 — which is what makes a merge reversible by clearing one field. Splitting back restores two independent rankings with nobody re-registering. Both merging and splitting are refused once anything has been timed, since they rebuild heats and re-rank results; and both clear the shared heats, so the admin re-runs the lottery afterwards to rebuild them.
+**Registration is untouched** — a 7-year-old still registers under 6-9 — which is what makes a merge reversible by clearing one field. Splitting back restores two independent rankings with nobody re-registering. Both are refused once anything has been timed, since they re-rank results.
+
+Neither merging nor splitting deletes a heat. Heats stay exactly as they are — the schedule generator's or an admin's own hand-built running order — because every screen reads a heat through the field its category races in, so heats still filed under an absorbed bracket appear under the merged field. Only auto-generated `Heat N` names are renumbered (so a merged field doesn't show two "Heat 1"s); a heat named by hand keeps its name. An admin who *does* want the brackets repacked into shared heats can run the schedule generator afterwards, and one who organises heats manually can simply move competitors between them.
 
 ### The pool's lane count
 
@@ -112,6 +114,8 @@ Every admin list can be taken away from `/staff/manage`, either as one Excel wor
 
 - **All lists (Excel)** — on the Registration and Scores tabs. One `.xlsx` with a sheet each for Competitors, Teams, Heats, Results, Contacts and Hall of Fame. Header rows are bold and frozen and columns are pre-sized.
 - **Per-list CSVs** — at the foot of each tab: competitor list and relay teams (Registration), heat list (Heats and Schedule), results (Scores), contacts (Staff), hall of fame (Hall of Fame).
+
+The competitor list carries a **Heat** column showing where each person has been placed, or `not placed` if they haven't been — so after arranging heats by hand (with or without the schedule generator) the download doubles as the check that nobody was missed. Relay members get their team's heat.
 
 Both formats come from the same row builders in `src/lib/exports.ts`, so a column added once shows up in the CSV and the workbook together. The relay-teams list is built from the groups themselves rather than from heats, so team sheets can be printed while groups are still being arranged, before the lottery has run.
 

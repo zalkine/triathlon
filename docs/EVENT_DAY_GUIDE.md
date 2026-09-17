@@ -95,10 +95,14 @@ are skill levels, not ages, so it would rank a beginner against a trained
 athlete). The app simply won't offer it.
 
 Nobody re-registers: everyone stays in the age bracket they signed up under,
-which is why **פיצול חזרה** (Split back) undoes it at any time. Do it **before**
-running the lottery — merging and splitting both clear the shared heats, so run
-**הרצת הגרלה ויצירת לוח זמנים** afterwards to rebuild them. Once any heat has been
-started, neither is allowed.
+which is why **פיצול חזרה** (Split back) undoes it at any time.
+
+**Your heats are safe.** Merging and splitting never delete a heat — whatever
+you have arranged by hand stays exactly as it is, and heats you named yourself
+keep their names. Merging only changes who is ranked against whom, so you can
+merge before or after organising the heats. Afterwards you can drag everyone
+into a single heat, or leave them in two and give them a **combined start**.
+Once any heat has been started, neither merging nor splitting is allowed.
 
 ### Nine in one heat?
 
@@ -125,9 +129,12 @@ Everything the admin sees can be downloaded from **ניהול תחרות**:
   קשר and the Hall of Fame. This is the one to grab for printing.
 - Individual **CSV** files sit at the foot of each tab if you only want one list.
 
-Hebrew names come through correctly in Excel in both formats. The relay-teams
-list works even before the lottery has run, so team sheets can be printed while
-groups are still being arranged.
+Hebrew names come through correctly in Excel in both formats. None of this needs
+the lottery to have been run: if you build the heats yourself, the משתתפים sheet
+has a **Heat** column showing where each person ended up — or `not placed` if
+they were missed — and the מקצים sheet lists the heats exactly as you arranged
+them. The relay-teams list likewise reads the teams themselves, so team sheets
+can be printed while groups are still being put together.
 
 ## Phase 3 — Race day
 
