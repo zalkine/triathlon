@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
 import { Link } from '@/i18n/navigation';
-import { createEntry, deleteEntry } from '@/actions/entries';
+import { deleteEntry } from '@/actions/entries';
 import { deleteHeat } from '@/actions/heats';
 import { formatHeatName } from '@/lib/time';
 import HeatStartTimeEditor from '@/components/HeatStartTimeEditor';
@@ -10,6 +10,7 @@ import CancelHeatStartButton from '@/components/CancelHeatStartButton';
 import TimeFieldEditor from '@/components/TimeFieldEditor';
 import MembersEditor from '@/components/MembersEditor';
 import MoveEntryControl from '@/components/MoveEntryControl';
+import AddEntryForm from '@/components/AddEntryForm';
 import ConfirmForm from '@/components/ConfirmForm';
 
 export const dynamic = 'force-dynamic';
@@ -64,7 +65,6 @@ export default async function HeatDetailPage({
   const stampedTimes =
     countStamps(heat.entries) + waveHeats.reduce((n, h) => n + countStamps(h.entries), 0);
 
-  const createEntryAction = createEntry.bind(null, locale, heatId);
   const deleteHeatAction = deleteHeat.bind(null, locale, heatId);
 
   return (
@@ -152,18 +152,7 @@ export default async function HeatDetailPage({
           </table>
         </div>
 
-        <form action={createEntryAction} className="flex flex-wrap items-center gap-2">
-          <input
-            name="name"
-            type="text"
-            required
-            placeholder={t('entryName')}
-            className="rounded-lg border border-ink/20 px-4 py-2"
-          />
-          <button type="submit" className="rounded-full bg-ink px-5 py-2 text-sm font-semibold text-cream hover:brightness-110">
-            {t('addEntry')}
-          </button>
-        </form>
+        <AddEntryForm heatId={heatId} />
       </div>
     </div>
   );

@@ -4,14 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireRole, requireSession } from '@/lib/auth';
 import { STATION_FIELD, type Station, type Leg } from '@/lib/constants';
-
-export async function createEntry(locale: string, heatId: string, formData: FormData) {
-  await requireRole('ADMIN');
-  const name = String(formData.get('name') || '').trim();
-  if (!name) throw new Error('name is required');
-  await prisma.entry.create({ data: { heatId, name } });
-  revalidatePath(`/${locale}/staff/manage/heats/${heatId}`);
-}
+import { checkCapacity } from '@/lib/heats';
 
 export async function deleteEntry(locale: string, heatId: string, entryId: string) {
   await requireRole('ADMIN');
@@ -136,10 +129,25 @@ async function requireStaff() {
 // a competitor who registered as Pro but is actually running Intermediate. Leg
 // times are cleared: they belonged to the old heat's clock, so the competitor
 // starts fresh in the new heat.
-export async function moveEntry(entryId: string, targetHeatId: string) {
+//
+// If the move would put more competitors in the water than the pool has lanes
+// (counting every heat combined into the target's start), it is reported back
+// instead of being carried out, and the caller confirms before retrying with
+// `force`. Nine in a heat is allowed — someone at the pool may be sharing a lane
+// — but never by accident.
+export async function moveEntry(entryId: string, targetHeatId: string, force = false) {
   await requireStaff();
   const target = await prisma.heat.findUnique({ where: { id: targetHeatId } });
   if (!target) return { error: 'no-heat' as const };
+
+  const entry = await prisma.entry.findUnique({ where: { id: entryId } });
+  if (!entry) return { error: 'no-entry' as const };
+  if (entry.heatId !== targetHeatId) {
+    // A scratched competitor isn't taking a lane, so they don't count against it.
+    const over = await checkCapacity(targetHeatId, entry.scratched ? 0 : 1, force);
+    if (over) return over;
+  }
+
   await prisma.entry.update({
     where: { id: entryId },
     data: { heatId: targetHeatId, swimTime: null, bikeTime: null, runTime: null },
@@ -149,11 +157,14 @@ export async function moveEntry(entryId: string, targetHeatId: string) {
 }
 
 // Add a competitor/team to a heat on the spot (name only). Members can be added
-// afterwards from the admin heat page for a relay.
-export async function addRaceEntry(heatId: string, name: string) {
+// afterwards from the admin heat page for a relay. Overfilling the pool takes a
+// confirmation, exactly as moving someone in does.
+export async function addRaceEntry(heatId: string, name: string, force = false) {
   await requireStaff();
   const trimmed = name.trim();
   if (!trimmed) return { error: 'empty' as const };
+  const over = await checkCapacity(heatId, 1, force);
+  if (over) return over;
   const entry = await prisma.entry.create({ data: { heatId, name: trimmed } });
   revalidatePath('/', 'layout');
   return { ok: true as const, entryId: entry.id };

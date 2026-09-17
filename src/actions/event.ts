@@ -127,8 +127,11 @@ async function createGroupEntry(heatId: string, group: GroupRow, nameOf: Map<str
 // A category is "pinned" once its heats must not be thrown away and rebuilt:
 //   - timing has begun (a heat was started or a leg time recorded) — rebuilding
 //     would lose the times;
-//   - or the admin combined one of its heats into a shared start — rebuilding
-//     would silently undo that arrangement.
+//   - the admin combined one of its heats into a shared start — rebuilding would
+//     silently undo that arrangement;
+//   - or a heat holds more than the pool's lane count. Packing never produces
+//     that, so someone put them there by hand and confirmed it (see
+//     `checkCapacity`); repacking would quietly throw the decision away.
 // A pinned category is only topped up with newcomers, never repacked.
 function isPinned(
   heats: {
@@ -138,7 +141,11 @@ function isPinned(
   }[]
 ) {
   return heats.some(
-    (h) => h.startTime || h.waveId || h.entries.some((e) => e.swimTime || e.bikeTime || e.runTime)
+    (h) =>
+      h.startTime ||
+      h.waveId ||
+      h.entries.length > HEAT_CAPACITY ||
+      h.entries.some((e) => e.swimTime || e.bikeTime || e.runTime)
   );
 }
 

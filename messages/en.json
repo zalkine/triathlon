@@ -530,6 +530,7 @@
     "undone": "Undone",
     "cancelStart": "Cancel start",
     "confirmCancelStart": "Cancel the start of this heat? Its clock resets and the heat goes back to the upcoming list, ready to be started again. Nobody is removed from the race.",
-    "confirmCancelStartWithTimes": "Cancel the start of this heat? Its clock resets and the heat goes back to the upcoming list, ready to be started again. {count, plural, one {# time already stamped in this heat will be cleared, because it was measured against the start you are cancelling} other {# times already stamped in this heat will be cleared, because they were measured against the start you are cancelling}}. Nobody is removed from the race."
+    "confirmCancelStartWithTimes": "Cancel the start of this heat? Its clock resets and the heat goes back to the upcoming list, ready to be started again. {count, plural, one {# time already stamped in this heat will be cleared, because it was measured against the start you are cancelling} other {# times already stamped in this heat will be cleared, because they were measured against the start you are cancelling}}. Nobody is removed from the race.",
+    "overCapacityConfirm": "That puts {total} competitors in the pool at once — more than the {capacity} lanes. Go ahead anyway?"
   }
 }

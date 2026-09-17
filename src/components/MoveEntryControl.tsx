@@ -3,6 +3,7 @@
 import { useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { moveEntry } from '@/actions/entries';
+import { withCapacityConfirm } from '@/lib/confirmCapacity';
 
 type HeatOption = { id: string; name: string; nameEn: string; nameHe: string };
 
@@ -11,6 +12,7 @@ type HeatOption = { id: string; name: string; nameEn: string; nameHe: string };
 export default function MoveEntryControl({ entryId, heats }: { entryId: string; heats: HeatOption[] }) {
   const locale = useLocale();
   const t = useTranslations('manage');
+  const tc = useTranslations('common');
   const [pending, start] = useTransition();
 
   if (heats.length === 0) return null;
@@ -21,7 +23,13 @@ export default function MoveEntryControl({ entryId, heats }: { entryId: string; 
       onChange={(e) => {
         const target = e.target.value;
         e.currentTarget.value = '';
-        if (target) start(async () => void (await moveEntry(entryId, target)));
+        if (target)
+          start(async () => {
+            await withCapacityConfirm(
+              (force) => moveEntry(entryId, target, force),
+              (over) => tc('overCapacityConfirm', { total: over.total, capacity: over.capacity })
+            );
+          });
       }}
       className="rounded-lg border border-ink/20 px-2 py-1 text-sm disabled:opacity-50"
     >

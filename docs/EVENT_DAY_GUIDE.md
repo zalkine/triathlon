@@ -77,6 +77,22 @@ rosters are touched.
 > put into a fresh heat rather than squeezed into a combined wave, so a wave you
 > sized never grows behind your back.
 
+### Nine in one heat?
+
+Yes — the 8 is the number of lanes, not a rule the app forces on you. Drag a
+ninth competitor into a full heat (or add one by name) and you'll be asked to
+confirm: *"that puts 9 in the pool at once, more than the 8 lanes — go ahead
+anyway?"* Say yes and it's done, which is what you want when two children will
+share a lane or half the heat hasn't turned up.
+
+The same question is asked wherever competitors are placed — the Heats board,
+the heat's own page, and the start line — and it counts a combined start as one
+pool, so 4 + 5 across a combined wave asks too. Anyone marked as not here
+(scratched) isn't counted; they aren't taking a lane.
+
+Once you've confirmed a heat of nine, **re-running the lottery leaves it alone** —
+that category is no longer repacked, so your arrangement stands.
+
 ## Phase 3 — Race day
 
 ### 1. Check-in (at the gathering area) — timekeeper or admin

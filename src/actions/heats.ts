@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { requireRole, requireSession } from '@/lib/auth';
 import { HEAT_CAPACITY } from '@/lib/constants';
+import { waveHeatIds } from '@/lib/heats';
 
 // --- Combined starts (waves) ----------------------------------------------
 // Heats sharing a `waveId` are one wave: they are shown as a single card at the
@@ -14,14 +15,10 @@ import { HEAT_CAPACITY } from '@/lib/constants';
 // the eight-lane pool in one start while each competitor is still ranked inside
 // their own category — the heats, and therefore the categories, stay separate.
 //
-// Every start-line operation below works on the whole wave, so a wave can never
-// end up with two different gun times. A heat with no waveId is simply a wave of
-// one, which keeps the uncombined path identical to what it always was.
-async function waveHeatIds(heat: { id: string; waveId: string | null }): Promise<string[]> {
-  if (!heat.waveId) return [heat.id];
-  const siblings = await prisma.heat.findMany({ where: { waveId: heat.waveId }, select: { id: true } });
-  return siblings.length > 0 ? siblings.map((h) => h.id) : [heat.id];
-}
+// Every start-line operation below works on the whole wave (see `waveHeatIds`),
+// so a wave can never end up with two different gun times. A heat with no waveId
+// is simply a wave of one, which keeps the uncombined path identical to what it
+// always was.
 
 // A wave needs at least two heats to mean anything. Once one is deleted out of a
 // pair, clear the leftover id so the survivor goes back to being a plain heat

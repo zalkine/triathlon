@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { moveEntry } from '@/actions/entries';
 import { combineHeats, createHeatForCategory, removeHeat, removeHeatFromWave, splitWave } from '@/actions/heats';
 import { formatClock, formatHeatName } from '@/lib/time';
+import { withCapacityConfirm } from '@/lib/confirmCapacity';
 import CancelHeatStartButton from '@/components/CancelHeatStartButton';
 
 export type BoardMember = { id: string; name: string; leg: string | null };
@@ -41,6 +42,7 @@ export type BoardWave = {
 export default function HeatsBoard({ categories, waves }: { categories: BoardCategory[]; waves: BoardWave[] }) {
   const locale = useLocale();
   const t = useTranslations('manage');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [dragEntry, setDragEntry] = useState<string | null>(null);
@@ -57,9 +59,14 @@ export default function HeatsBoard({ categories, waves }: { categories: BoardCat
 
   const waveById = new Map(waves.map((w) => [w.id, w]));
 
+  // Dropping someone into a heat that is already at the pool's lane count asks
+  // first — over-filling stays possible, it just isn't silent.
   const doMove = (entryId: string, targetHeatId: string) => {
     startTransition(async () => {
-      await moveEntry(entryId, targetHeatId);
+      await withCapacityConfirm(
+        (force) => moveEntry(entryId, targetHeatId, force),
+        (over) => tc('overCapacityConfirm', { total: over.total, capacity: over.capacity })
+      );
       router.refresh();
     });
   };

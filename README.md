@@ -86,7 +86,13 @@ Categories that only drew three or four competitors would each take a whole turn
 - the schedule gives the wave **one slot**, lasting as long as the slowest category in it, and tells competitors which other races share their start;
 - **nothing about results changes** — a heat still belongs to exactly one category, so every competitor is ranked only within their own category. Combining is purely about who is in the water together.
 
-Combining is capped at the pool's lane count (`HEAT_CAPACITY`); going over it takes an explicit confirmation. Heats that have already been sent off can't be combined, a combined start can be split apart again at any time (rosters and times untouched), and re-running the lottery preserves the arrangement — latecomers go into a fresh heat rather than enlarging a wave the admin has already sized.
+### The pool's lane count
+
+`HEAT_CAPACITY` (8) is a physical limit, not a rule the app enforces behind the user's back. The lottery packs heats at 8, and **every** way of putting someone into a heat afterwards — dragging on the Heats board, either "move to" menu, adding a name at the start line or on the heat page, and combining heats into one start — checks it the same way (`src/lib/heats.ts`): if the placement would put more than 8 in the water at once it is refused and reported, and the caller confirms before retrying with `force`. So a 9th swimmer is always possible (a shared lane, a heat of likely no-shows) and never accidental. Scratched competitors don't count — they aren't taking a lane — and for a combined start the count spans the whole wave, not the single heat.
+
+A heat deliberately filled past 8 is treated like a started or combined one: `generateSchedule` won't repack that category, so re-running the lottery no longer throws the arrangement away.
+
+Combining is capped the same way; going over it takes an explicit confirmation. Heats that have already been sent off can't be combined, a combined start can be split apart again at any time (rosters and times untouched), and re-running the lottery preserves the arrangement — latecomers go into a fresh heat rather than enlarging a wave the admin has already sized.
 
 ## Notes
 

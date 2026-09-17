@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { createHeatForCategory, stampHeatStart, undoHeatStart } from '@/actions/heats';
 import { addRaceEntry, moveEntry, removeRaceEntry, renameEntry, renameMember, setEntryScratched } from '@/actions/entries';
 import { formatClock, formatDuration, formatHeatName } from '@/lib/time';
+import { withCapacityConfirm } from '@/lib/confirmCapacity';
 import CancelHeatStartButton from '@/components/CancelHeatStartButton';
 import { useWakeLock } from '@/lib/useWakeLock';
 
@@ -133,7 +134,10 @@ export default function StartStationView() {
   const doMove = (entryId: string, targetHeatId: string) => {
     if (!targetHeatId) return;
     startTransition(async () => {
-      await moveEntry(entryId, targetHeatId);
+      await withCapacityConfirm(
+        (force) => moveEntry(entryId, targetHeatId, force),
+        (over) => tc('overCapacityConfirm', { total: over.total, capacity: over.capacity })
+      );
       load();
     });
   };
@@ -150,8 +154,12 @@ export default function StartStationView() {
     const name = (addName[heatId] ?? '').trim();
     if (!name) return;
     startTransition(async () => {
-      await addRaceEntry(heatId, name);
-      setAddName((p) => ({ ...p, [heatId]: '' }));
+      const result = await withCapacityConfirm(
+        (force) => addRaceEntry(heatId, name, force),
+        (over) => tc('overCapacityConfirm', { total: over.total, capacity: over.capacity })
+      );
+      // Keep what they typed if they backed out of the over-capacity prompt.
+      if (result && 'ok' in result) setAddName((p) => ({ ...p, [heatId]: '' }));
       load();
     });
   };
