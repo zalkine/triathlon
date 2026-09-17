@@ -5,6 +5,7 @@ import ConfirmForm from '@/components/ConfirmForm';
 import AdminAddRegistrantForm from '@/components/AdminAddRegistrantForm';
 import TestDataControls from '@/components/TestDataControls';
 import CsvLink from './CsvLink';
+import XlsxLink from './XlsxLink';
 import CompetitorFilters from './CompetitorFilters';
 import LotteryAllButton from './LotteryAllButton';
 import RegistrationRoster from './RegistrationRoster';
@@ -66,6 +67,10 @@ export default async function RegistrationPanel({ locale }: { locale: string }) 
 
       <div className="flex flex-wrap gap-3">
         <CsvLink href="/api/export/competitors" label={t('exportCompetitors')} />
+        {/* Relay rosters, available from the moment groups start forming —
+            before the lottery has built any heats to read them off. */}
+        <CsvLink href="/api/export/teams" label={t('exportTeams')} />
+        <XlsxLink label={t('exportWorkbook')} hint={t('exportWorkbookHint')} />
       </div>
 
       <TestDataControls locale={locale} />

@@ -116,6 +116,19 @@ pool, so 4 + 5 across a combined wave asks too. Anyone marked as not here
 Once you've confirmed a heat of nine, **re-running the lottery leaves it alone** —
 that category is no longer repacked, so your arrangement stands.
 
+### Printing and downloading the lists
+
+Everything the admin sees can be downloaded from **ניהול תחרות**:
+
+- **כל הרשימות (Excel)** — on the Registration (📝) and Scores (🏅) tabs. One
+  Excel file with a sheet per list: משתתפים, קבוצות שליחים, מקצים, תוצאות, אנשי
+  קשר and the Hall of Fame. This is the one to grab for printing.
+- Individual **CSV** files sit at the foot of each tab if you only want one list.
+
+Hebrew names come through correctly in Excel in both formats. The relay-teams
+list works even before the lottery has run, so team sheets can be printed while
+groups are still being arranged.
+
 ## Phase 3 — Race day
 
 ### 1. Check-in (at the gathering area) — timekeeper or admin

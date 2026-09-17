@@ -375,7 +375,10 @@
     "confirmUnmergeCategories": "Split {brackets} back into separate categories, each ranked on its own again? Nobody has to re-register — but the shared heats are cleared, so run the lottery again to rebuild them.",
     "mergeAlreadyTimed": "This can’t be changed once timing has started — merging rebuilds the heats and re-ranks the results. Cancel the starts first if you really need to.",
     "mergeNotSameFamily": "Only age brackets of the same race can be merged.",
-    "mergeFailed": "Those categories could not be merged."
+    "mergeFailed": "Those categories could not be merged.",
+    "exportTeams": "Relay teams",
+    "exportWorkbook": "All lists (Excel)",
+    "exportWorkbookHint": "One .xlsx — competitors, teams, heats, results, contacts"
   },
   "info": {
     "title": "Rules & Trails",

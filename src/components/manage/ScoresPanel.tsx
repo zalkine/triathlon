@@ -8,6 +8,7 @@ import { addResultsToHof } from '@/actions/hof';
 import ConfirmForm from '@/components/ConfirmForm';
 import TimeFieldEditor from '@/components/TimeFieldEditor';
 import CsvLink from './CsvLink';
+import XlsxLink from './XlsxLink';
 
 export default async function ScoresPanel({ locale }: { locale: string }) {
   const t = await getTranslations('manage');
@@ -150,6 +151,7 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
 
       <div className="flex flex-wrap gap-3">
         <CsvLink href="/api/export/results" label={t('exportResults')} />
+        <XlsxLink label={t('exportWorkbook')} hint={t('exportWorkbookHint')} />
       </div>
     </div>
   );

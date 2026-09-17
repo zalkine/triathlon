@@ -106,6 +106,17 @@ A heat deliberately filled past 8 is treated like a started or combined one: `ge
 
 Combining is capped the same way; going over it takes an explicit confirmation. Heats that have already been sent off can't be combined, a combined start can be split apart again at any time (rosters and times untouched), and re-running the lottery preserves the arrangement — latecomers go into a fresh heat rather than enlarging a wave the admin has already sized.
 
+## Admin downloads
+
+Every admin list can be taken away from `/staff/manage`, either as one Excel workbook or as individual CSVs:
+
+- **All lists (Excel)** — on the Registration and Scores tabs. One `.xlsx` with a sheet each for Competitors, Teams, Heats, Results, Contacts and Hall of Fame. Header rows are bold and frozen and columns are pre-sized.
+- **Per-list CSVs** — at the foot of each tab: competitor list and relay teams (Registration), heat list (Heats and Schedule), results (Scores), contacts (Staff), hall of fame (Hall of Fame).
+
+Both formats come from the same row builders in `src/lib/exports.ts`, so a column added once shows up in the CSV and the workbook together. The relay-teams list is built from the groups themselves rather than from heats, so team sheets can be printed while groups are still being arranged, before the lottery has run.
+
+The `.xlsx` is written by `src/lib/xlsx.ts` — a small dependency-free writer (an xlsx is a ZIP of XML parts), which keeps a spreadsheet library out of the bundle. CSVs are UTF-8 with a BOM so Excel opens Hebrew correctly.
+
 ## Notes
 
 - Role/type/leg fields are stored as plain strings constrained by `src/lib/constants.ts` (kept simple rather than DB enums).
