@@ -94,6 +94,8 @@ On the admin's Heats tab, **Race two age brackets as one category** offers exact
 
 The absorbed bracket points at the one that keeps the racing via `Category.mergedIntoId`, and from then on the pair is packed into shared heats, scheduled as one slot (taking the slower bracket's pool time), and ranked as a single list. The merged field is named by dropping the age range from the bracket names, so "Children – Singles 6-9" + "Children – Singles 9-12" races as "Children – Singles".
 
+Every screen that shows the *race* follows the merge: the public competitors list, the schedule, the check-in station, the start line, results, the admin's scores review and the heats/results CSVs. The two screens that deliberately keep the real brackets are **registration** (the bracket is derived from age, so it has to stay) and the admin's **Registration roster** (where an admin manages who is in which bracket); the competitors CSV shows both, as `Category` and `Races as`.
+
 **Registration is untouched** — a 7-year-old still registers under 6-9 — which is what makes a merge reversible by clearing one field. Splitting back restores two independent rankings with nobody re-registering. Both merging and splitting are refused once anything has been timed, since they rebuild heats and re-rank results; and both clear the shared heats, so the admin re-runs the lottery afterwards to rebuild them.
 
 ### The pool's lane count
