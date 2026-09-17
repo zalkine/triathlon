@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { racingCategories } from '@/lib/categories';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,29 +15,32 @@ export async function GET(request: Request) {
     return NextResponse.json({ published: false, categories: [] });
   }
 
-  const categories = await prisma.category.findMany({
-    orderBy: { sortOrder: 'asc' },
-    include: {
-      heats: {
-        include: { _count: { select: { entries: true } } },
-        orderBy: [{ estimatedStart: 'asc' }, { createdAt: 'asc' }],
-      },
-    },
+  // One block per field that races: age brackets an admin merged are scheduled
+  // and ranked as one, so the schedule shows them once under the merged name.
+  const fields = await racingCategories();
+  const heatRows = await prisma.heat.findMany({
+    include: { _count: { select: { entries: true } } },
+    orderBy: [{ estimatedStart: 'asc' }, { createdAt: 'asc' }],
   });
+  const categories = fields.map((f) => ({
+    ...f,
+    heats: heatRows.filter((h) => f.memberIds.includes(h.categoryId)),
+  }));
 
   // A heat combined with others starts alongside them, so the schedule says
   // which races share that dip — a competitor reading their own category still
   // sees their own heat and time, plus who is in the water with them.
-  const combined = await prisma.heat.findMany({
-    where: { waveId: { not: null } },
-    select: { id: true, name: true, waveId: true, category: { select: { nameEn: true, nameHe: true } } },
-  });
+  const fieldOfCategory = new Map<string, { nameEn: string; nameHe: string }>();
+  for (const f of fields) for (const id of f.memberIds) fieldOfCategory.set(id, { nameEn: f.nameEn, nameHe: f.nameHe });
+  const combined = heatRows.filter((h) => h.waveId);
   const partners = new Map<string, { nameEn: string; nameHe: string }[]>();
   for (const heat of combined) {
     for (const other of combined) {
       if (other.waveId !== heat.waveId || other.id === heat.id) continue;
+      const name = fieldOfCategory.get(other.categoryId);
+      if (!name) continue;
       const list = partners.get(heat.id) ?? [];
-      list.push({ nameEn: other.category.nameEn, nameHe: other.category.nameHe });
+      list.push(name);
       partners.set(heat.id, list);
     }
   }

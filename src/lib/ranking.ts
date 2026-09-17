@@ -1,4 +1,5 @@
 import { prisma } from './db';
+import { racingGroupIds } from './categories';
 
 export type EntryStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'FINISHED';
 
@@ -55,14 +56,24 @@ export function rankEntries(entries: EntryInput[]): RankedEntry[] {
   return [...ranked, ...rest];
 }
 
+/**
+ * Ranks a category's field. When an admin has merged age brackets into one
+ * racing category, everyone in the merged field is ranked together in a single
+ * list — that is what merging means. Heats are gathered from every bracket in
+ * the group rather than only the primary's, so the ranking is right even before
+ * the schedule has been regenerated to pack them into shared heats.
+ */
 export async function getCategoryResults(categoryId: string) {
-  const category = await prisma.category.findUnique({
-    where: { id: categoryId },
-    include: { heats: { include: { entries: { where: { scratched: false } } } } },
-  });
+  const category = await prisma.category.findUnique({ where: { id: categoryId } });
   if (!category) return null;
 
-  const entries: EntryInput[] = category.heats.flatMap((heat) =>
+  const memberIds = await racingGroupIds(categoryId);
+  const heats = await prisma.heat.findMany({
+    where: { categoryId: { in: memberIds } },
+    include: { entries: { where: { scratched: false } } },
+  });
+
+  const entries: EntryInput[] = heats.flatMap((heat) =>
     heat.entries.map((entry) => ({
       id: entry.id,
       name: entry.name,

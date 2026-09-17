@@ -6,7 +6,7 @@ Results-tracking and timing app for the Gal-On community triathlon. Bilingual (H
 
 - **Public**: register for the race, view the live schedule and auto-ranked results — no login required.
 - **Timekeepers**: log in and work a "station" (Check-In, or Start / Swim / Bike / Run timing), stamping times with one tap as competitors pass. Can't overwrite an already-stamped time (only a short "undo" window for a misclick) — except at the Start station, where a heat that was sent off by mistake or has to be run again can be reset with **Cancel start**.
-- **Admins**: everything a timekeeper can do, plus open/close registration, run the group-formation lottery, generate the schedule, activate the competition, create/edit heats, combine heats from different categories into a single start, manually correct any time, and manage staff accounts.
+- **Admins**: everything a timekeeper can do, plus open/close registration, run the group-formation lottery, generate the schedule, activate the competition, create/edit heats, combine heats from different categories into a single start, race two children's age brackets as one category, manually correct any time, and manage staff accounts.
 
 ## Categories
 
@@ -85,6 +85,16 @@ Categories that only drew three or four competitors would each take a whole turn
 - the Start station shows them as **one card** with every roster on it and a single **GO**, so all of them take the same gun time (a wave can never end up with two different start times: start, quick-undo, cancel-start and an admin's manual start-time correction all apply to the whole wave);
 - the schedule gives the wave **one slot**, lasting as long as the slowest category in it, and tells competitors which other races share their start;
 - **nothing about results changes** — a heat still belongs to exactly one category, so every competitor is ranked only within their own category. Combining is purely about who is in the water together.
+
+### Racing two age brackets as one category
+
+Different from a combined start: that puts two categories in the water together but keeps their rankings apart. **Merging** makes them one race — one field, one ranked list, one podium.
+
+On the admin's Heats tab, **Race two age brackets as one category** offers exactly the pairs that may be joined. A merge is deliberately narrow: only categories of the same race differing by age bracket, which `MERGE_FAMILY` in `src/lib/constants.ts` spells out (children's singles 6-9 with 9-12, children's relays 6-9 with 9-12). Professional and intermediate are skill levels rather than age bands, and singles and relays are different races, so neither can be merged — the action refuses. Admin-only, like combining starts.
+
+The absorbed bracket points at the one that keeps the racing via `Category.mergedIntoId`, and from then on the pair is packed into shared heats, scheduled as one slot (taking the slower bracket's pool time), and ranked as a single list. The merged field is named by dropping the age range from the bracket names, so "Children – Singles 6-9" + "Children – Singles 9-12" races as "Children – Singles".
+
+**Registration is untouched** — a 7-year-old still registers under 6-9 — which is what makes a merge reversible by clearing one field. Splitting back restores two independent rankings with nobody re-registering. Both merging and splitting are refused once anything has been timed, since they rebuild heats and re-rank results; and both clear the shared heats, so the admin re-runs the lottery afterwards to rebuild them.
 
 ### The pool's lane count
 

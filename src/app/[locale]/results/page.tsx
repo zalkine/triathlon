@@ -1,19 +1,16 @@
 import { getTranslations } from 'next-intl/server';
 import PublicHeader from '@/components/PublicHeader';
 import ResultsView from '@/components/ResultsView';
-import { prisma } from '@/lib/db';
-import { REGISTRATION_ONLY_CATEGORY_KEYS } from '@/lib/constants';
+import { racingCategories } from '@/lib/categories';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ResultsPage() {
   const t = await getTranslations('results');
-  // Registration-only categories (the toddlers fun run) aren't timed, so they
-  // get no results tab.
-  const categories = await prisma.category.findMany({
-    where: { key: { notIn: [...REGISTRATION_ONLY_CATEGORY_KEYS] } },
-    orderBy: { sortOrder: 'asc' },
-  });
+  // One tab per field that actually races: registration-only categories (the
+  // toddlers fun run) aren't timed, and age brackets merged by the admin are
+  // ranked as one, so they get a single tab under the merged name.
+  const categories = await racingCategories();
 
   return (
     <div className="flex min-h-screen flex-col">

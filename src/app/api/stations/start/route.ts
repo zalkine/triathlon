@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { racingCategories } from '@/lib/categories';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,7 @@ export async function GET() {
       include: { category: true, entries: { include: { members: true }, orderBy: { createdAt: 'asc' } } },
       orderBy: [{ estimatedStart: 'asc' }, { createdAt: 'asc' }],
     }),
-    prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
+    racingCategories(),
   ]);
 
   // Keep a heat on the board while it's actionable: not started yet (roster + GO),
@@ -32,6 +33,17 @@ export async function GET() {
   const liveWaves = new Set(heats.filter((h) => h.waveId && actionable(h)).map((h) => h.waveId));
   const board = heats.filter((h) => actionable(h) || (h.waveId && liveWaves.has(h.waveId)));
 
+  // Name every heat by the field it races in. When an admin has merged age
+  // brackets, the heat belongs to the leading bracket but the race is the merged
+  // one — so the start line reads "Children – Singles", not "Children – Singles
+  // 6-9" over a heat that also holds 9-12s.
+  const fieldName = new Map<string, { nameEn: string; nameHe: string }>();
+  for (const f of categories) {
+    for (const id of f.memberIds) fieldName.set(id, { nameEn: f.nameEn, nameHe: f.nameHe });
+  }
+  const nameOfHeat = (h: (typeof heats)[number]) =>
+    fieldName.get(h.categoryId) ?? { nameEn: h.category.nameEn, nameHe: h.category.nameHe };
+
   return NextResponse.json({
     active: true,
     serverNow: new Date().toISOString(),
@@ -39,16 +51,18 @@ export async function GET() {
     allHeats: heats.map((h) => ({
       id: h.id,
       name: h.name,
-      categoryNameEn: h.category.nameEn,
-      categoryNameHe: h.category.nameHe,
+      categoryNameEn: nameOfHeat(h).nameEn,
+      categoryNameHe: nameOfHeat(h).nameHe,
     })),
-    // Categories — for creating a new heat on the spot.
+    // Fields a new heat can be created in on the spot. Age brackets merged by
+    // the admin appear once, under the merged name — a heat belongs to the field
+    // that races, never to a bracket that has been absorbed into one.
     categories: categories.map((c) => ({ id: c.id, nameEn: c.nameEn, nameHe: c.nameHe })),
     heats: board.map((h) => ({
       id: h.id,
       name: h.name,
-      categoryNameEn: h.category.nameEn,
-      categoryNameHe: h.category.nameHe,
+      categoryNameEn: nameOfHeat(h).nameEn,
+      categoryNameHe: nameOfHeat(h).nameHe,
       // Heats the admin combined into one start share a waveId; the station
       // groups them into a single card with one GO, so they take one gun time.
       waveId: h.waveId,

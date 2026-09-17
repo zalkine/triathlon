@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
+import { racingCategories } from '@/lib/categories';
 import { getCategoryResults } from '@/lib/ranking';
 import { formatDuration, formatHeatName } from '@/lib/time';
 import { setPublicResultsVisible, setResultsApproved } from '@/actions/event';
@@ -12,9 +13,11 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
   const t = await getTranslations('manage');
   const tr = await getTranslations('results');
 
+  // Results are reviewed per racing field, so merged age brackets appear once,
+  // ranked together, exactly as the public sees them.
   const [settings, categories] = await Promise.all([
     prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } }),
-    prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
+    racingCategories(),
   ]);
 
   const results = await Promise.all(categories.map((c) => getCategoryResults(c.id)));

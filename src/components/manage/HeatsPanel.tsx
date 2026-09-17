@@ -1,28 +1,28 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
 import { formatClock } from '@/lib/time';
-import { REGISTRATION_ONLY_CATEGORY_KEYS, isRegistrationOnlyCategory } from '@/lib/constants';
+import { REGISTRATION_ONLY_CATEGORY_KEYS } from '@/lib/constants';
+import { racingCategories } from '@/lib/categories';
 import { generateSchedule } from '@/actions/event';
 import ConfirmForm from '@/components/ConfirmForm';
 import UnassignedRegistrants from '@/components/UnassignedRegistrants';
 import HeatsBoard, { type BoardWave } from './HeatsBoard';
 import SyncHeatsWithRoster from './SyncHeatsWithRoster';
+import MergeCategoriesPanel from './MergeCategoriesPanel';
 import CsvLink from './CsvLink';
 
 export default async function HeatsPanel({ locale }: { locale: string }) {
   const t = await getTranslations('manage');
 
-  const [categories, settings, unplacedSingles, unplacedGroups] = await Promise.all([
-    prisma.category.findMany({
-      orderBy: { sortOrder: 'asc' },
+  const [fields, heatRows, settings, unplacedSingles, unplacedGroups] = await Promise.all([
+    // Age brackets an admin has merged race as one field, so the board shows
+    // them as one column of heats under the merged name.
+    racingCategories(),
+    prisma.heat.findMany({
+      orderBy: { createdAt: 'asc' },
       include: {
-        heats: {
-          include: {
-            entries: {
-              include: { members: true },
-              orderBy: { createdAt: 'asc' },
-            },
-          },
+        entries: {
+          include: { members: true },
           orderBy: { createdAt: 'asc' },
         },
       },
@@ -56,9 +56,17 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
 
   const placeableCount = unplacedSingles + unplacedGroups;
   const runGenerate = generateSchedule.bind(null, locale);
-  const anyHeats = categories.some((c) => c.heats.length > 0);
+  const anyHeats = heatRows.length > 0;
 
-  const timedCategories = categories.filter((c) => !isRegistrationOnlyCategory(c.key));
+  // Heats belong to the field that races them; a heat left under an absorbed
+  // bracket still shows with its field rather than disappearing off the board.
+  const heatsOfField = new Map<string, typeof heatRows>();
+  for (const field of fields) {
+    heatsOfField.set(
+      field.id,
+      heatRows.filter((h) => field.memberIds.includes(h.categoryId))
+    );
+  }
 
   // Leg times per heat, and — for heats combined into a shared start — per wave,
   // since cancelling one sends the whole wave back to the start line and the
@@ -66,18 +74,16 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
   const countStamps = (entries: { swimTime: Date | null; bikeTime: Date | null; runTime: Date | null }[]) =>
     entries.reduce((n, e) => n + (e.swimTime ? 1 : 0) + (e.bikeTime ? 1 : 0) + (e.runTime ? 1 : 0), 0);
   const waveStamps = new Map<string, number>();
-  for (const c of timedCategories) {
-    for (const h of c.heats) {
-      if (!h.waveId) continue;
-      waveStamps.set(h.waveId, (waveStamps.get(h.waveId) ?? 0) + countStamps(h.entries));
-    }
+  for (const h of heatRows) {
+    if (!h.waveId) continue;
+    waveStamps.set(h.waveId, (waveStamps.get(h.waveId) ?? 0) + countStamps(h.entries));
   }
 
-  const boardCategories = timedCategories.map((c) => ({
+  const boardCategories = fields.map((c) => ({
     id: c.id,
     nameEn: c.nameEn,
     nameHe: c.nameHe,
-    heats: c.heats.map((h) => ({
+    heats: (heatsOfField.get(c.id) ?? []).map((h) => ({
       id: h.id,
       name: h.name,
       startTime: h.startTime ? h.startTime.toISOString() : null,
@@ -97,8 +103,8 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
   // heat card can say which wave it belongs to and which heats leave with it.
   const waves: BoardWave[] = [];
   const waveIndex = new Map<string, BoardWave>();
-  for (const c of timedCategories) {
-    for (const h of c.heats) {
+  for (const c of fields) {
+    for (const h of heatsOfField.get(c.id) ?? []) {
       if (!h.waveId) continue;
       let wave = waveIndex.get(h.waveId);
       if (!wave) {
@@ -114,6 +120,9 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
     <div className="space-y-6">
       {/* Reconcile placed heats with registration-tab group/competitor edits */}
       <SyncHeatsWithRoster />
+
+      {/* Race two age brackets as one category (before generating the schedule) */}
+      <MergeCategoriesPanel locale={locale} />
 
       <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5 space-y-3">
         <h2 className="font-semibold">{t('heatsTitle')}</h2>

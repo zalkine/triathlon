@@ -77,6 +77,29 @@ rosters are touched.
 > put into a fresh heat rather than squeezed into a combined wave, so a wave you
 > sized never grows behind your back.
 
+### Only a handful of children in each age bracket?
+
+Combining *starts* (above) puts two races in the pool together but still ranks
+them separately. If you'd rather the children **compete as one race** — one
+ranking, one podium — merge the age brackets instead:
+
+**ניהול תחרות → מקצים** → *איחוד שתי קבוצות גיל לקטגוריה אחת* → **אחדו לקטגוריה אחת**.
+
+Children's singles 6-9 and 9-12 then race as one "ילדים - יחידים" category:
+shared heats, a single ranked list, one set of places. The same is offered for
+the children's relay brackets.
+
+Only these pairs can be joined — the same race differing by age alone. You can't
+merge a relay into a solo race, and you can't merge מקצוענים with עממי (those
+are skill levels, not ages, so it would rank a beginner against a trained
+athlete). The app simply won't offer it.
+
+Nobody re-registers: everyone stays in the age bracket they signed up under,
+which is why **פיצול חזרה** (Split back) undoes it at any time. Do it **before**
+running the lottery — merging and splitting both clear the shared heats, so run
+**הרצת הגרלה ויצירת לוח זמנים** afterwards to rebuild them. Once any heat has been
+started, neither is allowed.
+
 ### Nine in one heat?
 
 Yes — the 8 is the number of lanes, not a rule the app forces on you. Drag a

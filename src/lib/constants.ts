@@ -72,5 +72,45 @@ export function categoryColorClass(key: string | null | undefined): string {
   return (key && CATEGORY_COLOR_CLASS[key]) || '';
 }
 
+// Which categories may be merged into a single racing category, and with whom.
+//
+// Two categories can be merged only when they are the same race differing by age
+// bracket alone — children's singles 6-9 with children's singles 9-12, or the
+// matching relay brackets. That keeps a merge fair: everyone in the merged field
+// is doing the same race over the same course, just from a different age band.
+// A category with no entry here can never be merged: professional and
+// intermediate are skill levels rather than age bands (merging them would rank a
+// beginner against a trained athlete), singles and relays are different races,
+// and the toddlers run isn't timed at all.
+export const MERGE_FAMILY: Record<string, string> = {
+  KIDS_6_9_SINGLE: 'KIDS_SINGLE',
+  KIDS_9_12_SINGLE: 'KIDS_SINGLE',
+  KIDS_6_9_TEAM: 'KIDS_TEAM',
+  KIDS_9_12_TEAM: 'KIDS_TEAM',
+};
+
+export function mergeFamilyOf(key: string): string | null {
+  return MERGE_FAMILY[key] ?? null;
+}
+
+/** Can these categories be raced as one? Needs 2+ of the same merge family. */
+export function canMergeCategories(keys: string[]): boolean {
+  if (keys.length < 2) return false;
+  const families = keys.map(mergeFamilyOf);
+  return families.every((f) => f !== null && f === families[0]);
+}
+
+// The name a merged category races under. The brackets differ only by their age
+// range, so dropping it from each name leaves the race itself — "Children –
+// Singles 6-9" + "Children – Singles 9-12" both reduce to "Children – Singles",
+// which is what the merged field is. If the names don't reduce to the same
+// thing (a category renamed by hand), fall back to naming both.
+export function mergedCategoryName(names: string[]): string {
+  const stripped = names.map((n) => n.replace(/[\s\u2013\u2014-]*\d+\s*[-\u2013]\s*\d+\s*$/, '').trim());
+  const first = stripped[0];
+  if (first && stripped.every((n) => n === first)) return first;
+  return names.join(' + ');
+}
+
 // Max competitors/teams scheduled into a single heat (pool holds 8 lanes at once).
 export const HEAT_CAPACITY = 8;

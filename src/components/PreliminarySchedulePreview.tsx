@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
-import { HEAT_CAPACITY, REGISTRATION_ONLY_CATEGORY_KEYS } from '@/lib/constants';
+import { HEAT_CAPACITY } from '@/lib/constants';
+import { racingCategories } from '@/lib/categories';
 import { chunk, computeEstimatedStarts } from '@/lib/schedule';
 import { formatClockHM, formatDateTimeInputValue } from '@/lib/time';
 import { setRaceStartTime, setHeatGapMinutes } from '@/actions/event';
@@ -10,24 +11,22 @@ export default async function PreliminarySchedulePreview({ locale }: { locale: s
 
   const [categories, settings] = await Promise.all([
     // Mirrors generateSchedule: registration-only categories (the toddlers fun
-    // run) get no heats, so they're left out of the estimate too.
-    prisma.category.findMany({
-      where: { key: { notIn: [...REGISTRATION_ONLY_CATEGORY_KEYS] } },
-      orderBy: { sortOrder: 'asc' },
-    }),
+    // run) get no heats, so they're left out of the estimate too, and age
+    // brackets an admin merged are estimated as the single field they race as.
+    racingCategories(),
     prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } }),
   ]);
 
-  // Count registrants and groups per category to estimate heat distribution.
+  // Count registrants and groups per racing field to estimate heat distribution.
   const counts = await Promise.all(
     categories.map(async (cat) => {
       if (cat.type === 'SINGLE') {
-        const total = await prisma.registrant.count({ where: { categoryId: cat.id } });
+        const total = await prisma.registrant.count({ where: { categoryId: { in: cat.memberIds } } });
         return { categoryId: cat.id, expectedEntries: total };
       } else {
         // Only admin-formed groups become heat entries; ungrouped registrants
         // are not auto-teamed, so they don't count towards the schedule.
-        const groups = await prisma.group.count({ where: { categoryId: cat.id } });
+        const groups = await prisma.group.count({ where: { categoryId: { in: cat.memberIds } } });
         return { categoryId: cat.id, expectedEntries: groups };
       }
     })

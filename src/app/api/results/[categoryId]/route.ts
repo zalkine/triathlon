@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCategoryResults } from '@/lib/ranking';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { racingCategories } from '@/lib/categories';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,11 +26,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cat
     return NextResponse.json({ error: 'not-found' }, { status: 404 });
   }
 
+  // A merged field is ranked and named as one, so report the merged name rather
+  // than the leading bracket's.
+  const fields = await racingCategories();
+  const field = fields.find((f) => f.id === result.category.id);
+
   return NextResponse.json({
     category: {
       id: result.category.id,
-      nameEn: result.category.nameEn,
-      nameHe: result.category.nameHe,
+      nameEn: field?.nameEn ?? result.category.nameEn,
+      nameHe: field?.nameHe ?? result.category.nameHe,
     },
     entries: result.ranked.map((e) => ({
       id: e.id,

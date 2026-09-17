@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
+import { racingCategories } from '@/lib/categories';
 import { toCsv, csvResponse } from '@/lib/csv';
 import { getCategoryResults } from '@/lib/ranking';
 import { formatClock, formatDuration } from '@/lib/time';
@@ -16,7 +16,9 @@ export async function GET() {
     return new Response('Forbidden', { status: 403 });
   }
 
-  const categories = await prisma.category.findMany({ orderBy: { sortOrder: 'asc' } });
+  // Merged age brackets are one ranked field, so they export as one block under
+  // the merged name rather than twice with two sets of places.
+  const categories = await racingCategories();
 
   const rows: (string | number | null)[][] = [
     [

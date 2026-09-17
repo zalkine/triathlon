@@ -28,6 +28,14 @@ model User {
   createdAt    DateTime @default(now())
 }
 
+// `mergedIntoId` lets an admin race two age brackets as one category: the
+// absorbed bracket points at the bracket that keeps the racing (the "primary"),
+// and from then on the pair is packed into shared heats and ranked as one field
+// — one result list, one podium. Only brackets that differ by age alone may be
+// merged (see MERGE_FAMILY in src/lib/constants.ts), so children's singles can
+// join children's singles but never a relay or an adult race. Registration is
+// untouched: a 7-year-old still registers as 6-9, which is what makes the merge
+// reversible by simply clearing this field.
 model Category {
   id                String       @id @default(cuid())
   key               String       @unique
@@ -36,9 +44,14 @@ model Category {
   type              String
   sortOrder         Int
   estDurationMinutes Float       @default(45)
+  mergedIntoId      String?
+  mergedInto        Category?    @relation("CategoryMerge", fields: [mergedIntoId], references: [id])
+  mergedFrom        Category[]   @relation("CategoryMerge")
   heats             Heat[]
   registrants       Registrant[]
   groups            Group[]
+
+  @@index([mergedIntoId])
 }
 
 // A heat always belongs to exactly one category, so results are always ranked

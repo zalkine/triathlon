@@ -4,7 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
 import { chunk, computeSlotStarts } from '@/lib/schedule';
-import { HEAT_CAPACITY, LEGS, isRegistrationOnlyCategory, type Leg } from '@/lib/constants';
+import { HEAT_CAPACITY, LEGS, type Leg } from '@/lib/constants';
+import { racingCategories } from '@/lib/categories';
 
 const LEG_FIELD: Record<Leg, 'swimRegistrantId' | 'bikeRegistrantId' | 'runRegistrantId'> = {
   SWIM: 'swimRegistrantId',
@@ -158,16 +159,20 @@ function topUpTargets<T extends { waveId: string | null }>(heats: T[]): T[] {
   return heats.filter((h) => !h.waveId);
 }
 
-// Pack a TEAM category's groups into as few heats as possible (HEAT_CAPACITY per
+// Pack a TEAM field's groups into as few heats as possible (HEAT_CAPACITY per
 // heat), named Heat 1..N. Before timing starts we rebuild the heats from scratch
 // so incremental additions never fragment into many half-empty heats or collide
 // on names. Once timing has started we leave placed teams (and their times)
 // alone and only fill spare lanes / append heats for any new groups.
-async function packTeamCategory(categoryId: string) {
+//
+// `memberIds` is every category racing in this field: one category normally, but
+// several when an admin has merged age brackets — then their teams are packed
+// together into shared heats, which all belong to the primary (`categoryId`).
+async function packTeamGroup(categoryId: string, memberIds: string[]) {
   const [groups, heats, regs] = await Promise.all([
-    prisma.group.findMany({ where: { categoryId }, orderBy: { createdAt: 'asc' } }),
-    prisma.heat.findMany({ where: { categoryId }, include: { entries: true }, orderBy: { createdAt: 'asc' } }),
-    prisma.registrant.findMany({ where: { categoryId } }),
+    prisma.group.findMany({ where: { categoryId: { in: memberIds } }, orderBy: { createdAt: 'asc' } }),
+    prisma.heat.findMany({ where: { categoryId: { in: memberIds } }, include: { entries: true }, orderBy: { createdAt: 'asc' } }),
+    prisma.registrant.findMany({ where: { categoryId: { in: memberIds } } }),
   ]);
   const nameOf = new Map(regs.map((r) => [r.id, r.name]));
   // Empty groups (every leg cleared, e.g. a dismantled team) aren't scheduled —
@@ -175,8 +180,8 @@ async function packTeamCategory(categoryId: string) {
   const activeGroups = groups.filter((g) => g.swimRegistrantId || g.bikeRegistrantId || g.runRegistrantId);
 
   if (!isPinned(heats)) {
-    if (heats.length > 0) await prisma.heat.deleteMany({ where: { categoryId } });
-    await prisma.group.updateMany({ where: { categoryId }, data: { entryId: null } });
+    if (heats.length > 0) await prisma.heat.deleteMany({ where: { categoryId: { in: memberIds } } });
+    await prisma.group.updateMany({ where: { categoryId: { in: memberIds } }, data: { entryId: null } });
     const chunks = chunk(activeGroups, HEAT_CAPACITY);
     for (let i = 0; i < chunks.length; i++) {
       const heat = await prisma.heat.create({ data: { categoryId, name: `Heat ${i + 1}` } });
@@ -202,11 +207,12 @@ async function packTeamCategory(categoryId: string) {
   }
 }
 
-// Same compact packing for a SINGLE category (one entry per solo competitor).
-async function packSingleCategory(categoryId: string) {
+// Same compact packing for a SINGLE field (one entry per solo competitor), over
+// every category racing in it — merged age brackets share the heats.
+async function packSingleGroup(categoryId: string, memberIds: string[]) {
   const [registrants, heats] = await Promise.all([
-    prisma.registrant.findMany({ where: { categoryId }, orderBy: { createdAt: 'asc' } }),
-    prisma.heat.findMany({ where: { categoryId }, include: { entries: true }, orderBy: { createdAt: 'asc' } }),
+    prisma.registrant.findMany({ where: { categoryId: { in: memberIds } }, orderBy: { createdAt: 'asc' } }),
+    prisma.heat.findMany({ where: { categoryId: { in: memberIds } }, include: { entries: true }, orderBy: { createdAt: 'asc' } }),
   ]);
 
   const addSolo = async (heatId: string, r: { id: string; name: string }) => {
@@ -215,8 +221,8 @@ async function packSingleCategory(categoryId: string) {
   };
 
   if (!isPinned(heats)) {
-    if (heats.length > 0) await prisma.heat.deleteMany({ where: { categoryId } });
-    await prisma.registrant.updateMany({ where: { categoryId }, data: { entryId: null } });
+    if (heats.length > 0) await prisma.heat.deleteMany({ where: { categoryId: { in: memberIds } } });
+    await prisma.registrant.updateMany({ where: { categoryId: { in: memberIds } }, data: { entryId: null } });
     const chunks = chunk(registrants, HEAT_CAPACITY);
     for (let i = 0; i < chunks.length; i++) {
       const heat = await prisma.heat.create({ data: { categoryId, name: `Heat ${i + 1}` } });
@@ -259,11 +265,11 @@ export async function generateSchedule(locale: string) {
   await requireRole('ADMIN');
 
   const settings = await prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } });
-  // Registration-only categories (the toddlers fun run) are never scheduled:
-  // they have no heats, no start times and no timing.
-  const categories = (await prisma.category.findMany({ orderBy: { sortOrder: 'asc' } })).filter(
-    (c) => !isRegistrationOnlyCategory(c.key)
-  );
+  // The fields that actually race, in race order. Registration-only categories
+  // (the toddlers fun run) are never scheduled — no heats, no start times, no
+  // timing — and age brackets an admin has merged come back as a single field,
+  // so they are packed into shared heats and scheduled once.
+  const categories = await racingCategories();
   // Use the admin-configured start time if it's in the future; otherwise fall back to now+5 min.
   const raceStartTime =
     settings.raceStartTime && settings.raceStartTime > new Date()
@@ -272,9 +278,9 @@ export async function generateSchedule(locale: string) {
 
   for (const category of categories) {
     if (category.type === 'TEAM') {
-      await packTeamCategory(category.id);
+      await packTeamGroup(category.id, category.memberIds);
     } else {
-      await packSingleCategory(category.id);
+      await packSingleGroup(category.id, category.memberIds);
     }
   }
 
@@ -285,9 +291,13 @@ export async function generateSchedule(locale: string) {
   // the running order of its earliest category, which for an uncombined field
   // reproduces exactly the old order: every category's heats back to back, in
   // category order.
-  const orderOfCategory = new Map(categories.map((c, i) => [c.id, i]));
+  // Map every category — a primary or a bracket merged into one — to the field
+  // it races in, so a heat left under an absorbed bracket is still scheduled
+  // with its field rather than dropped.
+  const orderOfCategory = new Map<string, number>();
+  categories.forEach((c, i) => c.memberIds.forEach((id) => orderOfCategory.set(id, i)));
   const heats = await prisma.heat.findMany({
-    where: { categoryId: { in: categories.map((c) => c.id) } },
+    where: { categoryId: { in: [...orderOfCategory.keys()] } },
     orderBy: { createdAt: 'asc' },
   });
 

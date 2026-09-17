@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
+import { racingCategories } from '@/lib/categories';
 import { Link } from '@/i18n/navigation';
 import { deleteEntry } from '@/actions/entries';
 import { deleteHeat } from '@/actions/heats';
@@ -38,11 +39,18 @@ export default async function HeatDetailPage({
     include: { category: true },
     orderBy: [{ category: { sortOrder: 'asc' } }, { createdAt: 'asc' }],
   });
+  // Label heats by the field they race in, so a heat of merged age brackets
+  // reads as the merged race rather than the leading bracket.
+  const fields = await racingCategories();
+  const fieldName = new Map<string, { nameEn: string; nameHe: string }>();
+  for (const f of fields) for (const id of f.memberIds) fieldName.set(id, { nameEn: f.nameEn, nameHe: f.nameHe });
+  const labelOf = (c: { id: string; nameEn: string; nameHe: string }) => fieldName.get(c.id) ?? c;
+
   const moveOptions = otherHeats.map((h) => ({
     id: h.id,
     name: h.name,
-    nameEn: h.category.nameEn,
-    nameHe: h.category.nameHe,
+    nameEn: labelOf(h.category).nameEn,
+    nameHe: labelOf(h.category).nameHe,
   }));
 
   // Heats this one was combined with: they are sent off by a single gun, so the
@@ -75,7 +83,9 @@ export default async function HeatDetailPage({
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-ink-light">{locale === 'he' ? heat.category.nameHe : heat.category.nameEn}</p>
+          <p className="text-sm text-ink-light">
+            {locale === 'he' ? labelOf(heat.category).nameHe : labelOf(heat.category).nameEn}
+          </p>
           <h1 className="text-2xl font-bold">{formatHeatName(heat.name, locale)}</h1>
         </div>
         <ConfirmForm action={deleteHeatAction} confirmMessage={t('confirmDeleteHeat')}>
@@ -89,7 +99,7 @@ export default async function HeatDetailPage({
         <p className="rounded-2xl bg-swim/15 px-4 py-3 text-sm font-medium text-swim-dark">
           🔗 {t('combinedStartNotice')}:{' '}
           {waveHeats
-            .map((h) => `${locale === 'he' ? h.category.nameHe : h.category.nameEn} · ${formatHeatName(h.name, locale)}`)
+            .map((h) => `${locale === 'he' ? labelOf(h.category).nameHe : labelOf(h.category).nameEn} · ${formatHeatName(h.name, locale)}`)
             .join(' · ')}
         </p>
       )}

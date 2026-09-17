@@ -7,6 +7,17 @@ import { prisma } from '@/lib/db';
 import { requireRole, requireSession } from '@/lib/auth';
 import { HEAT_CAPACITY } from '@/lib/constants';
 import { waveHeatIds } from '@/lib/heats';
+import { racingCategoryId } from '@/lib/categories';
+
+// The category a heat should be filed under: the one given, unless it has been
+// merged into another field, in which case that field owns the heats.
+async function racingCategoryFor(categoryId: string): Promise<string> {
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+    select: { id: true, mergedIntoId: true },
+  });
+  return category ? racingCategoryId(category) : categoryId;
+}
 
 // --- Combined starts (waves) ----------------------------------------------
 // Heats sharing a `waveId` are one wave: they are shown as a single card at the
@@ -35,7 +46,10 @@ export async function createHeat(locale: string, formData: FormData) {
   const name = String(formData.get('name') || '').trim();
   if (!categoryId || !name) throw new Error('categoryId and name are required');
 
-  const heat = await prisma.heat.create({ data: { categoryId, name } });
+  // Heats belong to the field that races. If this bracket has been merged into
+  // another, the heat goes to the category that field races under, so it can't
+  // strand competitors in a bracket nothing reads any more.
+  const heat = await prisma.heat.create({ data: { categoryId: await racingCategoryFor(categoryId), name } });
   revalidatePath(`/${locale}/staff/manage`);
   redirect(`/${locale}/staff/manage/heats/${heat.id}`);
 }
@@ -52,11 +66,13 @@ export async function deleteHeat(locale: string, heatId: string) {
 // Create an extra heat in a category on the spot (admin or start-line timekeeper),
 // e.g. when moving competitors around needs somewhere to put them. Auto-named
 // "Heat N". Returns the id so the caller can drop competitors into it.
-export async function createHeatForCategory(categoryId: string) {
+export async function createHeatForCategory(requestedCategoryId: string) {
   const session = await requireSession();
   if (session.role !== 'ADMIN' && session.role !== 'TIMEKEEPER') throw new Error('FORBIDDEN');
-  const category = await prisma.category.findUnique({ where: { id: categoryId } });
+  const category = await prisma.category.findUnique({ where: { id: requestedCategoryId } });
   if (!category) return { error: 'no-category' as const };
+  // As in createHeat: a merged bracket's heats live under the field it races in.
+  const categoryId = category.mergedIntoId ?? category.id;
   const count = await prisma.heat.count({ where: { categoryId } });
   const heat = await prisma.heat.create({ data: { categoryId, name: `Heat ${count + 1}` } });
   revalidatePath('/', 'layout');

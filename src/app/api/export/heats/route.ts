@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
+import { racingCategories } from '@/lib/categories';
 import { toCsv, csvResponse } from '@/lib/csv';
 import { formatClock } from '@/lib/time';
 
@@ -12,15 +13,17 @@ export async function GET() {
     return new Response('Forbidden', { status: 403 });
   }
 
-  const categories = await prisma.category.findMany({
-    orderBy: { sortOrder: 'asc' },
-    include: {
-      heats: {
-        orderBy: [{ estimatedStart: 'asc' }, { createdAt: 'asc' }],
-        include: { entries: { orderBy: { createdAt: 'asc' }, include: { members: true } } },
-      },
-    },
+  // Export by racing field: merged age brackets are one race, so their heats
+  // appear once under the merged name rather than split across two blocks.
+  const fields = await racingCategories();
+  const heatRows = await prisma.heat.findMany({
+    orderBy: [{ estimatedStart: 'asc' }, { createdAt: 'asc' }],
+    include: { entries: { orderBy: { createdAt: 'asc' }, include: { members: true } } },
   });
+  const categories = fields.map((f) => ({
+    ...f,
+    heats: heatRows.filter((h) => f.memberIds.includes(h.categoryId)),
+  }));
 
   // Number the combined starts so the sheet shows which heats leave together;
   // an uncombined heat leaves the column blank.

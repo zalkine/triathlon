@@ -364,7 +364,18 @@
     "combineOverCapacity": "Combined, these heats put {total} competitors in the pool — more than the {capacity} lanes. Combine anyway?",
     "combineStartedError": "A heat that has already been sent off can't be combined. Cancel its start first.",
     "combineFailed": "Those heats could not be combined.",
-    "combinedStartNotice": "Combined start — this heat goes off, and is cancelled, together with"
+    "combinedStartNotice": "Combined start — this heat goes off, and is cancelled, together with",
+    "mergeCategoriesTitle": "Race two age brackets as one category",
+    "mergeCategoriesHint": "Only a few children in each age bracket? Race them as a single category — one field, one ranking, one podium. Only brackets of the same race can be joined (children’s singles with children’s singles), never a relay with a solo race or a child with an adult. Everyone still registers in their real age bracket, so this can be undone at any time. Do it before generating the schedule; afterwards run the lottery again so they are packed into shared heats.",
+    "mergeCategoriesAction": "Race as one",
+    "unmergeCategories": "Split back",
+    "racingAsOne": "Racing as one",
+    "mergeWouldRaceAs": "Would race as “{merged}”",
+    "confirmMergeCategories": "Race {brackets} as a single “{merged}” category? They will share heats and be ranked together in one list, so there is one set of places for the merged field. Nobody has to re-register, and you can split them back later.",
+    "confirmUnmergeCategories": "Split {brackets} back into separate categories, each ranked on its own again? Nobody has to re-register — but the shared heats are cleared, so run the lottery again to rebuild them.",
+    "mergeAlreadyTimed": "This can’t be changed once timing has started — merging rebuilds the heats and re-ranks the results. Cancel the starts first if you really need to.",
+    "mergeNotSameFamily": "Only age brackets of the same race can be merged.",
+    "mergeFailed": "Those categories could not be merged."
   },
   "info": {
     "title": "Rules & Trails",
