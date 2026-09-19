@@ -21,6 +21,8 @@
  * That is a dry run: it prints what it would change and writes nothing. Check
  * the before/after, then repeat it with --apply. Add --leg SWIM|BIKE|RUN to name
  * the leg explicitly; by default it uses the leg the archive has that person on.
+ * If the same person raced more than once that year — a relay and a solo, say —
+ * add --team "<part of the team name>" to say which entry is meant.
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -30,12 +32,6 @@ const prisma = new PrismaClient();
 
 const LEGS = ['SWIM', 'BIKE', 'RUN'] as const;
 type Leg = (typeof LEGS)[number];
-const STAMP: Record<Leg, 'swimTime' | 'bikeTime' | 'runTime'> = {
-  SWIM: 'swimTime',
-  BIKE: 'bikeTime',
-  RUN: 'runTime',
-};
-
 type ArchivedMember = { name: string; leg: string | null };
 type ArchivedEntry = {
   id: string;
@@ -76,7 +72,9 @@ async function main() {
   const apply = process.argv.includes('--apply');
 
   if (!Number.isInteger(year) || !name || !splitRaw) {
-    console.error('Usage: --year <year> --name "<competitor>" --split <m:ss> [--leg SWIM|BIKE|RUN] [--apply]');
+    console.error(
+      'Usage: --year <year> --name "<competitor>" --split <m:ss> [--team "<team name>"] [--leg SWIM|BIKE|RUN] [--apply]'
+    );
     process.exit(1);
   }
   const newSplit = parseSeconds(splitRaw);
@@ -99,9 +97,12 @@ async function main() {
   const heats = season.heats ?? [];
 
   // Find them: a relay leg carrying the name, or a solo competitor of that name.
+  // `--team` narrows it when the same person raced twice that year.
+  const team = (arg('team') ?? '').trim();
   const matches = heats.flatMap((heat) =>
     (heat.entries ?? [])
       .filter((entry) => entry.name.trim() === name || (entry.members ?? []).some((m) => m.name.trim() === name))
+      .filter((entry) => !team || entry.name.includes(team))
       .map((entry) => ({ heat, entry }))
   );
 
@@ -110,7 +111,7 @@ async function main() {
     process.exit(1);
   }
   if (matches.length > 1) {
-    console.error(`"${name}" appears in ${matches.length} entries in ${year}; this script corrects one:`);
+    console.error(`"${name}" appears in ${matches.length} entries in ${year}; say which with --team "<part of the name>":`);
     for (const m of matches) console.error(`  - ${m.entry.name} (${m.heat.name})`);
     process.exit(1);
   }
