@@ -120,6 +120,28 @@ pool, so 4 + 5 across a combined wave asks too. Anyone marked as not here
 Once you've confirmed a heat of nine, **re-running the lottery leaves it alone** —
 that category is no longer repacked, so your arrangement stands.
 
+### Someone registered after you built the heats?
+
+A team or competitor who signs up once the heats exist has nowhere to appear on
+its own — this is the usual reason the number of קבוצות on the Registration tab
+is higher than the number showing in the מקצים.
+
+The Heats tab shows them in an orange box, **רשומים אך לא משובצים למקצה**
+(registered but not in a heat), listing each one with its legs. From there:
+
+- **שבצו את כל הממתינים למקצים** — fills the spare lanes in the heats you already
+  have, then adds heats for whoever is left.
+- Or place them one at a time with **שבצו למקצה…**, choosing the heat yourself.
+
+Neither moves, renames or rebuilds anything you have already arranged, so it is
+safe to press at any point. You do **not** need to run
+**הרצת הגרלה ויצירת לוח זמנים** for this — that button rebuilds the whole running
+order, which is exactly what you don't want once you have arranged it by hand.
+
+> If someone of the same name is already in a heat (typed in by hand at the start
+> line, say), they're flagged rather than placed automatically, so nobody ends up
+> in the race twice. Place those yourself after checking.
+
 ### Printing and downloading the lists
 
 Everything the admin sees can be downloaded from **ניהול תחרות**:

@@ -9,6 +9,7 @@ import UnassignedRegistrants from '@/components/UnassignedRegistrants';
 import HeatsBoard, { type BoardWave } from './HeatsBoard';
 import SyncHeatsWithRoster from './SyncHeatsWithRoster';
 import MergeCategoriesPanel from './MergeCategoriesPanel';
+import WaitingForHeatsPanel from './WaitingForHeatsPanel';
 import CsvLink from './CsvLink';
 
 export default async function HeatsPanel({ locale }: { locale: string }) {
@@ -145,6 +146,9 @@ export default async function HeatsPanel({ locale }: { locale: string }) {
           )}
         </div>
       </div>
+
+      {/* Registered but not in any heat — placeable without the generator */}
+      <WaitingForHeatsPanel locale={locale} />
 
       <HeatsBoard categories={boardCategories} waves={waves} />
 

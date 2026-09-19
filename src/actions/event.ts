@@ -6,6 +6,7 @@ import { requireRole } from '@/lib/auth';
 import { chunk, computeSlotStarts } from '@/lib/schedule';
 import { HEAT_CAPACITY, LEGS, type Leg } from '@/lib/constants';
 import { racingCategories } from '@/lib/categories';
+import { createGroupEntry, createSoloEntry, isActiveGroup, topUpTargets } from '@/lib/placement';
 
 const LEG_FIELD: Record<Leg, 'swimRegistrantId' | 'bikeRegistrantId' | 'runRegistrantId'> = {
   SWIM: 'swimRegistrantId',
@@ -101,30 +102,6 @@ export async function setHeatGapMinutes(locale: string, formData: FormData) {
   revalidatePath(`/${locale}/staff/manage`);
 }
 
-type GroupRow = { id: string; swimRegistrantId: string | null; bikeRegistrantId: string | null; runRegistrantId: string | null };
-
-// Create one heat entry (with its three leg members) for a relay group and link
-// the group to it. An open leg becomes a "—" placeholder the admin can fill later.
-async function createGroupEntry(heatId: string, group: GroupRow, nameOf: Map<string, string>) {
-  const legMembers = (
-    [
-      ['SWIM', group.swimRegistrantId],
-      ['BIKE', group.bikeRegistrantId],
-      ['RUN', group.runRegistrantId],
-    ] as const
-  ).map(([leg, registrantId]) => ({
-    leg,
-    registrantId,
-    name: registrantId ? nameOf.get(registrantId) ?? '?' : '—',
-  }));
-  const memberNames = [...new Set(legMembers.filter((m) => m.registrantId).map((m) => m.name))].join(' / ') || '—';
-  const entry = await prisma.entry.create({ data: { heatId, name: memberNames } });
-  await prisma.member.createMany({
-    data: legMembers.map((m) => ({ entryId: entry.id, name: m.name, leg: m.leg, registrantId: m.registrantId })),
-  });
-  await prisma.group.update({ where: { id: group.id }, data: { entryId: entry.id } });
-}
-
 // A category is "pinned" once its heats must not be thrown away and rebuilt:
 //   - timing has begun (a heat was started or a leg time recorded) — rebuilding
 //     would lose the times;
@@ -150,15 +127,6 @@ function isPinned(
   );
 }
 
-// Heats a late arrival may be dropped into. A heat combined into a shared start
-// is skipped: the admin sized that wave against the other categories sharing the
-// pool with it, and this category can't see those lanes from here — so a
-// newcomer goes into a fresh heat at the end of the category rather than
-// quietly pushing a combined wave past the pool's capacity.
-function topUpTargets<T extends { waveId: string | null }>(heats: T[]): T[] {
-  return heats.filter((h) => !h.waveId);
-}
-
 // Pack a TEAM field's groups into as few heats as possible (HEAT_CAPACITY per
 // heat), named Heat 1..N. Before timing starts we rebuild the heats from scratch
 // so incremental additions never fragment into many half-empty heats or collide
@@ -177,7 +145,7 @@ async function packTeamGroup(categoryId: string, memberIds: string[]) {
   const nameOf = new Map(regs.map((r) => [r.id, r.name]));
   // Empty groups (every leg cleared, e.g. a dismantled team) aren't scheduled —
   // they'd only make an all-"—" junk entry. They stay as an editable blank row.
-  const activeGroups = groups.filter((g) => g.swimRegistrantId || g.bikeRegistrantId || g.runRegistrantId);
+  const activeGroups = groups.filter(isActiveGroup);
 
   if (!isPinned(heats)) {
     if (heats.length > 0) await prisma.heat.deleteMany({ where: { categoryId: { in: memberIds } } });
@@ -215,18 +183,13 @@ async function packSingleGroup(categoryId: string, memberIds: string[]) {
     prisma.heat.findMany({ where: { categoryId: { in: memberIds } }, include: { entries: true }, orderBy: { createdAt: 'asc' } }),
   ]);
 
-  const addSolo = async (heatId: string, r: { id: string; name: string }) => {
-    const entry = await prisma.entry.create({ data: { heatId, name: r.name } });
-    await prisma.registrant.update({ where: { id: r.id }, data: { entryId: entry.id } });
-  };
-
   if (!isPinned(heats)) {
     if (heats.length > 0) await prisma.heat.deleteMany({ where: { categoryId: { in: memberIds } } });
     await prisma.registrant.updateMany({ where: { categoryId: { in: memberIds } }, data: { entryId: null } });
     const chunks = chunk(registrants, HEAT_CAPACITY);
     for (let i = 0; i < chunks.length; i++) {
       const heat = await prisma.heat.create({ data: { categoryId, name: `Heat ${i + 1}` } });
-      for (const r of chunks[i]) await addSolo(heat.id, r);
+      for (const r of chunks[i]) await createSoloEntry(heat.id, r);
     }
     return;
   }
@@ -237,14 +200,14 @@ async function packSingleGroup(categoryId: string, memberIds: string[]) {
   for (const h of topUpTargets(heats)) {
     let free = HEAT_CAPACITY - h.entries.length;
     while (free > 0 && idx < pending.length) {
-      await addSolo(h.id, pending[idx++]);
+      await createSoloEntry(h.id, pending[idx++]);
       free--;
     }
   }
   const chunks = chunk(pending.slice(idx), HEAT_CAPACITY);
   for (let i = 0; i < chunks.length; i++) {
     const heat = await prisma.heat.create({ data: { categoryId, name: `Heat ${heats.length + i + 1}` } });
-    for (const r of chunks[i]) await addSolo(heat.id, r);
+    for (const r of chunks[i]) await createSoloEntry(heat.id, r);
   }
 }
 

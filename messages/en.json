@@ -209,7 +209,7 @@
     "showResults": "Show to public",
     "generateSchedule": "Arrange heats & schedule",
     "generateScheduleConfirm": "Pack all groups and solos into compact heats (up to 8 each) and build the schedule? Heats in a category with no recorded times are reorganised; heats that have already started are left unchanged.",
-    "unscheduledHint": "{count} groups/solos aren't in a heat yet — press \"Arrange heats & schedule\" to place them.",
+    "unscheduledHint": "{count} groups/solos aren’t in a heat yet — place them below, or press \"Arrange heats & schedule\".",
     "scheduleGeneratedAt": "Schedule generated at {time}",
     "activateCompetition": "Activate Competition",
     "activateConfirm": "Activate the competition? Timing stations go live for all timekeepers.",
@@ -378,7 +378,16 @@
     "mergeFailed": "Those categories could not be merged.",
     "exportTeams": "Relay teams",
     "exportWorkbook": "All lists (Excel)",
-    "exportWorkbookHint": "One .xlsx — competitors, teams, heats, results, contacts"
+    "exportWorkbookHint": "One .xlsx — competitors, teams, heats, results, contacts",
+    "waitingForHeatsTitle": "Registered but not in a heat",
+    "waitingForHeatsHint": "These teams and competitors are registered but have no place in a heat — usually because they signed up after the heats were built. Place them into a heat below, or press the button to fill the spare lanes automatically. Nothing already arranged is moved or renamed.",
+    "placeAllWaiting": "Place everyone waiting into heats",
+    "placeAllInField": "Place all in this race",
+    "placeIntoHeat": "Place into heat…",
+    "noHeatsYetHint": "Add a heat first",
+    "maybeAlreadyPlaced": "Someone of this name is already in a heat — check before placing",
+    "confirmPlaceDuplicate": "A heat already holds an entry called \"{name}\". Place them anyway?",
+    "waitingNonePlaced": "Nobody was placed — the ones left are flagged as possibly already in a heat, so place them one by one."
   },
   "info": {
     "title": "Rules & Trails",

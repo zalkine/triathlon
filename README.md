@@ -86,6 +86,14 @@ Categories that only drew three or four competitors would each take a whole turn
 - the schedule gives the wave **one slot**, lasting as long as the slowest category in it, and tells competitors which other races share their start;
 - **nothing about results changes** — a heat still belongs to exactly one category, so every competitor is ranked only within their own category. Combining is purely about who is in the water together.
 
+### Placing competitors without the schedule generator
+
+`generateSchedule` packs a whole field at once, which is right before the event and wrong after it: an admin who has arranged the running order by hand loses it to a rebuild. Anyone who registers after the heats are built therefore has no way to reach a heat — the gap that makes the Registration tab's group count exceed what the Heats board shows.
+
+The Heats tab lists them under **Registered but not in a heat** (`waitingForHeats` in `src/lib/placement.ts`), and `src/actions/placement.ts` places them: `placeWaitingCompetitors` fills the spare lanes of existing heats and then appends heats for the rest, `placeInHeat` puts one team or competitor into a chosen heat, and `addHeatToField` makes somewhere to put them. All three only ever *add* — no existing heat or entry is moved, renamed or deleted — and they share the pool-capacity guard, so overfilling still takes a confirmation.
+
+Placement helpers live in `src/lib/placement.ts` and are shared with `generateSchedule`, so a heat entry is created identically whichever route places it. A competitor whose name already appears in a heat of the same field is flagged rather than placed automatically, so a bulk press can't enter someone twice.
+
 ### Racing two age brackets as one category
 
 Different from a combined start: that puts two categories in the water together but keeps their rankings apart. **Merging** makes them one race — one field, one ranked list, one podium.
