@@ -339,9 +339,18 @@ What is **not** touched: the מקצים line-up (only age-bracket merges are und
 staff accounts, contacts, the trail pages and the Hall of Fame. The competition
 info page is unpublished, since it describes a competition that is over.
 
-**Found a mistake after closing?** The results can be edited on the
-**היכל התהילה** tab like any other year. Everything else lives in the archive in
-the database — ask for help if you need something changed there.
+**Found a wrong time after closing?** — a leg that was mis-stamped, spotted on
+the photos or from a competitor who knows what they ran. On
+**ניהול תחרות → היכל התהילה** there is **תיקון זמן בתחרות שנסגרה** (Correct a
+time in a closed competition): choose the year, type the competitor's name and
+the correct leg time, and press **הראו לי מה ישתנה**. It shows the three legs and
+the total, before and after, and saves nothing yet. If the numbers are right,
+press **עדכון ופרסום** — the leg, the total, the placings, the records and the
+medal table all update together, and the public page changes straight away.
+
+Anything else about a closed year — a name, a category — is edited on the same
+tab like any other year's result. Everything the competition held is kept in the
+archive in the database; ask for help if you need something changed there.
 
 ### Starting the next year
 Open registration on **ניהול תחרות → הרשמה**. That is what tells the site a new

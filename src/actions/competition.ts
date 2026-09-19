@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
 import { importResultsToHof } from '@/lib/hofImport';
+import { correctArchivedLegTime, parseSplitSeconds, type CorrectionOutcome } from '@/lib/archiveFix';
+import { LEGS, type Leg } from '@/lib/constants';
 import { competitionYear, resultsPubliclyVisible } from '@/lib/season';
 
 export type CloseCompetitionResult = { ok?: true; year?: number; error?: string };
@@ -129,4 +131,36 @@ export async function closeCompetition(locale: string, formData: FormData): Prom
 
   revalidatePath('/', 'layout');
   return { ok: true, year };
+}
+
+/**
+ * Correct one leg time in a closed competition, from the admin's Hall of Fame
+ * tab. Two presses: the first previews what would change, the second applies it.
+ *
+ * The correction goes into the year's archive — the snapshot the Hall of Fame is
+ * rebuilt from — and the year is re-imported, so the split, the total, the
+ * ranking, the records and the medal table all move together. Editing the Hall
+ * of Fame row on its own would be undone by the next re-import.
+ */
+export async function fixArchivedLegTime(
+  locale: string,
+  formData: FormData
+): Promise<CorrectionOutcome | { error: 'year' | 'competitor' | 'split' }> {
+  await requireRole('ADMIN');
+
+  const year = parseInt(String(formData.get('year') || ''), 10);
+  if (!Number.isInteger(year)) return { error: 'year' };
+  const competitor = String(formData.get('competitor') || '').trim();
+  if (!competitor) return { error: 'competitor' };
+  const newSplitSeconds = parseSplitSeconds(String(formData.get('split') || ''));
+  if (newSplitSeconds == null) return { error: 'split' };
+
+  const legRaw = String(formData.get('leg') || '').toUpperCase();
+  const leg = (LEGS as readonly string[]).includes(legRaw) ? (legRaw as Leg) : null;
+  const team = String(formData.get('team') || '').trim() || null;
+  const apply = formData.get('apply') === 'true';
+
+  const outcome = await correctArchivedLegTime({ year, competitor, newSplitSeconds, leg, team, apply });
+  if (apply && 'ok' in outcome) revalidatePath('/', 'layout');
+  return outcome;
 }

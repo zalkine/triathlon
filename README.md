@@ -194,17 +194,20 @@ there is deliberately no editor for a closed year.
 A wrong *time* is corrected in the **archive**, not in `HistoricalResult`. The
 archive is what a re-import rebuilds the year from, so a Hall of Fame row edited
 directly would be quietly undone the next time the year was re-imported.
-`prisma/fix-archived-leg-time.ts` does it properly:
 
-```
-npx tsx prisma/fix-archived-leg-time.ts --year 2026 --name "<competitor>" --split 7:10
-```
+**Correct a time in a closed competition** on the admin's Hall of Fame tab does
+it properly: name the competitor and the corrected leg time, and it shows the
+before and after — the three legs and the total — with nothing written until the
+admin presses again. Applying corrects the archived leg time and re-imports the
+year, so the split, the total, the ranking, the all-time records and the medal
+table all move together. Only the named leg's stamp changes; the legs after it
+keep the durations they were measured at, so the total moves by exactly the
+correction.
 
-It prints the before and after and writes nothing until it is re-run with
-`--apply`, which corrects the archived leg time and re-imports the year — so the
-split, the total, the ranking, the all-time records and the medal table all move
-together. Only the named leg's stamp changes; the legs after it keep the
-durations they were measured at, so the total moves by exactly the correction.
+The same correction is available from a terminal as
+`prisma/fix-archived-leg-time.ts` (`--year`, `--name`, `--split`, then `--apply`),
+for one being scripted or made against a database directly. Both go through
+`correctArchivedLegTime` in `src/lib/archiveFix.ts`, so they cannot drift apart.
 
 The archive is a JSON snapshot rather than a set of mirror tables on purpose:
 nothing in the app reads it, so mirror tables would only drift away from the live
