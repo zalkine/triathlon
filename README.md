@@ -188,9 +188,23 @@ available once the results are published). `closeCompetition` in
 4. records the year in `EventSettings.closedYear`.
 
 **Nothing is deleted from the database** — that is what the archive is for. A
-mistake found afterwards is corrected in SQL: the results in `HistoricalResult`
-(an ordinary table), everything else in the archive row's JSON snapshot. There
-is deliberately no screen for editing a closed year.
+mistake found afterwards is corrected in the database rather than on a screen:
+there is deliberately no editor for a closed year.
+
+A wrong *time* is corrected in the **archive**, not in `HistoricalResult`. The
+archive is what a re-import rebuilds the year from, so a Hall of Fame row edited
+directly would be quietly undone the next time the year was re-imported.
+`prisma/fix-archived-leg-time.ts` does it properly:
+
+```
+npx tsx prisma/fix-archived-leg-time.ts --year 2026 --name "<competitor>" --split 7:10
+```
+
+It prints the before and after and writes nothing until it is re-run with
+`--apply`, which corrects the archived leg time and re-imports the year — so the
+split, the total, the ranking, the all-time records and the medal table all move
+together. Only the named leg's stamp changes; the legs after it keep the
+durations they were measured at, so the total moves by exactly the correction.
 
 The archive is a JSON snapshot rather than a set of mirror tables on purpose:
 nothing in the app reads it, so mirror tables would only drift away from the live
