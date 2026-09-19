@@ -263,22 +263,42 @@ fix it here, before you approve:
   change follows through to the public results, the downloads and היכל התהילה on
   its own.
 
-### 2. Check the times, then approve
-Tap any time to correct it against the camera or the manual record; the ranking
-re-sorts itself. When the list is right, tap **אישור תוצאות** (Approve results).
+### 2. Fix anything else that's wrong
+The whole results screen is yours to correct before you publish:
 
-### 3. Publish
+- **A time** — tap the **שחייה / רכיבה / סיום** (swim / bike / finish) time on the
+  row and set it against the camera or the manual record.
+- **A heat's start** — **זמני זינוק של המקצים** above each table. Every total is
+  the finish minus the heat's start, so this re-times everyone in that heat at
+  once (and every heat that was sent off with it).
+- **Someone who shouldn't be ranked** — **הוצאה מהתוצאות** (Take out of the
+  results) on their row. They keep their place in the heat and their times, and
+  they move to **מחוץ לתוצאות** at the foot of the table.
+- **Someone wrongly left out** — anyone scratched at the start line is listed
+  under **מחוץ לתוצאות**; **החזרה לתוצאות** (Put back in the results) brings them
+  back into the ranking.
+- **Someone missing from the heat entirely, or in the wrong heat** — tap the heat
+  name under their name to open that heat, where you can add, move or delete.
+
+**מקום** (Rank), **זמן כולל** (Total) and **סטטוס** (Status) are not typed in —
+they are calculated from the times, so they can never disagree with the clock.
+Fix a time and they re-sort themselves.
+
+### 3. Approve
+When the list is right, tap **אישור תוצאות** (Approve results).
+
+### 4. Publish
 Results reach the public only when **both** are set: **אישור** = מאושר (Approved)
 and **תוצאות לציבור** = מוצגות (Shown). The panel says
 **✓ התוצאות גלויות לציבור** when they are live. Revoke the approval any time to
 pull them back.
 
-### 4. What the village sees
+### 5. What the village sees
 The home page changes the moment the results go live: the event's name, a
 **תוצאות <year>** button, **היכל התהילה**, and a "הישארו מעודכנים" note where the
 date used to be — next year's date will be published there.
 
-### 5. Add the year to the Hall of Fame
+### 6. Add the year to the Hall of Fame
 **הוספה להיכל התהילה** with the year imports every finished result. Safe to
 re-run: it replaces what it imported before, so run it again after any late
 correction.

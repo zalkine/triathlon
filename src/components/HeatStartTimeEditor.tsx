@@ -5,7 +5,25 @@ import { useLocale, useTranslations } from 'next-intl';
 import { formatClock, formatDateTimeInputValue, israelInputToISO } from '@/lib/time';
 import { setHeatStartTime } from '@/actions/heats';
 
-export default function HeatStartTimeEditor({ heatId, value }: { heatId: string; value: string | null }) {
+/**
+ * Edits the clock a heat was sent off by — and with it every total measured
+ * against that start, since a result is finish minus start. A heat combined
+ * with others into one start is edited as a whole (`setHeatStartTime` follows
+ * the wave), because they left on a single gun.
+ *
+ * `size` is the only difference between the heat's own page, where this is the
+ * headline control, and the results review, where one sits beside each heat
+ * name in a row of them.
+ */
+export default function HeatStartTimeEditor({
+  heatId,
+  value,
+  size = 'lg',
+}: {
+  heatId: string;
+  value: string | null;
+  size?: 'lg' | 'sm';
+}) {
   const locale = useLocale();
   const t = useTranslations('manage');
   const [editing, setEditing] = useState(false);
@@ -14,8 +32,8 @@ export default function HeatStartTimeEditor({ heatId, value }: { heatId: string;
 
   if (!editing) {
     return (
-      <div className="flex items-center gap-3">
-        <span className="text-lg font-semibold tabular-nums">
+      <div className={`flex items-center ${size === 'lg' ? 'gap-3' : 'gap-2'}`}>
+        <span className={`tabular-nums ${size === 'lg' ? 'text-lg font-semibold' : 'text-sm font-medium'}`}>
           {value ? formatClock(new Date(value), locale) : t('notSet')}
         </span>
         <button
@@ -24,7 +42,7 @@ export default function HeatStartTimeEditor({ heatId, value }: { heatId: string;
             setDraft(formatDateTimeInputValue(value ? new Date(value) : null));
             setEditing(true);
           }}
-          className="text-sm font-semibold underline"
+          className={`font-semibold underline ${size === 'lg' ? 'text-sm' : 'text-xs'}`}
         >
           {t('edit')}
         </button>

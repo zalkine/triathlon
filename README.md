@@ -86,11 +86,36 @@ them visible (`resultsPubliclyVisible` in `src/lib/ranking.ts`, shared by the
 results API, the admin's review panel and the home page so all three agree on
 what "published" means).
 
-The Scores tab is where that review happens, and it is also where a **stand-in**
-is recorded: someone falls ill on the morning of the race and a volunteer takes
-their place, which nobody has time to write down until the racing is over. Tap
-the name on the result row — a solo competitor's name, or a relay's swim / bike /
-run leg individually — and type whoever actually raced.
+The Scores tab (`src/components/manage/ScoresPanel.tsx`) is where that review
+happens, and everything a result is made of is editable there, before anything
+reaches the public:
+
+- **who raced** — a competitor's name, or a relay's swim / bike / run leg on its
+  own (see the stand-in note below);
+- **the leg times** — swim, bike and finish, tapped and corrected against the
+  camera or the manual record;
+- **the heat's start time**, in the strip above each field's table. A total is a
+  finish minus its heat's start, so this is the other half of correcting a time;
+  it belongs to the heat rather than to one competitor, and it follows a
+  combined start across every heat that left on the same gun;
+- **who is in the results at all** — take someone out (they didn't race, or
+  shouldn't be ranked) or put back anyone scratched at the start line. It writes
+  the same `scratched` flag the start line uses, so the two screens can't
+  disagree, and it touches nothing else: the competitor keeps their place in the
+  heat and any times already recorded.
+
+Rank, total time and status are deliberately *not* typed in — they are worked
+out from the times, so a rank can never contradict the clock. Correct a time and
+they follow. Anything that belongs to the heat rather than to the result —
+adding a competitor who never made it into a heat, moving one between heats,
+deleting a row outright — is one tap away: the heat name under each competitor
+links to that heat's page.
+
+Editing a name is how a **stand-in** is recorded: someone falls ill on the
+morning of the race and a volunteer takes their place, which nobody has time to
+write down until the racing is over. Tap the name on the result row — a solo
+competitor's name, or a relay's swim / bike / run leg individually — and type
+whoever actually raced.
 
 A substitution is not a rename. The roster is the source of truth (the Heats tab
 reconciles heat entries against it, see `syncHeatsWithRoster`), so a rename alone
