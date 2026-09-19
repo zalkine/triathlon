@@ -28,6 +28,32 @@ type EntryInput = {
   runTime: Date | null;
 };
 
+/**
+ * How long each leg took, in seconds: the swim measured from the heat's start,
+ * then each leg from the one before it. A leg whose stamp is missing (only the
+ * finish was taken, say) has no split rather than a wrong one, so the ones that
+ * were measured can still be shown.
+ *
+ * The same reading as the results CSV's split columns — a competitor comparing
+ * the two must not find them disagreeing.
+ */
+export type LegSplits = { swimSeconds: number | null; bikeSeconds: number | null; runSeconds: number | null };
+
+export function legSplits(e: {
+  startTime: Date | null;
+  swimTime: Date | null;
+  bikeTime: Date | null;
+  runTime: Date | null;
+}): LegSplits {
+  const between = (from: Date | null, to: Date | null) =>
+    from && to ? Math.round((to.getTime() - from.getTime()) / 1000) : null;
+  return {
+    swimSeconds: between(e.startTime, e.swimTime),
+    bikeSeconds: between(e.swimTime, e.bikeTime),
+    runSeconds: between(e.bikeTime, e.runTime),
+  };
+}
+
 export function computeStatus(startTime: Date | null, runTime: Date | null): EntryStatus {
   if (!startTime) return 'NOT_STARTED';
   if (!runTime) return 'IN_PROGRESS';

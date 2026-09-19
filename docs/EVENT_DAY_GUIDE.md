@@ -298,7 +298,15 @@ The home page changes the moment the results go live: the event's name, a
 **תוצאות <year>** button, **היכל התהילה**, and a "הישארו מעודכנים" note where the
 date used to be — next year's date will be published there.
 
-### 6. The Hall of Fame takes care of itself
+### 6. Split times
+Where the swim and bike stations were staffed, every competitor's leg times are
+published too. On **תוצאות** and on the year's block in **היכל התהילה** there is
+a **הצג תוצאות ביניים** (Show split times) button — pressing it opens the swim,
+bike and run legs under each finishing time. The button only appears for a race
+that was actually timed leg by leg, so the older years, which have finishing
+times only, don't show it.
+
+### 7. The Hall of Fame takes care of itself
 Publishing the results already files them in **היכל התהילה** (Hall of Fame),
 where the year sits alongside every previous one and is read exactly the same
 way. Later corrections follow on their own — fix a time or a name and the Hall

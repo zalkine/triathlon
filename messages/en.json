@@ -63,6 +63,11 @@
     "athlete": "Athlete",
     "total": "Total",
     "allResults": "All Results",
+    "showSplits": "Show split times",
+    "hideSplits": "Hide split times",
+    "swim": "Swim",
+    "bike": "Bike",
+    "run": "Run",
     "sourceNote": "Records compiled from the 2018–2023 result sheets. Spot a mistake? Let the staff know."
   },
   "results": {
@@ -72,6 +77,11 @@
     "name": "Name",
     "start": "Start",
     "finish": "Finish",
+    "swim": "Swim",
+    "bike": "Bike",
+    "run": "Run",
+    "showSplits": "Show split times",
+    "hideSplits": "Hide split times",
     "total": "Total Time",
     "status": "Status",
     "notStarted": "Not started",

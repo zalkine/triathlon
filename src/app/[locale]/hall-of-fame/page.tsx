@@ -2,11 +2,11 @@ import { getTranslations } from 'next-intl/server';
 import PublicHeader from '@/components/PublicHeader';
 import CompetitorSearch from '@/components/CompetitorSearch';
 import MedalTable from '@/components/MedalTable';
+import YearResults from '@/components/YearResults';
 import { SPECIAL_AWARDS } from '@/data/historical';
 import { loadHofResults } from '@/lib/hofData';
 import {
   annotatedResults,
-  categoriesForYear,
   categoryLabel,
   championsFor,
   courseRecords,
@@ -14,7 +14,6 @@ import {
   formatHms,
   kindLabel,
   medalTable,
-  resultsFor,
   years,
 } from '@/lib/hallOfFame';
 
@@ -126,28 +125,9 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
               className="scroll-mt-6 rounded-2xl border border-ink/10 bg-surface/70 p-4 shadow-sm"
             >
               <summary className="cursor-pointer text-lg font-bold">{year}</summary>
-              <div className="mt-3 space-y-5">
-                {categoriesForYear(results, year).map(({ categoryHe, isTeam }) => {
-                  const rows = resultsFor(results, year, categoryHe, isTeam);
-                  if (rows.length === 0) return null;
-                  return (
-                    <div key={`${categoryHe}-${isTeam}`}>
-                      <h4 className="mb-1 text-sm font-semibold text-ink-light">
-                        {categoryLabel(categoryHe)}
-                      </h4>
-                      <ol className="divide-y divide-ink/5">
-                        {rows.map((r, i) => (
-                          <li key={i} className="flex items-baseline gap-3 py-1.5 text-sm">
-                            <span className="w-6 shrink-0 text-end font-mono text-ink-light">{i + 1}</span>
-                            <span className="min-w-0 flex-1 break-words font-medium">{r.name}</span>
-                            <span className="shrink-0 font-mono tabular-nums text-ink-light">{formatHms(r.seconds)}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  );
-                })}
-              </div>
+              {/* Only this year's rows: the list and its splits toggle are the
+                  client's, and there is no reason to ship it every other year. */}
+              <YearResults year={year} results={results.filter((r) => r.year === year)} />
             </details>
           ))}
         </section>

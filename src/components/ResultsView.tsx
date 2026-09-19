@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatDuration, formatClock } from '@/lib/time';
+import { formatHms } from '@/lib/hallOfFame';
 
 type Category = { id: string; nameEn: string; nameHe: string };
 type Entry = {
@@ -14,6 +15,9 @@ type Entry = {
   totalMs: number | null;
   status: 'NOT_STARTED' | 'IN_PROGRESS' | 'FINISHED';
   rank: number | null;
+  swimSeconds: number | null;
+  bikeSeconds: number | null;
+  runSeconds: number | null;
 };
 
 export default function ResultsView({ categories }: { categories: Category[] }) {
@@ -23,6 +27,10 @@ export default function ResultsView({ categories }: { categories: Category[] }) 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [hidden, setHidden] = useState(false);
   const [loading, setLoading] = useState(true);
+  // How each leg went, rather than just the finish. Folded away by default —
+  // most people come for the total — and offered only once something has
+  // actually been measured leg by leg.
+  const [showSplits, setShowSplits] = useState(false);
 
   const load = useCallback(async (id: string) => {
     if (!id) return;
@@ -40,6 +48,11 @@ export default function ResultsView({ categories }: { categories: Category[] }) 
     const interval = setInterval(() => load(categoryId), 5000);
     return () => clearInterval(interval);
   }, [categoryId, load]);
+
+  const anySplits = entries.some(
+    (e) => e.swimSeconds != null || e.bikeSeconds != null || e.runSeconds != null
+  );
+  const split = (seconds: number | null) => (seconds == null ? '—' : formatHms(seconds));
 
   const statusLabel = (status: Entry['status']) =>
     status === 'NOT_STARTED' ? t('notStarted') : status === 'IN_PROGRESS' ? t('inProgress') : t('finished');
@@ -68,13 +81,27 @@ export default function ResultsView({ categories }: { categories: Category[] }) 
         ))}
       </div>
 
+      {anySplits && (
+        <button
+          type="button"
+          onClick={() => setShowSplits((on) => !on)}
+          aria-expanded={showSplits}
+          className="rounded-full border border-ink/20 bg-surface px-4 py-1.5 text-sm font-semibold text-ink transition hover:bg-ink/5"
+        >
+          {showSplits ? `▴ ${t('hideSplits')}` : `▾ ${t('showSplits')}`}
+        </button>
+      )}
+
       <div className="overflow-x-auto rounded-2xl border border-ink/10 bg-surface/70">
-        <table className="w-full min-w-[560px] text-start">
+        <table className={`w-full text-start ${showSplits ? 'min-w-[800px]' : 'min-w-[560px]'}`}>
           <thead>
             <tr className="border-b border-ink/10 text-sm text-ink-light">
               <th className="px-4 py-3 text-start">{t('rank')}</th>
               <th className="px-4 py-3 text-start">{t('name')}</th>
               <th className="px-4 py-3 text-start">{t('start')}</th>
+              {showSplits && <th className="px-4 py-3 text-start">{t('swim')}</th>}
+              {showSplits && <th className="px-4 py-3 text-start">{t('bike')}</th>}
+              {showSplits && <th className="px-4 py-3 text-start">{t('run')}</th>}
               <th className="px-4 py-3 text-start">{t('finish')}</th>
               <th className="px-4 py-3 text-start">{t('total')}</th>
               <th className="px-4 py-3 text-start">{t('status')}</th>
@@ -83,7 +110,7 @@ export default function ResultsView({ categories }: { categories: Category[] }) 
           <tbody>
             {!loading && entries.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-ink-light">
+                <td colSpan={showSplits ? 9 : 6} className="px-4 py-8 text-center text-ink-light">
                   {t('noEntries')}
                 </td>
               </tr>
@@ -93,6 +120,9 @@ export default function ResultsView({ categories }: { categories: Category[] }) 
                 <td className="px-4 py-3 font-semibold">{e.rank ?? '—'}</td>
                 <td className="px-4 py-3">{e.name}</td>
                 <td className="px-4 py-3 tabular-nums">{formatClock(e.startTime ? new Date(e.startTime) : null, locale)}</td>
+                {showSplits && <td className="px-4 py-3 tabular-nums text-swim-dark">{split(e.swimSeconds)}</td>}
+                {showSplits && <td className="px-4 py-3 tabular-nums text-bike-dark">{split(e.bikeSeconds)}</td>}
+                {showSplits && <td className="px-4 py-3 tabular-nums text-run-dark">{split(e.runSeconds)}</td>}
                 <td className="px-4 py-3 tabular-nums">{formatClock(e.runTime ? new Date(e.runTime) : null, locale)}</td>
                 <td className="px-4 py-3 tabular-nums font-medium">{e.totalMs !== null ? formatDuration(e.totalMs) : '—'}</td>
                 <td className="px-4 py-3">

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCategoryResults } from '@/lib/ranking';
+import { getCategoryResults, legSplits } from '@/lib/ranking';
 import { resultsPubliclyVisible } from '@/lib/season';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
@@ -47,6 +47,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cat
       totalMs: e.totalMs,
       status: e.status,
       rank: e.rank,
+      // Leg splits, for the "show split times" view. Null wherever a station
+      // never stamped, so a partly-timed race still shows what it measured.
+      ...legSplits(e),
     })),
   });
 }

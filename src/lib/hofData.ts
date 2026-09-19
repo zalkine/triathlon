@@ -21,5 +21,8 @@ export async function loadHofResults(): Promise<HofRow[]> {
     name: r.name,
     seconds: r.seconds,
     members: r.members,
+    swimSeconds: r.swimSeconds,
+    bikeSeconds: r.bikeSeconds,
+    runSeconds: r.runSeconds,
   }));
 }

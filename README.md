@@ -146,6 +146,24 @@ have written — the merged names and the individual bracket names alike — so
 turning a merge on or off between two imports can't leave a stale copy behind;
 rows an admin added by hand under another label are untouched.
 
+The **leg splits** travel with the results (`swimSeconds` / `bikeSeconds` /
+`runSeconds` on `HistoricalResult`): the swim measured from the heat's start,
+then each leg from the one before it, which is the same reading as the results
+CSV's split columns. They are nullable because they are often unknown — the
+2018–2023 sheets record finishing times only, and a race can be timed at the
+finish line alone — so every screen that offers them checks first. `/results`
+and each year of the Hall of Fame's full listing carry a **Show split times**
+button, shown only where there is something behind it; the finishing time stays
+the whole row until it is pressed.
+
+Two things make re-importing safe on a year that is already closed. The importer
+falls back to that year's `CompetitionArchive` snapshot when the live tables are
+empty, rebuilding the same rows with the same ranking function — which is how a
+closed year picks up a column the Hall of Fame gained afterwards. And an import
+that finds nothing at all to write changes nothing: clearing a year and putting
+nothing back would turn a mistimed re-run into the silent loss of a whole
+competition.
+
 Once the results are published the **home page turns around**. Until then it
 counts down to the race — save the date, register now. Afterwards it becomes the
 way back to it: the name of the event, this year's results, the Hall of Fame, and

@@ -14,7 +14,18 @@ export type HofResult = {
   name: string;
   seconds: number;
   members?: string[];
+  // Leg splits, in seconds, where the race was timed leg by leg. Null for the
+  // years whose sheets carry finishing times only, and for any competitor a
+  // split was never taken for, so the page can offer them only where they exist.
+  swimSeconds?: number | null;
+  bikeSeconds?: number | null;
+  runSeconds?: number | null;
 };
+
+/** Does this result carry any leg split at all? */
+export function hasSplits(r: HofResult): boolean {
+  return r.swimSeconds != null || r.bikeSeconds != null || r.runSeconds != null;
+}
 
 export const FAMILY_ORDER: Family[] = ['Elite', 'Amateur', 'Kids', 'KidsAG', 'KidsDV', 'Seniors', 'Open'];
 

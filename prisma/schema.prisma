@@ -218,16 +218,23 @@ model Contact {
 // by the admin. `family` is one of Elite | Amateur | Kids | Seniors | Open and
 // `members` holds the split roster of a team (empty for solo results).
 model HistoricalResult {
-  id         String   @id @default(cuid())
-  year       Int
-  categoryHe String
-  family     String
-  isTeam     Boolean  @default(false)
-  rank       Int?
-  name       String
-  seconds    Int
-  members    String[]
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  year        Int
+  categoryHe  String
+  family      String
+  isTeam      Boolean  @default(false)
+  rank        Int?
+  name        String
+  seconds     Int
+  members     String[]
+  // Leg splits, in seconds, for years the app timed itself — the swim measured
+  // from the heat's start and each leg from the one before it. Null wherever a
+  // split was never measured: the 2018–2023 sheets carry finishing times only,
+  // and a race can be timed at the finish line alone.
+  swimSeconds Int?
+  bikeSeconds Int?
+  runSeconds  Int?
+  createdAt   DateTime @default(now())
 
   @@index([year])
 }
