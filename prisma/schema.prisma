@@ -37,19 +37,19 @@ model User {
 // untouched: a 7-year-old still registers as 6-9, which is what makes the merge
 // reversible by simply clearing this field.
 model Category {
-  id                String       @id @default(cuid())
-  key               String       @unique
-  nameEn            String
-  nameHe            String
-  type              String
-  sortOrder         Int
-  estDurationMinutes Float       @default(45)
-  mergedIntoId      String?
-  mergedInto        Category?    @relation("CategoryMerge", fields: [mergedIntoId], references: [id])
-  mergedFrom        Category[]   @relation("CategoryMerge")
-  heats             Heat[]
-  registrants       Registrant[]
-  groups            Group[]
+  id                 String       @id @default(cuid())
+  key                String       @unique
+  nameEn             String
+  nameHe             String
+  type               String
+  sortOrder          Int
+  estDurationMinutes Float        @default(45)
+  mergedIntoId       String?
+  mergedInto         Category?    @relation("CategoryMerge", fields: [mergedIntoId], references: [id])
+  mergedFrom         Category[]   @relation("CategoryMerge")
+  heats              Heat[]
+  registrants        Registrant[]
+  groups             Group[]
 
   @@index([mergedIntoId])
 }
@@ -158,21 +158,47 @@ model Group {
 
 // Single-row table (id is always "singleton") holding global race-day state.
 model EventSettings {
-  id                           String    @id @default("singleton")
-  registrationOpen             Boolean   @default(false)
-  competitionActive            Boolean   @default(false)
-  raceStartTime                DateTime?
-  heatGapMinutes               Int       @default(2)
-  scheduleGeneratedAt          DateTime?
-  allowRandomGrouping          Boolean   @default(true)
-  publicResultsVisible         Boolean   @default(true)
-  schedulePublished            Boolean   @default(false)
+  id                       String    @id @default("singleton")
+  registrationOpen         Boolean   @default(false)
+  competitionActive        Boolean   @default(false)
+  raceStartTime            DateTime?
+  heatGapMinutes           Int       @default(2)
+  scheduleGeneratedAt      DateTime?
+  allowRandomGrouping      Boolean   @default(true)
+  publicResultsVisible     Boolean   @default(true)
+  schedulePublished        Boolean   @default(false)
   // Admin sign-off on the timekeepers' results. The public results page stays
   // hidden until results are BOTH approved and set visible, so provisional
   // rankings are never shown before an admin has reviewed them.
-  resultsApproved              Boolean   @default(false)
-  competitionInfoPublished     Boolean   @default(false)
-  trailsPublished              Boolean   @default(false)
+  resultsApproved          Boolean   @default(false)
+  competitionInfoPublished Boolean   @default(false)
+  trailsPublished          Boolean   @default(false)
+  // The year of the last competition the admin closed, or null while one is
+  // being run. Closing archives the season and empties the operational tables,
+  // so this is what tells the site there *was* a competition and which year's
+  // results to point at. Opening registration for the next one clears it.
+  closedYear               Int?
+}
+
+// A closed season, kept whole. Closing the competition publishes its results to
+// the Hall of Fame (HistoricalResult, which is the permanent, public record) and
+// then empties the operational tables — roster, groups, heats, entries — so the
+// management screens start the next year clean. Everything they held is copied
+// here first, as it stood at closing time.
+//
+// `data` is a JSON snapshot rather than a set of mirror tables on purpose:
+// nothing in the app reads it, so mirror tables would only drift away from the
+// live schema they copy. Corrections to a past year's *results* are made in
+// HistoricalResult, which is an ordinary table; this is the record of everything
+// around them (who registered, who was in which heat, every leg time recorded).
+model CompetitionArchive {
+  id              String   @id @default(cuid())
+  year            Int      @unique
+  closedAt        DateTime @default(now())
+  registrantCount Int      @default(0)
+  heatCount       Int      @default(0)
+  resultCount     Int      @default(0)
+  data            Json
 }
 
 // Editable contact directory shown to every competitor on the public info page:

@@ -37,6 +37,18 @@ export function formatClock(date: Date | null | undefined, locale: string): stri
   }).format(date);
 }
 
+// Calendar date only — for things dated rather than timed, such as the day a
+// competition was closed and archived.
+export function formatDate(date: Date | null | undefined, locale: string): string {
+  if (!date) return '—';
+  return new Intl.DateTimeFormat(locale, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: ISRAEL_TIME_ZONE,
+  }).format(date);
+}
+
 // Hour:minute only — used for estimated/scheduled times where seconds are noise.
 export function formatClockHM(date: Date | null | undefined, locale: string): string {
   if (!date) return '—';

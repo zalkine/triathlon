@@ -116,7 +116,15 @@ export default async function HallOfFamePage({ params }: { params: Promise<{ loc
         <section className="space-y-3">
           <h2 className="text-xl font-bold">📜 {t('allResults')}</h2>
           {allYears.map((year) => (
-            <details key={year} className="rounded-2xl border border-ink/10 bg-surface/70 p-4 shadow-sm">
+            // Anchored and, for the newest year, already open: the home page
+            // links straight here once a competition is closed, and a collapsed
+            // block would be a dead end for whoever followed it.
+            <details
+              key={year}
+              id={`year-${year}`}
+              open={year === allYears[0]}
+              className="scroll-mt-6 rounded-2xl border border-ink/10 bg-surface/70 p-4 shadow-sm"
+            >
               <summary className="cursor-pointer text-lg font-bold">{year}</summary>
               <div className="mt-3 space-y-5">
                 {categoriesForYear(results, year).map(({ categoryHe, isTeam }) => {

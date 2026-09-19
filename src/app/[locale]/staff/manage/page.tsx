@@ -1,4 +1,5 @@
 import { getLocale, getTranslations } from 'next-intl/server';
+import { prisma } from '@/lib/db';
 import ManageTabs from '@/components/manage/ManageTabs';
 import { isManageTabKey, type ManageTabKey } from '@/components/manage/tabs';
 import RegistrationPanel from '@/components/manage/RegistrationPanel';
@@ -23,12 +24,23 @@ export default async function ManageDashboardPage({
   const { tab } = await searchParams;
   const active: ManageTabKey = isManageTabKey(tab) ? tab : 'registration';
 
+  // A closed year leaves these screens empty on purpose, which looks like
+  // something went wrong unless it says so.
+  const settings = await prisma.eventSettings.findUnique({ where: { id: 'singleton' } });
+  const closedYear = settings?.closedYear ?? null;
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{t('dashboard')}</h1>
         <p className="text-sm text-ink-light">{t('dashboardSubtitle')}</p>
       </div>
+
+      {closedYear !== null && (
+        <p className="rounded-2xl border border-swim-dark/25 bg-swim/10 px-4 py-3 text-sm text-ink">
+          🏁 {t('closedBanner', { year: String(closedYear), next: String(closedYear + 1) })}
+        </p>
+      )}
 
       <ManageTabs active={active} />
 

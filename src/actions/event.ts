@@ -7,12 +7,16 @@ import { chunk, computeSlotStarts } from '@/lib/schedule';
 import { GROUP_LEG_FIELD as LEG_FIELD, HEAT_CAPACITY, LEGS, type Leg } from '@/lib/constants';
 import { racingCategories } from '@/lib/categories';
 import { createGroupEntry, createSoloEntry, isActiveGroup, topUpTargets } from '@/lib/placement';
+import { syncPublishedResultsToHof } from '@/lib/hofImport';
 
+// Opening registration starts the next competition: it is the moment the site
+// stops looking back at the closed season (see `EventSettings.closedYear`) and
+// starts counting down to the new one.
 export async function openRegistration(locale: string) {
   await requireRole('ADMIN');
   await prisma.eventSettings.update({
     where: { id: 'singleton' },
-    data: { registrationOpen: true },
+    data: { registrationOpen: true, closedYear: null },
   });
   revalidatePath('/', 'layout');
 }
@@ -42,6 +46,9 @@ export async function setAllowRandomGrouping(locale: string, allow: boolean) {
 export async function setPublicResultsVisible(locale: string, visible: boolean) {
   await requireRole('ADMIN');
   await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { publicResultsVisible: visible } });
+  // Publishing the results is what puts them in the Hall of Fame, where they
+  // join every previous year and are read the same way.
+  await syncPublishedResultsToHof();
   revalidatePath('/', 'layout');
 }
 
@@ -52,10 +59,12 @@ export async function setSchedulePublished(locale: string, published: boolean) {
 }
 
 // Admin sign-off on the timekeepers' results. The public results page only
-// shows results once they are approved AND set visible.
+// shows results once they are approved AND set visible — and that is also when
+// they reach the Hall of Fame.
 export async function setResultsApproved(locale: string, approved: boolean) {
   await requireRole('ADMIN');
   await prisma.eventSettings.update({ where: { id: 'singleton' }, data: { resultsApproved: approved } });
+  await syncPublishedResultsToHof();
   revalidatePath('/', 'layout');
 }
 

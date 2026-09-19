@@ -3,8 +3,9 @@ import { Link } from '@/i18n/navigation';
 import { prisma } from '@/lib/db';
 import { racingCategories } from '@/lib/categories';
 import { LEGS, type Leg } from '@/lib/constants';
-import { getCategoryResults, resultsPubliclyVisible } from '@/lib/ranking';
-import { formatClock, formatDuration, formatHeatName } from '@/lib/time';
+import { getCategoryResults } from '@/lib/ranking';
+import { competitionYear, resultsPubliclyVisible } from '@/lib/season';
+import { formatClock, formatDate, formatDuration, formatHeatName } from '@/lib/time';
 import { setPublicResultsVisible, setResultsApproved } from '@/actions/event';
 import { addResultsToHof } from '@/actions/hof';
 import ConfirmForm from '@/components/ConfirmForm';
@@ -12,6 +13,7 @@ import TimeFieldEditor from '@/components/TimeFieldEditor';
 import HeatStartTimeEditor from '@/components/HeatStartTimeEditor';
 import SubstituteNameEditor from './SubstituteNameEditor';
 import ResultInclusionToggle from './ResultInclusionToggle';
+import CloseCompetitionForm from './CloseCompetitionForm';
 import CsvLink from './CsvLink';
 import XlsxLink from './XlsxLink';
 
@@ -21,9 +23,10 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
 
   // Results are reviewed per racing field, so merged age brackets appear once,
   // ranked together, exactly as the public sees them.
-  const [settings, categories] = await Promise.all([
+  const [settings, categories, archives] = await Promise.all([
     prisma.eventSettings.findUniqueOrThrow({ where: { id: 'singleton' } }),
     racingCategories(),
+    prisma.competitionArchive.findMany({ orderBy: { year: 'desc' } }),
   ]);
 
   const results = await Promise.all(categories.map((c) => getCategoryResults(c.id)));
@@ -69,7 +72,9 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
     await addResultsToHof(locale, formData);
   };
   const publiclyLive = resultsPubliclyVisible(settings);
-  const currentYear = new Date().getFullYear();
+  // The competition's own year, not today's — a season reviewed in January is
+  // still filed under the year it was raced.
+  const currentYear = competitionYear(settings.raceStartTime);
 
   const anyResults =
     results.some((r) => r && r.ranked.length > 0) || scratched.length > 0;
@@ -277,6 +282,34 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
       <div className="flex flex-wrap gap-3">
         <CsvLink href="/api/export/results" label={t('exportResults')} />
         <XlsxLink label={t('exportWorkbook')} hint={t('exportWorkbookHint')} />
+      </div>
+
+      {/* The end of the year: archive the season and hand these screens back
+          empty for the next one. */}
+      <div className="rounded-2xl border border-run-dark/25 bg-surface/70 p-5 space-y-3">
+        <h2 className="font-semibold">{t('closeTitle')}</h2>
+        <p className="text-sm text-ink-light">{t('closeHint')}</p>
+        <p className="text-sm text-ink-light">{t('closeKeeps')}</p>
+        <CloseCompetitionForm defaultYear={currentYear} published={publiclyLive} />
+
+        {archives.length > 0 && (
+          <div className="border-t border-ink/5 pt-3">
+            <p className="text-xs font-medium text-ink-light">{t('archivesTitle')}</p>
+            <ul className="mt-1 space-y-1 text-sm">
+              {archives.map((a) => (
+                <li key={a.id} className="text-ink-light">
+                  <span className="font-semibold text-ink">{a.year}</span>{' '}
+                  {t('archiveSummary', {
+                    date: formatDate(a.closedAt, locale),
+                    competitors: a.registrantCount,
+                    heats: a.heatCount,
+                    results: a.resultCount,
+                  })}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

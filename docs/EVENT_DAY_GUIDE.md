@@ -298,10 +298,47 @@ The home page changes the moment the results go live: the event's name, a
 **תוצאות <year>** button, **היכל התהילה**, and a "הישארו מעודכנים" note where the
 date used to be — next year's date will be published there.
 
-### 6. Add the year to the Hall of Fame
-**הוספה להיכל התהילה** with the year imports every finished result. Safe to
-re-run: it replaces what it imported before, so run it again after any late
-correction.
+### 6. The Hall of Fame takes care of itself
+Publishing the results already files them in **היכל התהילה** (Hall of Fame),
+where the year sits alongside every previous one and is read exactly the same
+way. Later corrections follow on their own — fix a time or a name and the Hall
+of Fame updates with it. The **הוספה להיכל התהילה** button is only for
+re-importing a year deliberately; it is always safe to press.
+
+---
+
+## Phase 5 — Closing the year — ADMIN
+
+When everything is right and published, **ניהול תחרות → תוצאות ודירוג →
+סגירת התחרות** (Close the competition) ends the year.
+
+Before you press it, download **כל הרשימות (Excel)** if you want the year on
+your own computer.
+
+What happens:
+
+- The results are filed in **היכל התהילה** one last time, so the public record
+  matches exactly what you approved.
+- The whole season — the roster, the relay groups, every מקצה with the times
+  recorded in it, the contacts, the info pages and the settings — is **archived
+  in the database**. Nothing is deleted.
+- The management screens are **cleared**: no registrants, no heats, no schedule,
+  no scores. They are ready for the next competition.
+- The public home page keeps pointing at the year's results, now in the Hall of
+  Fame, with **הישארו מעודכנים** where the date used to be.
+
+What is **not** touched: the מקצים line-up (only age-bracket merges are undone),
+staff accounts, contacts, the trail pages and the Hall of Fame. The competition
+info page is unpublished, since it describes a competition that is over.
+
+**Found a mistake after closing?** The results can be edited on the
+**היכל התהילה** tab like any other year. Everything else lives in the archive in
+the database — ask for help if you need something changed there.
+
+### Starting the next year
+Open registration on **ניהול תחרות → הרשמה**. That is what tells the site a new
+competition has begun: the home page goes back to counting down, and everything
+starts from empty.
 
 ---
 

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db';
 import { requireRole, requireSession } from '@/lib/auth';
 import { GROUP_LEG_FIELD, LEGS, STATION_FIELD, type Station, type Leg } from '@/lib/constants';
 import { checkCapacity } from '@/lib/heats';
+import { syncPublishedResultsToHof } from '@/lib/hofImport';
 
 export async function deleteEntry(locale: string, heatId: string, entryId: string) {
   await requireRole('ADMIN');
@@ -59,6 +60,7 @@ export async function setEntryScratched(entryId: string, scratched: boolean) {
   const session = await requireSession();
   if (session.role !== 'ADMIN' && session.role !== 'TIMEKEEPER') throw new Error('FORBIDDEN');
   await prisma.entry.update({ where: { id: entryId }, data: { scratched } });
+  await syncPublishedResultsToHof();
   revalidatePath('/', 'layout');
   return { ok: true as const };
 }
@@ -70,6 +72,7 @@ export async function renameEntry(entryId: string, name: string) {
   const trimmed = name.trim();
   if (!trimmed) return { error: 'empty' as const };
   await prisma.entry.update({ where: { id: entryId }, data: { name: trimmed } });
+  await syncPublishedResultsToHof();
   revalidatePath('/', 'layout');
   return { ok: true as const };
 }
@@ -80,6 +83,7 @@ export async function renameMember(memberId: string, name: string) {
   const trimmed = name.trim();
   if (!trimmed) return { error: 'empty' as const };
   await prisma.member.update({ where: { id: memberId }, data: { name: trimmed } });
+  await syncPublishedResultsToHof();
   revalidatePath('/', 'layout');
   return { ok: true as const };
 }
@@ -212,6 +216,7 @@ export async function substituteCompetitor(entryId: string, memberId: string | n
     await prisma.entry.update({ where: { id: entryId }, data: { name: standIn } });
   }
 
+  await syncPublishedResultsToHof();
   revalidatePath('/', 'layout');
   return { ok: true as const };
 }
@@ -243,6 +248,7 @@ export async function setEntryTime(
   await requireRole('ADMIN');
   const value = isoValue ? new Date(isoValue) : null;
   await prisma.entry.update({ where: { id: entryId }, data: { [field]: value } });
+  await syncPublishedResultsToHof();
   revalidatePath(`/${locale}/staff/manage/heats/${heatId}`);
   revalidatePath('/', 'layout');
 }

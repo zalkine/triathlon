@@ -3,21 +3,6 @@ import { racingGroupIds } from './categories';
 
 export type EntryStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'FINISHED';
 
-/**
- * Whether the public may see the rankings. Publishing results takes two
- * deliberate steps — the admin signs off on the timekeepers' numbers
- * (`resultsApproved`) and then puts them in front of the public
- * (`publicResultsVisible`) — because rankings are provisional until reviewed,
- * and a late substitution or a mis-stamped time is corrected before, not after,
- * the village reads it. Shared by the results API, the admin's review panel and
- * the home page, so all three agree on what "published" means.
- */
-export function resultsPubliclyVisible(
-  settings: { publicResultsVisible: boolean; resultsApproved: boolean } | null
-): boolean {
-  return !!settings?.publicResultsVisible && !!settings?.resultsApproved;
-}
-
 export type RankedEntry = {
   id: string;
   name: string;

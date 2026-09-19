@@ -8,6 +8,7 @@ import { requireRole, requireSession } from '@/lib/auth';
 import { HEAT_CAPACITY } from '@/lib/constants';
 import { waveHeatIds } from '@/lib/heats';
 import { racingCategoryId } from '@/lib/categories';
+import { syncPublishedResultsToHof } from '@/lib/hofImport';
 
 // The category a heat should be filed under: the one given, unless it has been
 // merged into another field, in which case that field owns the heats.
@@ -193,6 +194,7 @@ export async function setHeatStartTime(locale: string, heatId: string, isoValue:
   if (!heat) return;
   const ids = await waveHeatIds(heat);
   await prisma.heat.updateMany({ where: { id: { in: ids } }, data: { startTime } });
+  await syncPublishedResultsToHof();
   revalidatePath(`/${locale}/staff/manage/heats/${heatId}`);
   revalidatePath('/', 'layout');
 }

@@ -82,7 +82,7 @@ Heats can also be created and populated manually from `/staff/manage` if you'd r
 
 Results are provisional until an admin says otherwise. `/results` only opens to
 the public once the admin has **both** approved the timekeepers' numbers and set
-them visible (`resultsPubliclyVisible` in `src/lib/ranking.ts`, shared by the
+them visible (`resultsPubliclyVisible` in `src/lib/season.ts`, shared by the
 results API, the admin's review panel and the home page so all three agree on
 what "published" means).
 
@@ -129,6 +129,23 @@ results, the CSV/Excel downloads and the Hall of Fame import on its own, and the
 relay's team name is rebuilt from its legs in race order. Times are never touched:
 the clock measured the race that was run, whoever ran it.
 
+Publishing is also what puts the year in the **Hall of Fame**. The finished
+results are copied into `HistoricalResult` (`importResultsToHof` in
+`src/lib/hofImport.ts`), where they join every previous year and are read exactly
+the same way — which is the whole point: a visitor sees 2026 the way they see
+2023. Corrections made after publishing follow on their own: the handful of
+actions that can change a published result call `syncPublishedResultsToHof`,
+which re-imports the year and is a no-op while the results are still under
+review. The Scores tab keeps a manual re-import button for running a year again
+deliberately.
+
+A year is imported per *racing field* rather than per stored category, so age
+brackets an admin merged arrive once, under the merged name, ranked as they
+actually raced. Re-importing clears every label this year's categories could
+have written — the merged names and the individual bracket names alike — so
+turning a merge on or off between two imports can't leave a stale copy behind;
+rows an admin added by hand under another label are untouched.
+
 Once the results are published the **home page turns around**. Until then it
 counts down to the race — save the date, register now. Afterwards it becomes the
 way back to it: the name of the event, this year's results, the Hall of Fame, and
@@ -136,6 +153,44 @@ a "stay tuned" note where the date used to be, since next year's hasn't been set
 The year on the results link comes from the race's own start time, not from
 today, so it still reads "2026 Results" when the village opens the page the
 following January.
+
+### Closing a competition
+
+When the year is done the admin presses **Close the competition** (Scores tab,
+available once the results are published). `closeCompetition` in
+`src/actions/competition.ts`:
+
+1. re-imports the results to the Hall of Fame, so the public record matches the
+   season down to the last late correction;
+2. copies the whole season — the roster, the relay groups, every heat with its
+   entries and recorded leg times, the category line-up, the contacts, the info
+   pages and the settings as they stood — into a `CompetitionArchive` row;
+3. empties the operational tables and resets `EventSettings`, so the management
+   screens start the next competition clean;
+4. records the year in `EventSettings.closedYear`.
+
+**Nothing is deleted from the database** — that is what the archive is for. A
+mistake found afterwards is corrected in SQL: the results in `HistoricalResult`
+(an ordinary table), everything else in the archive row's JSON snapshot. There
+is deliberately no screen for editing a closed year.
+
+The archive is a JSON snapshot rather than a set of mirror tables on purpose:
+nothing in the app reads it, so mirror tables would only drift away from the live
+schema they copy. It is also why no query anywhere needed an "archived" filter —
+the operational tables simply go back to empty, which is the state every screen
+already handles.
+
+What closing does **not** touch: the categories (the same line-up races next
+year, so only this year's age-bracket merges are undone), staff accounts, the
+contact directory, the trail descriptions and the Hall of Fame. The competition
+info page is unpublished, since it describes a competition that is over.
+
+`closedYear` is what the public site reads once a season is archived. The home
+page keeps its post-race face and points "2026 Results" at
+`/hall-of-fame#year-2026` instead of the live results page, which now has nothing
+to rank and says so with a link to the same place. **Opening registration clears
+`closedYear`** — that is the moment the next competition begins, and the home
+page goes back to counting down.
 
 ### Combined starts — filling the pool from two categories at once
 

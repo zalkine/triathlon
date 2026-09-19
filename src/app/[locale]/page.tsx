@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { prisma } from '@/lib/db';
-import { resultsPubliclyVisible } from '@/lib/ranking';
+import { competitionYear, resultsPubliclyVisible } from '@/lib/season';
 import PublicHeader from '@/components/PublicHeader';
 import MobileNavFallback from '@/components/MobileNavFallback';
 import LandingSplash from '@/components/LandingSplash';
@@ -17,12 +17,17 @@ export default async function HomePage() {
   // to the race — save the date, register now. Once the admin has approved and
   // published them, the race is over and the page becomes the way back to it:
   // this year's results and the Hall of Fame, with next year's date still to
-  // come. See `resultsPubliclyVisible` for what "published" means.
+  // come. Opening registration for the next competition puts it back to
+  // counting down.
   const settings = await prisma.eventSettings.findUnique({ where: { id: 'singleton' } });
-  const published = resultsPubliclyVisible(settings);
+  // A closed year has no live results left to link to — it is read through the
+  // Hall of Fame from then on, exactly like every year before it.
+  const closedYear = settings?.closedYear ?? null;
+  const published = closedYear !== null || resultsPubliclyVisible(settings);
   // The competition's own year, not today's — the results stay "2026 Results"
   // when the village reads them the following January.
-  const resultsYear = String((settings?.raceStartTime ?? new Date()).getFullYear());
+  const resultsYear = closedYear ?? competitionYear(settings?.raceStartTime);
+  const resultsHref = closedYear !== null ? `/hall-of-fame#year-${closedYear}` : '/results';
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -47,10 +52,10 @@ export default async function HomePage() {
                     every year's. */}
                 <div className="mt-1 flex w-full flex-col items-stretch gap-3 sm:mt-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4">
                   <Link
-                    href="/results"
+                    href={resultsHref}
                     className="inline-flex items-center justify-center gap-2.5 rounded-full bg-swim px-8 py-4 text-xl font-extrabold text-ink shadow-lg transition hover:brightness-95 sm:px-11 sm:py-5 sm:text-3xl"
                   >
-                    🏅 {t('resultsCta', { year: resultsYear })}
+                    🏅 {t('resultsCta', { year: String(resultsYear) })}
                   </Link>
                   <Link
                     href="/hall-of-fame"

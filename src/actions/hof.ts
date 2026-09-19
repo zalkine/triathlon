@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
-import { getCategoryResults } from '@/lib/ranking';
+import { importResultsToHof } from '@/lib/hofImport';
 import type { Family } from '@/lib/hallOfFame';
 
 // Admin CRUD + bulk-import for the Hall of Fame (HistoricalResult table).
@@ -77,63 +77,13 @@ export async function deleteHistoricalResult(resultId: string, _formData: FormDa
   revalidatePath('/', 'layout');
 }
 
-// Map a competition category to a Hall of Fame "family" bucket.
-function familyForCategoryKey(key: string): Family {
-  if (key.startsWith('PRO_')) return 'Elite';
-  if (key.startsWith('INTER_')) return 'Amateur';
-  if (key.startsWith('KIDS_')) return 'Kids';
-  return 'Open';
-}
-
-// Publish this year's finished results into the Hall of Fame. Idempotent per
-// (year, category): re-running first clears any rows previously imported for
-// that year+categoryHe so it always reflects the latest approved results.
+// Admin button: import a year's results by hand. Publishing does this on its
+// own, so this is for re-running a year deliberately.
 export async function addResultsToHof(locale: string, formData: FormData): Promise<{ added: number }> {
   await requireRole('ADMIN');
   const parsedYear = parseInt(String(formData.get('year') || ''), 10);
   const year = Number.isInteger(parsedYear) ? parsedYear : new Date().getFullYear();
-  const categories = await prisma.category.findMany({ orderBy: { sortOrder: 'asc' } });
-
-  let added = 0;
-  for (const cat of categories) {
-    const result = await getCategoryResults(cat.id);
-    if (!result) continue;
-    const finished = result.ranked.filter((e) => e.totalMs != null);
-    if (finished.length === 0) continue;
-
-    // Members for team entries, to populate the split roster.
-    const membersByEntry = new Map<string, string[]>();
-    if (cat.type === 'TEAM') {
-      const entries = await prisma.entry.findMany({
-        where: { id: { in: finished.map((e) => e.id) } },
-        include: { members: true },
-      });
-      for (const e of entries) {
-        membersByEntry.set(
-          e.id,
-          e.members.map((m) => m.name).filter((n) => n && n !== '—')
-        );
-      }
-    }
-
-    // Replace any previously-imported rows for this year + category.
-    await prisma.historicalResult.deleteMany({ where: { year, categoryHe: cat.nameHe } });
-
-    await prisma.historicalResult.createMany({
-      data: finished.map((e) => ({
-        year,
-        categoryHe: cat.nameHe,
-        family: familyForCategoryKey(cat.key),
-        isTeam: cat.type === 'TEAM',
-        rank: e.rank,
-        name: e.name,
-        seconds: Math.round((e.totalMs as number) / 1000),
-        members: cat.type === 'TEAM' ? membersByEntry.get(e.id) ?? [] : [],
-      })),
-    });
-    added += finished.length;
-  }
-
+  const { added } = await importResultsToHof(year);
   revalidatePath('/', 'layout');
   return { added };
 }

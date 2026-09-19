@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getCategoryResults, resultsPubliclyVisible } from '@/lib/ranking';
+import { getCategoryResults } from '@/lib/ranking';
+import { resultsPubliclyVisible } from '@/lib/season';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { racingCategories } from '@/lib/categories';
