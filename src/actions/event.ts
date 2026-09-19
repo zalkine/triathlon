@@ -4,15 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
 import { chunk, computeSlotStarts } from '@/lib/schedule';
-import { HEAT_CAPACITY, LEGS, type Leg } from '@/lib/constants';
+import { GROUP_LEG_FIELD as LEG_FIELD, HEAT_CAPACITY, LEGS, type Leg } from '@/lib/constants';
 import { racingCategories } from '@/lib/categories';
 import { createGroupEntry, createSoloEntry, isActiveGroup, topUpTargets } from '@/lib/placement';
-
-const LEG_FIELD: Record<Leg, 'swimRegistrantId' | 'bikeRegistrantId' | 'runRegistrantId'> = {
-  SWIM: 'swimRegistrantId',
-  BIKE: 'bikeRegistrantId',
-  RUN: 'runRegistrantId',
-};
 
 export async function openRegistration(locale: string) {
   await requireRole('ADMIN');

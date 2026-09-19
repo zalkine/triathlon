@@ -78,6 +78,40 @@ Open http://localhost:3000 — it redirects to `/he` (Hebrew) by default; switch
 
 Heats can also be created and populated manually from `/staff/manage` if you'd rather not use self-registration + lottery for a given category.
 
+### After the race — substitutions, approval & publishing
+
+Results are provisional until an admin says otherwise. `/results` only opens to
+the public once the admin has **both** approved the timekeepers' numbers and set
+them visible (`resultsPubliclyVisible` in `src/lib/ranking.ts`, shared by the
+results API, the admin's review panel and the home page so all three agree on
+what "published" means).
+
+The Scores tab is where that review happens, and it is also where a **stand-in**
+is recorded: someone falls ill on the morning of the race and a volunteer takes
+their place, which nobody has time to write down until the racing is over. Tap
+the name on the result row — a solo competitor's name, or a relay's swim / bike /
+run leg individually — and type whoever actually raced.
+
+A substitution is not a rename. The roster is the source of truth (the Heats tab
+reconciles heat entries against it, see `syncHeatsWithRoster`), so a rename alone
+would be quietly undone and the person who never raced would be back on the
+result. `substituteCompetitor` in `src/actions/entries.ts` therefore moves the
+roster with it: the stand-in takes over the group leg (or the solo place) as a
+checked-in registrant, and the competitor who dropped out is unlinked from the
+race. Their registration itself is left alone — they signed up, so they stay on
+the roster, simply unplaced. From there the swap carries through to the public
+results, the CSV/Excel downloads and the Hall of Fame import on its own, and the
+relay's team name is rebuilt from its legs in race order. Times are never touched:
+the clock measured the race that was run, whoever ran it.
+
+Once the results are published the **home page turns around**. Until then it
+counts down to the race — save the date, register now. Afterwards it becomes the
+way back to it: the name of the event, this year's results, the Hall of Fame, and
+a "stay tuned" note where the date used to be, since next year's hasn't been set.
+The year on the results link comes from the race's own start time, not from
+today, so it still reads "2026 Results" when the village opens the page the
+following January.
+
 ### Combined starts — filling the pool from two categories at once
 
 Categories that only drew three or four competitors would each take a whole turn of the pool with most lanes empty. On the admin's Heats board (`/staff/manage`, Heats tab) an admin — and only an admin — can tick heats from **different categories** and **combine them into one start**. Heats sharing a start carry the same `Heat.waveId`, and from then on:

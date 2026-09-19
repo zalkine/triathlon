@@ -7,6 +7,15 @@ export type EntryType = (typeof ENTRY_TYPES)[number];
 export const LEGS = ['SWIM', 'BIKE', 'RUN'] as const;
 export type Leg = (typeof LEGS)[number];
 
+// A relay group holds one registrant per leg, in its own column. Shared so the
+// schedule generator, on-the-spot fixups and substitutions all reach the same
+// field for a given leg.
+export const GROUP_LEG_FIELD: Record<Leg, 'swimRegistrantId' | 'bikeRegistrantId' | 'runRegistrantId'> = {
+  SWIM: 'swimRegistrantId',
+  BIKE: 'bikeRegistrantId',
+  RUN: 'runRegistrantId',
+};
+
 export const STATIONS = ['start', 'swim', 'bike', 'run'] as const;
 export type Station = (typeof STATIONS)[number];
 

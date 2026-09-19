@@ -1,12 +1,14 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
 import { racingCategories } from '@/lib/categories';
-import { getCategoryResults } from '@/lib/ranking';
+import { LEGS, type Leg } from '@/lib/constants';
+import { getCategoryResults, resultsPubliclyVisible } from '@/lib/ranking';
 import { formatDuration, formatHeatName } from '@/lib/time';
 import { setPublicResultsVisible, setResultsApproved } from '@/actions/event';
 import { addResultsToHof } from '@/actions/hof';
 import ConfirmForm from '@/components/ConfirmForm';
 import TimeFieldEditor from '@/components/TimeFieldEditor';
+import SubstituteNameEditor from './SubstituteNameEditor';
 import CsvLink from './CsvLink';
 import XlsxLink from './XlsxLink';
 
@@ -23,13 +25,27 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
 
   const results = await Promise.all(categories.map((c) => getCategoryResults(c.id)));
 
+  // Relay legs for every ranked entry, so a stand-in can be recorded against the
+  // leg they actually swam/rode/ran rather than against the team's name.
+  const rankedIds = results.flatMap((r) => r?.ranked.map((e) => e.id) ?? []);
+  const members =
+    rankedIds.length > 0
+      ? await prisma.member.findMany({ where: { entryId: { in: rankedIds } } })
+      : [];
+  const legOrder = (leg: string | null) => (leg ? LEGS.indexOf(leg as Leg) : LEGS.length);
+  const membersByEntry = new Map<string, typeof members>();
+  for (const m of members) membersByEntry.set(m.entryId, [...(membersByEntry.get(m.entryId) ?? []), m]);
+  for (const list of membersByEntry.values()) list.sort((a, b) => legOrder(a.leg) - legOrder(b.leg));
+  const legLabel = (leg: string | null) =>
+    leg === 'SWIM' ? t('legSwim') : leg === 'BIKE' ? t('legBike') : leg === 'RUN' ? t('legRun') : undefined;
+
   const toggleApproved = setResultsApproved.bind(null, locale, !settings.resultsApproved);
   const toggleVisible = setPublicResultsVisible.bind(null, locale, !settings.publicResultsVisible);
   const runAddToHof = async (formData: FormData) => {
     'use server';
     await addResultsToHof(locale, formData);
   };
-  const publiclyLive = settings.resultsApproved && settings.publicResultsVisible;
+  const publiclyLive = resultsPubliclyVisible(settings);
   const currentYear = new Date().getFullYear();
 
   const anyResults = results.some((r) => r && r.ranked.some((e) => e.totalMs != null));
@@ -43,6 +59,7 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
       <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5 space-y-4">
         <h2 className="font-semibold">{t('scoresReviewTitle')}</h2>
         <p className="text-sm text-ink-light">{t('scoresReviewHint')}</p>
+        <p className="text-sm text-ink-light">{t('substituteReviewHint')}</p>
 
         <div className="flex flex-wrap items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
@@ -103,7 +120,9 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
             return (
               <div key={cat.id} className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
                 <h3 className="mb-1 font-semibold">{locale === 'he' ? cat.nameHe : cat.nameEn}</h3>
-                <p className="mb-3 text-xs text-ink-light">{t('scoresEditHint')}</p>
+                <p className="mb-3 text-xs text-ink-light">
+                  {t('scoresEditHint')} {t('substituteEditHint')}
+                </p>
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[640px] text-sm">
                     <thead>
@@ -122,7 +141,30 @@ export default async function ScoresPanel({ locale }: { locale: string }) {
                         <tr key={e.id} className="border-b border-ink/5 align-top last:border-0">
                           <td className="px-2 py-2 font-semibold">{e.rank ?? '—'}</td>
                           <td className="px-2 py-2">
-                            <div>{e.name}</div>
+                            {(() => {
+                              const legs = membersByEntry.get(e.id) ?? [];
+                              // A relay is replaced one leg at a time and takes its
+                              // name from them; a solo competitor is the name itself.
+                              return legs.length > 0 ? (
+                                <>
+                                  <div>{e.name}</div>
+                                  <ul className="mt-1 space-y-0.5 text-xs">
+                                    {legs.map((m) => (
+                                      <li key={m.id}>
+                                        <SubstituteNameEditor
+                                          entryId={e.id}
+                                          memberId={m.id}
+                                          name={m.name}
+                                          legLabel={legLabel(m.leg)}
+                                        />
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </>
+                              ) : (
+                                <SubstituteNameEditor entryId={e.id} name={e.name} />
+                              );
+                            })()}
                             <div className="text-xs text-ink-light">{formatHeatName(e.heatName, locale)}</div>
                           </td>
                           <td className="px-2 py-2">

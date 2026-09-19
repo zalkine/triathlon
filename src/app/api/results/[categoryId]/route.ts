@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCategoryResults } from '@/lib/ranking';
+import { getCategoryResults, resultsPubliclyVisible } from '@/lib/ranking';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { racingCategories } from '@/lib/categories';
@@ -16,7 +16,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cat
     prisma.eventSettings.findUnique({ where: { id: 'singleton' } }),
     getSession(),
   ]);
-  const publiclyVisible = !!settings?.publicResultsVisible && !!settings?.resultsApproved;
+  const publiclyVisible = resultsPubliclyVisible(settings);
   if (!publiclyVisible && !session) {
     return NextResponse.json({ hidden: true, entries: [] });
   }

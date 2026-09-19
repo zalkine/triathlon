@@ -239,7 +239,49 @@ decides the results, so it's built so nothing can be lost:
 ### 5. Results
 - **תוצאות** (Results) ranks competitors within each category automatically —
   fastest total time first — the instant both a start and a finish time exist.
-  Public and live; no action needed.
+- The public does **not** see them yet. Rankings stay hidden until you approve
+  and publish them — see Phase 4.
+
+---
+
+## Phase 4 — After the race (publishing the results) — ADMIN
+
+Everything here is on **ניהול תחרות → תוצאות ודירוג** (Manage Race → Scores &
+Ranking).
+
+### 1. Someone raced in another competitor's place?
+A competitor drops out on the morning — illness, an injury — and a volunteer
+takes their place. Nobody has time to write it down until the racing is over, so
+fix it here, before you approve:
+
+- Tap the **name** on the result row and type whoever actually raced.
+- For a relay, each leg (**שחייה / רכיבה / ריצה**) is tapped separately, so you
+  replace only the person who didn't swim/ride/run. The team name updates itself.
+- **Times are not touched** — the clock measured the race that was run.
+- The stand-in is added to the roster in the competitor's place and the competitor
+  who dropped out is taken off the race (their registration stays). From there the
+  change follows through to the public results, the downloads and היכל התהילה on
+  its own.
+
+### 2. Check the times, then approve
+Tap any time to correct it against the camera or the manual record; the ranking
+re-sorts itself. When the list is right, tap **אישור תוצאות** (Approve results).
+
+### 3. Publish
+Results reach the public only when **both** are set: **אישור** = מאושר (Approved)
+and **תוצאות לציבור** = מוצגות (Shown). The panel says
+**✓ התוצאות גלויות לציבור** when they are live. Revoke the approval any time to
+pull them back.
+
+### 4. What the village sees
+The home page changes the moment the results go live: the event's name, a
+**תוצאות <year>** button, **היכל התהילה**, and a "הישארו מעודכנים" note where the
+date used to be — next year's date will be published there.
+
+### 5. Add the year to the Hall of Fame
+**הוספה להיכל התהילה** with the year imports every finished result. Safe to
+re-run: it replaces what it imported before, so run it again after any late
+correction.
 
 ---
 
