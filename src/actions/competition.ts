@@ -137,6 +137,9 @@ export async function closeCompetition(locale: string, formData: FormData): Prom
  * Correct one leg time in a closed competition, from the admin's Hall of Fame
  * tab. Two presses: the first previews what would change, the second applies it.
  *
+ * The result is named by the id it has in the year's archive, picked off the
+ * list the screen shows, so there is no name to spell and nothing to mistype.
+ *
  * The correction goes into the year's archive — the snapshot the Hall of Fame is
  * rebuilt from — and the year is re-imported, so the split, the total, the
  * ranking, the records and the medal table all move together. Editing the Hall
@@ -145,22 +148,26 @@ export async function closeCompetition(locale: string, formData: FormData): Prom
 export async function fixArchivedLegTime(
   locale: string,
   formData: FormData
-): Promise<CorrectionOutcome | { error: 'year' | 'competitor' | 'split' }> {
+): Promise<CorrectionOutcome | { error: 'year' | 'entry' | 'leg' | 'split' }> {
   await requireRole('ADMIN');
 
   const year = parseInt(String(formData.get('year') || ''), 10);
   if (!Number.isInteger(year)) return { error: 'year' };
-  const competitor = String(formData.get('competitor') || '').trim();
-  if (!competitor) return { error: 'competitor' };
+  const entryId = String(formData.get('entryId') || '').trim();
+  if (!entryId) return { error: 'entry' };
+  const legRaw = String(formData.get('leg') || '').toUpperCase();
+  if (!(LEGS as readonly string[]).includes(legRaw)) return { error: 'leg' };
   const newSplitSeconds = parseSplitSeconds(String(formData.get('split') || ''));
   if (newSplitSeconds == null) return { error: 'split' };
 
-  const legRaw = String(formData.get('leg') || '').toUpperCase();
-  const leg = (LEGS as readonly string[]).includes(legRaw) ? (legRaw as Leg) : null;
-  const team = String(formData.get('team') || '').trim() || null;
   const apply = formData.get('apply') === 'true';
-
-  const outcome = await correctArchivedLegTime({ year, competitor, newSplitSeconds, leg, team, apply });
+  const outcome = await correctArchivedLegTime({
+    year,
+    entryId,
+    leg: legRaw as Leg,
+    newSplitSeconds,
+    apply,
+  });
   if (apply && 'ok' in outcome) revalidatePath('/', 'layout');
   return outcome;
 }

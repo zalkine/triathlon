@@ -196,17 +196,25 @@ archive is what a re-import rebuilds the year from, so a Hall of Fame row edited
 directly would be quietly undone the next time the year was re-imported.
 
 **Correct a time in a closed competition** on the admin's Hall of Fame tab does
-it properly: name the competitor and the corrected leg time, and it shows the
-before and after — the three legs and the total — with nothing written until the
-admin presses again. Applying corrects the archived leg time and re-imports the
-year, so the split, the total, the ranking, the all-time records and the medal
-table all move together. Only the named leg's stamp changes; the legs after it
-keep the durations they were measured at, so the total moves by exactly the
-correction.
+it properly. The result is *picked* from that year's own results and the leg from
+that result's own legs, each shown with the time it currently holds — nothing is
+typed but the corrected time. That is deliberate: matching a typed name against
+the archive fails whenever the stored roster isn't what the results page
+displays, and a relay typed in by hand at the start line has no roster behind its
+name at all, which leaves whoever is fixing a published time guessing at
+spellings.
+
+It then shows the before and after — the three legs and the total — with nothing
+written until the admin presses again. Applying corrects the archived leg time
+and re-imports the year, so the split, the total, the ranking, the all-time
+records and the medal table all move together. Only the chosen leg's stamp
+changes; the legs after it keep the durations they were measured at, so the total
+moves by exactly the correction.
 
 The same correction is available from a terminal as
-`prisma/fix-archived-leg-time.ts` (`--year`, `--name`, `--split`, then `--apply`),
-for one being scripted or made against a database directly. Both go through
+`prisma/fix-archived-leg-time.ts` (`--year` alone lists that year's results with
+their ids; then `--entry`, `--leg`, `--split` and `--apply`), for one being
+scripted or made against a database directly. Both go through
 `correctArchivedLegTime` in `src/lib/archiveFix.ts`, so they cannot drift apart.
 
 The archive is a JSON snapshot rather than a set of mirror tables on purpose:

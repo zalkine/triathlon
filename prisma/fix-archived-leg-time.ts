@@ -7,16 +7,14 @@
  *
  * Usage (DATABASE_URL must point at the database being corrected):
  *
- *   npx tsx prisma/fix-archived-leg-time.ts --year 2026 --name "סהר רחמוט" --split 7:10
+ *   npx tsx prisma/fix-archived-leg-time.ts --year 2026                      # list that year's results
+ *   npx tsx prisma/fix-archived-leg-time.ts --year 2026 --entry <id> --leg RUN --split 7:10
  *
- * That is a dry run: it prints what it would change and writes nothing. Check
- * the before/after, then repeat it with --apply. Add --leg SWIM|BIKE|RUN to name
- * the leg explicitly; by default it uses the leg the archive has that person on.
- * If the same person raced more than once that year, add --team to say which.
+ * Without --apply it prints what it would change and writes nothing.
  */
 
 import { PrismaClient } from '@prisma/client';
-import { correctArchivedLegTime, parseSplitSeconds, type SplitsView } from '../src/lib/archiveFix';
+import { correctArchivedLegTime, listArchivedResults, parseSplitSeconds } from '../src/lib/archiveFix';
 import { LEGS, type Leg } from '../src/lib/constants';
 
 const prisma = new PrismaClient();
@@ -31,60 +29,68 @@ const clock = (seconds: number | null) =>
 
 const REASONS: Record<string, string> = {
   'no-archive': 'That year has not been closed and archived. A competition still running is corrected on the Scores tab.',
-  'not-found': 'Nobody by that name in that year. Check the spelling against the results.',
-  'no-leg': 'No leg is recorded for them, so name one with --leg SWIM|BIKE|RUN.',
+  'not-found': 'No result with that id in that year. Run with --year alone to list them.',
   'no-stamp': 'That leg was never timed for them, so there is no time to correct.',
   'no-previous': 'The time this leg is measured from was never recorded, so this leg cannot be worked out.',
 };
 
 async function main() {
   const year = parseInt(arg('year') ?? '', 10);
-  const competitor = (arg('name') ?? '').trim();
-  const newSplitSeconds = parseSplitSeconds(arg('split') ?? '');
-  const legArg = (arg('leg') ?? '').toUpperCase();
-  const apply = process.argv.includes('--apply');
-
-  if (!Number.isInteger(year) || !competitor || newSplitSeconds == null) {
-    console.error(
-      'Usage: --year <year> --name "<competitor>" --split <m:ss> [--team "<team name>"] [--leg SWIM|BIKE|RUN] [--apply]'
-    );
+  if (!Number.isInteger(year)) {
+    console.error('Usage: --year <year> [--entry <id> --leg SWIM|BIKE|RUN --split <m:ss> [--apply]]');
     process.exit(1);
   }
-  if (legArg && !(LEGS as readonly string[]).includes(legArg)) {
-    console.error(`--leg must be one of ${LEGS.join(', ')}.`);
+
+  const entryId = arg('entry');
+  if (!entryId) {
+    // No result named: list the year so an id can be picked.
+    const results = await listArchivedResults(year);
+    if (results.length === 0) {
+      console.error(REASONS['no-archive']);
+      process.exit(1);
+    }
+    let category = '';
+    for (const r of results) {
+      if (r.categoryHe !== category) {
+        category = r.categoryHe;
+        console.log(`\n${category}`);
+      }
+      const legs = LEGS.map((l) => `${l} ${clock(r.splits[l.toLowerCase() as 'swim' | 'bike' | 'run'])}`).join('  ');
+      console.log(`  ${clock(r.splits.total).padStart(7)}  ${r.name}`);
+      console.log(`           ${legs}   id=${r.entryId}`);
+    }
+    return;
+  }
+
+  const legRaw = (arg('leg') ?? '').toUpperCase();
+  const newSplitSeconds = parseSplitSeconds(arg('split') ?? '');
+  if (!(LEGS as readonly string[]).includes(legRaw) || newSplitSeconds == null) {
+    console.error(`--leg must be one of ${LEGS.join(', ')} and --split a time like 7:10.`);
     process.exit(1);
   }
 
   const outcome = await correctArchivedLegTime({
     year,
-    competitor,
+    entryId,
+    leg: legRaw as Leg,
     newSplitSeconds,
-    leg: legArg ? (legArg as Leg) : null,
-    team: arg('team') ?? null,
-    apply,
+    apply: process.argv.includes('--apply'),
   });
-
   if ('error' in outcome) {
-    if (outcome.error === 'ambiguous') {
-      console.error(`"${competitor}" raced more than once in ${year}; say which with --team "<part of the name>":`);
-      for (const c of outcome.candidates) console.error(`  - ${c}`);
-    } else {
-      console.error(REASONS[outcome.error] ?? outcome.error);
-    }
+    console.error(REASONS[outcome.error] ?? outcome.error);
     process.exit(1);
   }
 
-  const { correction } = outcome;
-  const row = (label: string, was: keyof SplitsView, now: keyof SplitsView, mark = '') =>
-    `  ${label.padEnd(6)} ${clock(correction.before[was]).padStart(8)}  ${clock(correction.after[now]).padStart(8)}${mark}`;
-
-  console.log(`\n${year} · ${correction.heatName} · ${correction.entryName}`);
-  console.log(`Correcting ${competitor}'s ${correction.leg} leg to ${clock(newSplitSeconds)}\n`);
+  const c = outcome.correction;
+  console.log(`\n${year} · ${c.categoryHe} · ${c.name}`);
+  console.log(`Correcting the ${c.leg} leg${c.legName ? ` (${c.legName})` : ''} to ${clock(newSplitSeconds)}\n`);
   console.log('           before     after');
-  console.log(row('SWIM', 'swim', 'swim', correction.leg === 'SWIM' ? ' ←' : ''));
-  console.log(row('BIKE', 'bike', 'bike', correction.leg === 'BIKE' ? ' ←' : ''));
-  console.log(row('RUN', 'run', 'run', correction.leg === 'RUN' ? ' ←' : ''));
-  console.log(row('TOTAL', 'total', 'total'));
+  for (const l of LEGS) {
+    const key = l.toLowerCase() as 'swim' | 'bike' | 'run';
+    const mark = l === c.leg ? ' ←' : '';
+    console.log(`  ${l.padEnd(6)} ${clock(c.before[key]).padStart(8)}  ${clock(c.after[key]).padStart(8)}${mark}`);
+  }
+  console.log(`  ${'TOTAL'.padEnd(6)} ${clock(c.before.total).padStart(8)}  ${clock(c.after.total).padStart(8)}`);
 
   if (!outcome.applied) {
     console.log('\nDry run — nothing was changed. Re-run with --apply once the numbers above are right.');

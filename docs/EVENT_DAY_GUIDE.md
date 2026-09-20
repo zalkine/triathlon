@@ -342,11 +342,19 @@ info page is unpublished, since it describes a competition that is over.
 **Found a wrong time after closing?** — a leg that was mis-stamped, spotted on
 the photos or from a competitor who knows what they ran. On
 **ניהול תחרות → היכל התהילה** there is **תיקון זמן בתחרות שנסגרה** (Correct a
-time in a closed competition): choose the year, type the competitor's name and
-the correct leg time, and press **הראו לי מה ישתנה**. It shows the three legs and
-the total, before and after, and saves nothing yet. If the numbers are right,
-press **עדכון ופרסום** — the leg, the total, the placings, the records and the
-medal table all update together, and the public page changes straight away.
+time in a closed competition):
+
+1. **שנה** — the year.
+2. **תוצאה** — pick the result from the list. It shows every result of that year
+   with its finishing time, exactly as the Hall of Fame lists them, so find the
+   one you are looking at.
+3. **מקצה** — pick the leg. Each one shows the time it currently holds (and who
+   did it, where the roster is known), so the wrong one is easy to spot.
+4. **הזמן הנכון** — the correct time, as minutes:seconds.
+5. **הראו לי מה ישתנה** — the three legs and the total, before and after.
+   Nothing is saved yet.
+6. **עדכון ופרסום** — the leg, the total, the placings, the records and the medal
+   table all update together, and the public page changes straight away.
 
 Anything else about a closed year — a name, a category — is edited on the same
 tab like any other year's result. Everything the competition held is kept in the

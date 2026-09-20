@@ -1,67 +1,84 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { fixArchivedLegTime } from '@/actions/competition';
 import { formatHms } from '@/lib/hallOfFame';
-import type { Correction } from '@/lib/archiveFix';
+import { LEGS, type Leg } from '@/lib/constants';
+import type { ArchivedResult, Correction } from '@/lib/archiveFix';
 
 /**
  * Correcting a leg time in a closed year, from the admin screen.
  *
- * Deliberately two presses. The first only works out what would change and
- * shows it; nothing is written until the admin has read the before-and-after and
- * pressed again. These are published results, and the usual reason to be here is
- * a number someone is reading off a photograph — so the check belongs in front
- * of the change, not after it.
+ * The result is chosen from that year's own results and the leg from that
+ * result's own legs, so nothing has to be spelled and nothing can be mistyped.
+ * Each leg is offered with the time it currently holds, which is also how the
+ * admin sees at a glance which leg is the wrong one.
+ *
+ * Then two presses. The first only works out what would change and shows it;
+ * nothing is written until the admin has read the before-and-after and pressed
+ * again. These are published results, and the usual reason to be here is a
+ * number someone is reading off a photograph — so the check belongs in front of
+ * the change, not after it.
  */
-export default function ArchivedTimeFixForm({ years }: { years: number[] }) {
+export default function ArchivedTimeFixForm({ results }: { results: Record<string, ArchivedResult[]> }) {
   const t = useTranslations('manage');
   const locale = useLocale();
   const router = useRouter();
 
+  const years = useMemo(
+    () => Object.keys(results).map(Number).sort((a, b) => b - a),
+    [results]
+  );
   const [year, setYear] = useState(String(years[0] ?? ''));
-  const [competitor, setCompetitor] = useState('');
-  const [split, setSplit] = useState('');
+  const [entryId, setEntryId] = useState('');
   const [leg, setLeg] = useState('');
-  const [team, setTeam] = useState('');
+  const [split, setSplit] = useState('');
 
   const [preview, setPreview] = useState<Correction | null>(null);
-  const [candidates, setCandidates] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [done, setDone] = useState<Correction | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const yearResults = results[year] ?? [];
+  const chosen = yearResults.find((r) => r.entryId === entryId) ?? null;
+
+  const time = (seconds: number | null | undefined) => (seconds == null ? '—' : formatHms(seconds));
+  const legLabel = (l: Leg) => (l === 'SWIM' ? t('legSwim') : l === 'BIKE' ? t('legBike') : t('legRun'));
+
+  // The results of one field, together, so the list reads like the results page.
+  const grouped = useMemo(() => {
+    const byCategory = new Map<string, ArchivedResult[]>();
+    for (const r of yearResults) byCategory.set(r.categoryHe, [...(byCategory.get(r.categoryHe) ?? []), r]);
+    return [...byCategory.entries()];
+  }, [yearResults]);
 
   const message = (code: string) =>
     ({
       'no-archive': t('fixErrorNoArchive'),
       'not-found': t('fixErrorNotFound'),
-      ambiguous: t('fixErrorAmbiguous'),
-      'no-leg': t('fixErrorNoLeg'),
       'no-stamp': t('fixErrorNoStamp'),
       'no-previous': t('fixErrorNoPrevious'),
       split: t('fixErrorSplit'),
-      competitor: t('fixErrorCompetitor'),
+      entry: t('fixErrorEntry'),
+      leg: t('fixErrorLeg'),
       year: t('fixErrorYear'),
     })[code] ?? t('fixErrorSplit');
 
   const run = (apply: boolean) => {
     setError('');
-    setCandidates([]);
     startTransition(async () => {
       const fd = new FormData();
       fd.set('year', year);
-      fd.set('competitor', competitor);
-      fd.set('split', split);
+      fd.set('entryId', entryId);
       fd.set('leg', leg);
-      fd.set('team', team);
+      fd.set('split', split);
       fd.set('apply', String(apply));
 
       const outcome = await fixArchivedLegTime(locale, fd);
       if ('error' in outcome) {
         setError(message(outcome.error));
-        if (outcome.error === 'ambiguous') setCandidates(outcome.candidates);
         setPreview(null);
         return;
       }
@@ -75,14 +92,10 @@ export default function ArchivedTimeFixForm({ years }: { years: number[] }) {
     });
   };
 
-  const time = (seconds: number | null) => (seconds == null ? '—' : formatHms(seconds));
-
   if (done) {
     return (
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-swim-dark">
-          ✓ {t('fixApplied', { competitor: done.competitor, entry: done.entryName })}
-        </p>
+        <p className="text-sm font-semibold text-swim-dark">✓ {t('fixApplied', { entry: done.name })}</p>
         <p className="text-sm text-ink-light">
           {t('fixAppliedTotals', { before: time(done.before.total), after: time(done.after.total) })}
         </p>
@@ -90,10 +103,9 @@ export default function ArchivedTimeFixForm({ years }: { years: number[] }) {
           type="button"
           onClick={() => {
             setDone(null);
-            setCompetitor('');
-            setSplit('');
+            setEntryId('');
             setLeg('');
-            setTeam('');
+            setSplit('');
           }}
           className="text-sm font-semibold underline"
         >
@@ -110,8 +122,13 @@ export default function ArchivedTimeFixForm({ years }: { years: number[] }) {
           <span className="block text-xs text-ink-light">{t('fixYear')}</span>
           <select
             value={year}
-            onChange={(e) => setYear(e.target.value)}
-            className="mt-0.5 rounded-lg border border-ink/20 px-3 py-1.5 text-sm"
+            onChange={(e) => {
+              setYear(e.target.value);
+              setEntryId('');
+              setLeg('');
+              setPreview(null);
+            }}
+            className="mt-0.5 rounded-lg border border-ink/20 bg-surface px-3 py-1.5 text-sm"
           >
             {years.map((y) => (
               <option key={y} value={y}>
@@ -122,87 +139,89 @@ export default function ArchivedTimeFixForm({ years }: { years: number[] }) {
         </label>
 
         <label className="text-sm">
-          <span className="block text-xs text-ink-light">{t('fixCompetitor')}</span>
-          <input
-            type="text"
-            value={competitor}
-            onChange={(e) => setCompetitor(e.target.value)}
-            placeholder={t('fixCompetitorPlaceholder')}
-            className="mt-0.5 w-56 rounded-lg border border-ink/20 px-3 py-1.5 text-sm"
-          />
-        </label>
-
-        <label className="text-sm">
-          <span className="block text-xs text-ink-light">{t('fixLeg')}</span>
+          <span className="block text-xs text-ink-light">{t('fixResult')}</span>
           <select
-            value={leg}
-            onChange={(e) => setLeg(e.target.value)}
-            className="mt-0.5 rounded-lg border border-ink/20 px-3 py-1.5 text-sm"
+            value={entryId}
+            onChange={(e) => {
+              setEntryId(e.target.value);
+              setLeg('');
+              setPreview(null);
+            }}
+            className="mt-0.5 w-full max-w-md rounded-lg border border-ink/20 bg-surface px-3 py-1.5 text-sm sm:w-80"
           >
-            <option value="">{t('fixLegAuto')}</option>
-            <option value="SWIM">{t('legSwim')}</option>
-            <option value="BIKE">{t('legBike')}</option>
-            <option value="RUN">{t('legRun')}</option>
+            <option value="">{t('fixResultPick')}</option>
+            {grouped.map(([categoryHe, rows]) => (
+              <optgroup key={categoryHe} label={categoryHe}>
+                {rows.map((r) => (
+                  <option key={r.entryId} value={r.entryId}>
+                    {time(r.splits.total)} · {r.name}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
           </select>
         </label>
-
-        <label className="text-sm">
-          <span className="block text-xs text-ink-light">{t('fixSplit')}</span>
-          <input
-            type="text"
-            value={split}
-            onChange={(e) => setSplit(e.target.value)}
-            placeholder="7:10"
-            className="mt-0.5 w-24 rounded-lg border border-ink/20 px-3 py-1.5 text-sm tabular-nums"
-          />
-        </label>
-
-        <button
-          type="button"
-          onClick={() => run(false)}
-          disabled={isPending}
-          className="rounded-full border border-ink/20 bg-surface px-4 py-1.5 text-sm font-semibold text-ink transition hover:bg-ink/5 disabled:opacity-40"
-        >
-          {t('fixPreview')}
-        </button>
       </div>
 
-      {candidates.length > 0 && (
-        <div className="text-sm">
-          <p className="text-ink-light">{t('fixPickTeam')}</p>
-          <div className="mt-1 flex flex-wrap gap-2">
-            {candidates.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => {
-                  setTeam(c);
-                  setCandidates([]);
-                }}
-                className="rounded-full border border-ink/20 px-3 py-1 text-xs hover:bg-ink/5"
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-      {team && (
-        <p className="text-xs text-ink-light">
-          {t('fixTeamChosen', { team })}{' '}
-          <button type="button" onClick={() => setTeam('')} className="underline">
-            {t('clearSelection')}
+      {chosen && (
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="text-sm">
+            <span className="block text-xs text-ink-light">{t('fixLeg')}</span>
+            <select
+              value={leg}
+              onChange={(e) => {
+                setLeg(e.target.value);
+                setPreview(null);
+              }}
+              className="mt-0.5 rounded-lg border border-ink/20 bg-surface px-3 py-1.5 text-sm"
+            >
+              <option value="">{t('fixLegPick')}</option>
+              {LEGS.map((l) => (
+                <option key={l} value={l}>
+                  {legLabel(l)} · {time(chosen.splits[l.toLowerCase() as 'swim' | 'bike' | 'run'])}
+                  {chosen.legNames[l] ? ` · ${chosen.legNames[l]}` : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-sm">
+            <span className="block text-xs text-ink-light">{t('fixSplit')}</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={split}
+              onChange={(e) => {
+                setSplit(e.target.value);
+                setPreview(null);
+              }}
+              placeholder="7:10"
+              className="mt-0.5 w-24 rounded-lg border border-ink/20 px-3 py-1.5 text-sm tabular-nums"
+            />
+          </label>
+
+          <button
+            type="button"
+            onClick={() => run(false)}
+            disabled={isPending || !leg || !split}
+            className="rounded-full border border-ink/20 bg-surface px-4 py-1.5 text-sm font-semibold text-ink transition hover:bg-ink/5 disabled:opacity-40"
+          >
+            {t('fixPreview')}
           </button>
-        </p>
+        </div>
       )}
 
       {error && <p className="text-sm font-semibold text-run-dark">{error}</p>}
 
       {preview && (
         <div className="rounded-xl border border-ink/10 bg-ink/[0.03] p-4">
-          <p className="text-sm font-semibold">{preview.entryName}</p>
+          <p className="text-sm font-semibold">{preview.name}</p>
           <p className="mb-2 text-xs text-ink-light">
-            {t('fixPreviewHint', { competitor: preview.competitor, time: time(preview.newSplitSeconds) })}
+            {t('fixPreviewHint', {
+              leg: legLabel(preview.leg),
+              who: preview.legName ?? preview.name,
+              time: time(preview.newSplitSeconds),
+            })}
           </p>
           <table className="text-sm">
             <thead>
@@ -213,22 +232,19 @@ export default function ArchivedTimeFixForm({ years }: { years: number[] }) {
               </tr>
             </thead>
             <tbody className="tabular-nums">
-              {(
-                [
-                  ['SWIM', t('legSwim'), preview.before.swim, preview.after.swim],
-                  ['BIKE', t('legBike'), preview.before.bike, preview.after.bike],
-                  ['RUN', t('legRun'), preview.before.run, preview.after.run],
-                ] as const
-              ).map(([key, label, was, now]) => (
-                <tr key={key} className={key === preview.leg ? 'font-semibold' : ''}>
-                  <td className="pe-6 text-ink-light">{label}</td>
-                  <td className="pe-6">{time(was)}</td>
-                  <td>
-                    {time(now)}
-                    {key === preview.leg ? ' ←' : ''}
-                  </td>
-                </tr>
-              ))}
+              {LEGS.map((l) => {
+                const key = l.toLowerCase() as 'swim' | 'bike' | 'run';
+                return (
+                  <tr key={l} className={l === preview.leg ? 'font-semibold' : ''}>
+                    <td className="pe-6 text-ink-light">{legLabel(l)}</td>
+                    <td className="pe-6">{time(preview.before[key])}</td>
+                    <td>
+                      {time(preview.after[key])}
+                      {l === preview.leg ? ' ←' : ''}
+                    </td>
+                  </tr>
+                );
+              })}
               <tr className="border-t border-ink/10 font-semibold">
                 <td className="pe-6 text-ink-light">{t('fixTotal')}</td>
                 <td className="pe-6">{time(preview.before.total)}</td>
