@@ -35,7 +35,7 @@ export default async function HofPanel(_props: { locale: string }) {
 
       <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
         <h2 className="mb-3 font-semibold">{t('tabHof')}</h2>
-        <HofEditor rows={rows} />
+        <HofEditor rows={rows} archivedYears={archives.map((a) => a.year)} />
       </div>
       <div className="flex flex-wrap gap-3">
         <CsvLink href="/api/export/hof" label={t('exportHof')} />

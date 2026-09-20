@@ -16,6 +16,9 @@ type Row = {
   name: string;
   seconds: number;
   members?: string[];
+  swimSeconds?: number | null;
+  bikeSeconds?: number | null;
+  runSeconds?: number | null;
 };
 
 const inputCls = 'rounded-lg border border-ink/20 px-2 py-1 text-sm focus:border-ink focus:outline-none';
@@ -75,6 +78,35 @@ function RowForm({
         {t('hofTime')}
         <input name="seconds" required defaultValue={row ? formatHms(row.seconds) : ''} placeholder="mm:ss" className={inputCls} />
       </label>
+      {/* The leg splits, where the race was timed leg by leg. Left blank for a
+          year that only recorded finishing times. */}
+      <label className="flex flex-col gap-1 text-xs text-ink-light">
+        {t('legSwim')}
+        <input
+          name="swimSeconds"
+          defaultValue={row?.swimSeconds != null ? formatHms(row.swimSeconds) : ''}
+          placeholder="mm:ss"
+          className={inputCls}
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-xs text-ink-light">
+        {t('legBike')}
+        <input
+          name="bikeSeconds"
+          defaultValue={row?.bikeSeconds != null ? formatHms(row.bikeSeconds) : ''}
+          placeholder="mm:ss"
+          className={inputCls}
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-xs text-ink-light">
+        {t('legRun')}
+        <input
+          name="runSeconds"
+          defaultValue={row?.runSeconds != null ? formatHms(row.runSeconds) : ''}
+          placeholder="mm:ss"
+          className={inputCls}
+        />
+      </label>
       <label className="col-span-2 flex flex-col gap-1 text-xs text-ink-light sm:col-span-4">
         {t('hofMembers')}
         <input name="members" defaultValue={(row?.members ?? []).join(', ')} placeholder={t('hofMembersHint')} className={inputCls} />
@@ -93,7 +125,7 @@ function RowForm({
   );
 }
 
-export default function HofEditor({ rows }: { rows: Row[] }) {
+export default function HofEditor({ rows, archivedYears = [] }: { rows: Row[]; archivedYears?: number[] }) {
   const t = useTranslations('manage');
   const locale = useLocale();
   const router = useRouter();
@@ -155,6 +187,13 @@ export default function HofEditor({ rows }: { rows: Row[] }) {
       {years.map((year, yi) => (
         <details key={year} open={yi === 0} className="rounded-2xl border border-ink/10 bg-surface/70 p-4">
           <summary className="cursor-pointer font-bold">{year}</summary>
+          {/* A closed year is rebuilt from its archive whenever it is
+              re-imported, so an edit made here — to the published copy — can be
+              overwritten. Times have a tool that fixes the archive too; say so
+              rather than let the edit quietly disappear later. */}
+          {archivedYears.includes(year) && (
+            <p className="mt-2 rounded-lg bg-bike/10 px-3 py-2 text-xs text-ink-light">{t('hofArchivedYearNote')}</p>
+          )}
           <ul className="mt-3 space-y-2">
             {rows
               .filter((r) => r.year === year)
@@ -173,6 +212,13 @@ export default function HofEditor({ rows }: { rows: Row[] }) {
                       </span>
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
+                      {(r.swimSeconds != null || r.bikeSeconds != null || r.runSeconds != null) && (
+                        <span className="font-mono text-xs tabular-nums text-ink-light">
+                          {[r.swimSeconds, r.bikeSeconds, r.runSeconds]
+                            .map((s) => (s == null ? '—' : formatHms(s)))
+                            .join(' · ')}
+                        </span>
+                      )}
                       <span className="font-mono tabular-nums text-ink-light">{formatHms(r.seconds)}</span>
                       <button type="button" onClick={() => setEditingId(r.id)} className="text-xs text-ink-light underline">
                         {t('edit')}

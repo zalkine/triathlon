@@ -24,6 +24,7 @@ const FAMILIES: Family[] = ['Elite', 'Amateur', 'Kids', 'Seniors', 'Open'];
 function readForm(formData: FormData): { data?: {
   year: number; categoryHe: string; family: string; isTeam: boolean;
   rank: number | null; name: string; seconds: number; members: string[];
+  swimSeconds: number | null; bikeSeconds: number | null; runSeconds: number | null;
 }; error?: string } {
   const year = parseInt(String(formData.get('year') || ''), 10);
   const categoryHe = String(formData.get('categoryHe') || '').trim();
@@ -44,7 +45,36 @@ function readForm(formData: FormData): { data?: {
   if (seconds == null || seconds <= 0) return { error: 'seconds' };
   if (rankRaw && (rank == null || Number.isNaN(rank))) return { error: 'rank' };
 
-  return { data: { year, categoryHe, family, isTeam, rank, name, seconds, members } };
+  // Leg splits. Blank means the leg was never measured, which is the normal
+  // state for the years whose sheets record finishing times only — so an empty
+  // box clears a split rather than failing.
+  const splits: Record<string, number | null> = {};
+  for (const leg of ['swim', 'bike', 'run'] as const) {
+    const raw = String(formData.get(`${leg}Seconds`) || '').trim();
+    if (!raw) {
+      splits[leg] = null;
+      continue;
+    }
+    const value = parseSeconds(raw);
+    if (value == null || value <= 0) return { error: `${leg}Seconds` };
+    splits[leg] = value;
+  }
+
+  return {
+    data: {
+      year,
+      categoryHe,
+      family,
+      isTeam,
+      rank,
+      name,
+      seconds,
+      members,
+      swimSeconds: splits.swim,
+      bikeSeconds: splits.bike,
+      runSeconds: splits.run,
+    },
+  };
 }
 
 export async function createHistoricalResult(

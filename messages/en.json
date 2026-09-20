@@ -299,6 +299,7 @@
     "addToHofHint": "Publishing the results already files them here. Use this to re-import a year by hand.",
     "noResultsYet": "No results yet — they appear here as timekeepers stamp finish times.",
     "hofHint": "The full historical record — add, edit or remove any result.",
+    "hofArchivedYearNote": "This competition is closed and archived. Everything here can be edited, and saving publishes it straight away — but a *time* is better corrected in the card above, which fixes the year’s archive too. A time changed here is the published copy only, and would be overwritten if the year is ever re-imported.",
     "hofAdd": "Add result",
     "hofError": "Please check the fields and try again.",
     "hofConfirmDelete": "Delete this result?",
