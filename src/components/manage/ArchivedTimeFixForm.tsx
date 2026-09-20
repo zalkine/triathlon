@@ -231,16 +231,28 @@ export default function ArchivedTimeFixForm({
       )}
 
       {yearResults.length === 0 && (
-        <p className="text-sm text-ink-light">
-          {shape
-            ? t('fixNothingToList', {
-                year: String(shape.year),
-                heats: shape.heats,
-                entries: shape.entries,
-                categories: shape.categories,
-              })
-            : t('fixErrorNoArchive')}
-        </p>
+        <div className="space-y-1 text-sm text-ink-light">
+          {shape && shape.heats === 0 ? (
+            // The season's heat-by-heat record is gone, so there is nothing here
+            // to correct — but the published results below are editable and, with
+            // no archive to rebuild from, an edit there is the final word.
+            <>
+              <p>{t('fixArchiveEmpty', { year: String(shape.year) })}</p>
+              <p>{t('fixArchiveEmptyEditBelow')}</p>
+            </>
+          ) : (
+            <p>
+              {shape
+                ? t('fixNothingToList', {
+                    year: String(shape.year),
+                    heats: shape.heats,
+                    entries: shape.entries,
+                    categories: shape.categories,
+                  })
+                : t('fixErrorNoArchive')}
+            </p>
+          )}
+        </div>
       )}
 
       {error && <p className="text-sm font-semibold text-run-dark">{error}</p>}

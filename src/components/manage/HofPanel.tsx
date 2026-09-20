@@ -39,7 +39,9 @@ export default async function HofPanel(_props: { locale: string }) {
 
       <div className="rounded-2xl border border-ink/10 bg-surface/70 p-5">
         <h2 className="mb-3 font-semibold">{t('tabHof')}</h2>
-        <HofEditor rows={rows} archivedYears={archives.map((a) => a.year)} />
+        {/* The warning about a re-import only applies to a year that could
+            actually be rebuilt — one whose archive still holds its heats. */}
+        <HofEditor rows={rows} archivedYears={shapes.filter((s) => s.heats > 0).map((s) => s.year)} />
       </div>
       <div className="flex flex-wrap gap-3">
         <CsvLink href="/api/export/hof" label={t('exportHof')} />

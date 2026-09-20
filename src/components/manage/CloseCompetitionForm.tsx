@@ -41,7 +41,13 @@ export default function CloseCompetitionForm({
       fd.set('year', String(parsed));
       const result = await closeCompetition(locale, fd);
       if (result.error) {
-        setError(result.error === 'not-published' ? t('closeNotPublished') : t('closeYearError'));
+        setError(
+          result.error === 'not-published'
+            ? t('closeNotPublished')
+            : result.error === 'nothing-to-close'
+              ? t('closeNothingToClose')
+              : t('closeYearError')
+        );
         return;
       }
       setClosedYear(result.year ?? parsed);

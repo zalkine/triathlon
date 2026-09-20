@@ -45,6 +45,14 @@ export async function closeCompetition(locale: string, formData: FormData): Prom
   const year = Number.isInteger(requested) ? requested : competitionYear(settings.raceStartTime);
   if (year < 1900 || year > 2200) return { error: 'year' };
 
+  // Closing an already-empty season would archive nothing and, worse, replace a
+  // real archive with that nothing: the snapshot is taken from the live tables,
+  // and closing is what empties them. A second press — a double-tap on a phone,
+  // a stale screen — must not be able to erase the record of the year. Refuse
+  // outright when there is no race left to file.
+  const heatCount = await prisma.heat.count();
+  if (heatCount === 0) return { error: 'nothing-to-close' };
+
   // The Hall of Fame takes the results as they stand at this moment.
   await importResultsToHof(year);
 
@@ -80,6 +88,13 @@ export async function closeCompetition(locale: string, formData: FormData): Prom
 
   await prisma.$transaction(
     async (tx) => {
+      // Belt and braces against the same thing happening between the check
+      // above and this write: never let an empty snapshot replace a full one.
+      const existing = await tx.competitionArchive.findUnique({ where: { year } });
+      if (existing && heats.length === 0 && existing.heatCount > 0) {
+        throw new Error('refusing to overwrite an archived competition with an empty snapshot');
+      }
+
       await tx.competitionArchive.upsert({
         where: { year },
         update: {
