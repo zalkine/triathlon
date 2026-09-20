@@ -129,16 +129,46 @@ async function rowsFromArchive(year: number): Promise<Row[]> {
   const heats = season.heats ?? [];
   if (categories.length === 0 || heats.length === 0) return [];
 
+  // The line-up as the archive stored it, and — for a heat whose category the
+  // archive cannot account for — the categories as they stand now. Closing a
+  // competition never deletes a category, so the live table is a good second
+  // opinion, and a heat that neither can explain must still be imported rather
+  // than dropped: a result nobody can label is still a result someone ran.
   const fields = toRacingCategories(categories.filter((c) => !isRegistrationOnlyCategory(c.key)));
-  const fieldOfCategory = new Map<string, string>();
-  fields.forEach((f) => f.memberIds.forEach((id) => fieldOfCategory.set(id, f.id)));
+  const fieldOfCategory = new Map<string, { id: string; nameHe: string; key: string; type: string }>();
+  for (const f of fields) {
+    for (const id of f.memberIds) fieldOfCategory.set(id, { id: f.id, nameHe: f.nameHe, key: f.key, type: f.type });
+  }
+  for (const c of await allCategories()) {
+    if (!fieldOfCategory.has(c.id)) {
+      fieldOfCategory.set(c.id, { id: c.id, nameHe: c.nameHe, key: c.key, type: c.type });
+    }
+  }
   const date = (value: string | null) => (value ? new Date(value) : null);
 
+  // Group the heats by the field they raced in, so a field is ranked as one. A
+  // heat neither the archive nor the live line-up can name is left out: the
+  // import clears a year by the labels it is about to write, so inventing a
+  // label here would leave rows behind that a later, properly named run cannot
+  // clean up — duplicates on a public page, which is worse than the gap. The
+  // admin screen reports the shortfall rather than hiding it.
+  const heatsByField = new Map<string, typeof heats>();
+  for (const h of heats) {
+    const field = fieldOfCategory.get(h.categoryId);
+    if (!field) continue;
+    heatsByField.set(field.id, [...(heatsByField.get(field.id) ?? []), h]);
+  }
+
   const rows: Row[] = [];
-  for (const field of fields) {
+  for (const [, fieldHeats] of heatsByField) {
+    const field = fieldOfCategory.get(fieldHeats[0].categoryId) as {
+      id: string;
+      nameHe: string;
+      key: string;
+      type: string;
+    };
     const membersByEntry = new Map<string, string[]>();
-    const entries = heats
-      .filter((h) => fieldOfCategory.get(h.categoryId) === field.id)
+    const entries = fieldHeats
       .flatMap((h) =>
         (h.entries ?? [])
           .filter((e) => !e.scratched)

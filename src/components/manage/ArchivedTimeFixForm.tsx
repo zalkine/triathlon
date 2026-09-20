@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { fixArchivedLegTime } from '@/actions/competition';
 import { formatHms } from '@/lib/hallOfFame';
 import { LEGS, type Leg } from '@/lib/constants';
-import type { ArchivedResult, Correction } from '@/lib/archiveFix';
+import type { ArchiveShape, ArchivedResult, Correction } from '@/lib/archiveFix';
 
 /**
  * Correcting a leg time in a closed year, from the admin screen.
@@ -22,7 +22,13 @@ import type { ArchivedResult, Correction } from '@/lib/archiveFix';
  * number someone is reading off a photograph — so the check belongs in front of
  * the change, not after it.
  */
-export default function ArchivedTimeFixForm({ results }: { results: Record<string, ArchivedResult[]> }) {
+export default function ArchivedTimeFixForm({
+  results,
+  shapes = [],
+}: {
+  results: Record<string, ArchivedResult[]>;
+  shapes?: ArchiveShape[];
+}) {
   const t = useTranslations('manage');
   const locale = useLocale();
   const router = useRouter();
@@ -39,10 +45,18 @@ export default function ArchivedTimeFixForm({ results }: { results: Record<strin
   const [preview, setPreview] = useState<Correction | null>(null);
   const [error, setError] = useState('');
   const [done, setDone] = useState<Correction | null>(null);
+  // How many results the re-publish actually wrote. Zero means the archive was
+  // corrected but the Hall of Fame was not rebuilt, which must be said rather
+  // than dressed up as success.
+  const [imported, setImported] = useState(0);
   const [isPending, startTransition] = useTransition();
 
   const yearResults = results[year] ?? [];
   const chosen = yearResults.find((r) => r.entryId === entryId) ?? null;
+  // Nothing to pick: say what that year's archive actually holds rather than
+  // show an empty box. A blank list is a fact about the data, and the admin
+  // cannot see the data.
+  const shape = shapes.find((s) => String(s.year) === year) ?? null;
 
   const time = (seconds: number | null | undefined) => (seconds == null ? '—' : formatHms(seconds));
   const legLabel = (l: Leg) => (l === 'SWIM' ? t('legSwim') : l === 'BIKE' ? t('legBike') : t('legRun'));
@@ -83,6 +97,7 @@ export default function ArchivedTimeFixForm({ results }: { results: Record<strin
         return;
       }
       if (apply) {
+        setImported(outcome.imported);
         setDone(outcome.correction);
         setPreview(null);
         router.refresh();
@@ -95,10 +110,14 @@ export default function ArchivedTimeFixForm({ results }: { results: Record<strin
   if (done) {
     return (
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-swim-dark">✓ {t('fixApplied', { entry: done.name })}</p>
+        <p className={`text-sm font-semibold ${imported > 0 ? 'text-swim-dark' : 'text-ink'}`}>
+          {imported > 0 ? '✓ ' : ''}
+          {imported > 0 ? t('fixApplied', { entry: done.name }) : t('fixAppliedArchiveOnly', { entry: done.name })}
+        </p>
         <p className="text-sm text-ink-light">
           {t('fixAppliedTotals', { before: time(done.before.total), after: time(done.after.total) })}
         </p>
+        {imported === 0 && <p className="text-sm font-semibold text-run-dark">{t('fixNotRepublished')}</p>}
         <button
           type="button"
           onClick={() => {
@@ -138,7 +157,7 @@ export default function ArchivedTimeFixForm({ results }: { results: Record<strin
           </select>
         </label>
 
-        <label className="text-sm">
+        <label className={`text-sm ${yearResults.length === 0 ? 'hidden' : ''}`}>
           <span className="block text-xs text-ink-light">{t('fixResult')}</span>
           <select
             value={entryId}
@@ -209,6 +228,19 @@ export default function ArchivedTimeFixForm({ results }: { results: Record<strin
             {t('fixPreview')}
           </button>
         </div>
+      )}
+
+      {yearResults.length === 0 && (
+        <p className="text-sm text-ink-light">
+          {shape
+            ? t('fixNothingToList', {
+                year: String(shape.year),
+                heats: shape.heats,
+                entries: shape.entries,
+                categories: shape.categories,
+              })
+            : t('fixErrorNoArchive')}
+        </p>
       )}
 
       {error && <p className="text-sm font-semibold text-run-dark">{error}</p>}

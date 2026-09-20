@@ -103,11 +103,31 @@ async function loadSeason(year: number): Promise<ArchivedSeason | null> {
   return archive ? (archive.data as ArchivedSeason) : null;
 }
 
+/** What a year's archive actually holds, for saying so when it lists nothing. */
+export type ArchiveShape = { year: number; heats: number; entries: number; categories: number };
+
+export async function describeArchive(year: number): Promise<ArchiveShape | null> {
+  const season = await loadSeason(year);
+  if (!season) return null;
+  const heats = season.heats ?? [];
+  return {
+    year,
+    heats: heats.length,
+    entries: heats.reduce((n, h) => n + (h.entries ?? []).length, 0),
+    categories: (season.categories ?? []).length,
+  };
+}
+
 /**
  * Every result a closed year holds, in the order the Hall of Fame lists them:
  * by field, fastest first. This is what the admin picks from, so it deliberately
  * includes results with legs that were never timed — seeing that a leg is blank
  * is part of understanding what can be corrected.
+ *
+ * A result whose category can't be resolved against the archived line-up is
+ * still listed, under its heat's name. The category is only a label here; it
+ * decides nothing about the correction, and dropping a result because a label
+ * could not be worked out would hide the very row someone came to fix.
  */
 export async function listArchivedResults(year: number): Promise<ArchivedResult[]> {
   const season = await loadSeason(year);
@@ -121,8 +141,11 @@ export async function listArchivedResults(year: number): Promise<ArchivedResult[
 
   const results: (ArchivedResult & { order: number })[] = [];
   for (const heat of heats) {
-    const field = fieldOfCategory.get(heat.categoryId);
-    if (!field) continue;
+    const field = fieldOfCategory.get(heat.categoryId) ?? {
+      id: heat.categoryId,
+      nameHe: heat.name,
+      order: fields.length,
+    };
     const start = at(heat.startTime);
     for (const entry of heat.entries ?? []) {
       if (entry.scratched) continue;
