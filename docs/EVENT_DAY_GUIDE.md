@@ -185,11 +185,16 @@ Each timekeeper logs in and picks their spot from **עמדות תזמון** (Tim
 | Run / Finish | **ריצה / קו סיום** | Finish line | Tap each competitor as they cross — **this sets the final time** |
 
 At each station: type part of a name in the search box, then tap the person's
-big button to stamp their time **at that moment**. A short **בטל** (Undo) appears
-for a few seconds in case of a mis-tap.
+big button to stamp their time **at that moment**. The card you just tapped
+shows the time you gave them (**נרשם בשעה …**) with a short **בטל** (Undo)
+next to it, for a few seconds, in case of a mis-tap. The confirmation stays
+**on that competitor's own card** — nothing pops up over the list — so while
+it's on screen you can still see and tap everyone else, even if two people
+arrive together.
 
-At the **swim** and **bike** stations a competitor drops off the list once
-they're stamped, keeping the working list short.
+At the **swim** and **bike** stations a competitor leaves the list once they're
+stamped, keeping the working list short: they stay in their place for those few
+undo seconds, greyed out, and then drop off.
 
 **The finish line (ריצה / קו סיום) works differently** — it's the station that
 decides the results, so it's built so nothing can be lost:

@@ -53,6 +53,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sta
       // This station's time, once recorded. Only ever set at the finish line,
       // where stamped competitors stay on the list.
       stampedAt: e[field] ? (e[field] as Date).toISOString() : null,
+      // The station list's own order. The swim/bike stations hold a competitor
+      // on screen for a few seconds after stamping them (so the stamp can be
+      // taken back), and this is what puts them back in their own place rather
+      // than at the end of the list.
+      createdAt: e.createdAt.toISOString(),
       // Only the run (finish) station renders these — runner vs. the other legs
       // — but they're small and harmless for the other stations.
       members: e.members.filter((m) => m.leg).map((m) => ({ id: m.id, name: m.name, leg: m.leg })),

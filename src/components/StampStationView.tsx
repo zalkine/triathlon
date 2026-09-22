@@ -18,6 +18,9 @@ type Entry = {
   categoryNameEn: string;
   categoryNameHe: string;
   stampedAt: string | null;
+  // This competitor's place in the station list. A competitor held on screen
+  // for their undo window is put back in this place, instead of at the end.
+  createdAt: string;
   members: Member[];
 };
 type StampStation = Exclude<Station, 'start'>;
@@ -31,12 +34,20 @@ export default function StampStationView({ station }: { station: StampStation })
   const t = useTranslations('stationStamp');
   const tc = useTranslations('common');
   const [entries, setEntries] = useState<Entry[]>([]);
+  // The swim and bike stations keep a short working list, so a competitor drops
+  // off it the moment they are stamped. These are the ones stamped on this
+  // device a moment ago: they stay on the list, in their own place, for as long
+  // as the stamp can still be taken back. The confirmation and its Undo live on
+  // the competitor's own card, so nothing ever floats over the list and hides
+  // the next competitor's name or their button.
+  const [held, setHeld] = useState<Entry[]>([]);
   const [active, setActive] = useState(true);
   const [query, setQuery] = useState('');
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [manualFor, setManualFor] = useState<string | null>(null);
   const [manualValue, setManualValue] = useState('');
-  const [toast, setToast] = useState<{ entryId: string; name: string; time: string } | null>(null);
+  // Read out to screen readers only — on screen the card itself is the receipt.
+  const [announcement, setAnnouncement] = useState('');
   const [, setTick] = useState(0);
   const [isPending, startTransition] = useTransition();
   const offsetRef = useRef(0);
@@ -47,6 +58,14 @@ export default function StampStationView({ station }: { station: StampStation })
   // mid-race puts them straight back on their own races rather than the whole
   // field.
   const filterStorageKey = `tg:station:${station}:category`;
+
+  const serverNow = () => Date.now() + offsetRef.current;
+
+  // A stamp can only be taken back within the undo window (the server enforces
+  // the same limit), so that is exactly how long a stamped competitor is worth
+  // keeping on the swim/bike list.
+  const canStillUndo = (entry: Entry) =>
+    entry.stampedAt != null && serverNow() - new Date(entry.stampedAt).getTime() < UNDO_WINDOW_MS;
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/stations/${station}`, { cache: 'no-store' });
@@ -60,7 +79,12 @@ export default function StampStationView({ station }: { station: StampStation })
   useEffect(() => {
     load();
     const poll = setInterval(load, 2000);
-    const clock = setInterval(() => setTick((n) => n + 1), 250);
+    const clock = setInterval(() => {
+      setTick((n) => n + 1);
+      // Once the window has run out there is nothing left to take back, so the
+      // competitor leaves the working list as they always did.
+      setHeld((prev) => (prev.every(canStillUndo) ? prev : prev.filter(canStillUndo)));
+    }, 250);
     return () => {
       clearInterval(poll);
       clearInterval(clock);
@@ -96,7 +120,15 @@ export default function StampStationView({ station }: { station: StampStation })
   // locks between athletes and forces a password unlock mid-stamp.
   useWakeLock(active);
 
-  const serverNow = () => Date.now() + offsetRef.current;
+  // What the station shows: the live list with the just-stamped competitors put
+  // back in their own place. Recomputed on every render, so the quarter-second
+  // clock tick is also what drops a competitor whose window has just closed.
+  const heldOnScreen = held.filter(canStillUndo);
+  const shown = isFinish
+    ? entries
+    : [...entries.filter((e) => !heldOnScreen.some((h) => h.id === e.id)), ...heldOnScreen].sort((a, b) =>
+        a.createdAt.localeCompare(b.createdAt)
+      );
 
   // The categories actually on this station's list, in the order they appear
   // (the API returns the finish list already grouped by category).
@@ -144,12 +176,12 @@ export default function StampStationView({ station }: { station: StampStation })
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return entries.filter((e) => {
+    return shown.filter((e) => {
       if (selectedIds.length > 0 && !selectedIds.includes(e.categoryId)) return false;
       if (!q) return true;
       return e.name.toLowerCase().includes(q) || e.members.some((m) => m.name.toLowerCase().includes(q));
     });
-  }, [entries, query, selectedIds]);
+  }, [shown, query, selectedIds]);
 
   const waitingShown = filtered.filter((e) => !e.stampedAt).length;
   const doneShown = filtered.length - waitingShown;
@@ -162,16 +194,20 @@ export default function StampStationView({ station }: { station: StampStation })
 
   const afterStamp = (entry: Entry, atMs: number | undefined, displayName: string) => {
     const at = new Date(atMs ?? serverNow());
-    setEntries((prev) =>
-      isFinish
-        ? // Finish line: keep them exactly where they are and just mark them
-          // done, so the list never reshuffles under the timekeeper.
-          prev.map((e) => (e.id === entry.id ? { ...e, stampedAt: at.toISOString() } : e))
-        : prev.filter((e) => e.id !== entry.id)
-    );
+    const stamped = { ...entry, stampedAt: at.toISOString() };
+    if (isFinish) {
+      // Finish line: keep them exactly where they are and just mark them done,
+      // so the list never reshuffles under the timekeeper.
+      setEntries((prev) => prev.map((e) => (e.id === entry.id ? stamped : e)));
+    } else {
+      // Swim/bike: they are off the working list, but stay on screen in their
+      // own place until the undo window closes — the card carries the time and
+      // the Undo, so the list underneath stays readable and tappable.
+      setEntries((prev) => prev.filter((e) => e.id !== entry.id));
+      setHeld((prev) => [...prev.filter((e) => e.id !== entry.id), stamped]);
+    }
     setManualFor(null);
-    setToast({ entryId: entry.id, name: displayName, time: formatClock(at, locale) });
-    setTimeout(() => setToast((cur) => (cur?.entryId === entry.id ? null : cur)), UNDO_WINDOW_MS);
+    setAnnouncement(t('stamped', { name: displayName, time: formatClock(at, locale) }));
   };
 
   // An open relay leg is stored as a placeholder name, which is no use as the
@@ -210,8 +246,17 @@ export default function StampStationView({ station }: { station: StampStation })
     startTransition(async () => {
       const result = await undoEntryTime(entryId, station);
       if (result.ok) {
-        setToast((cur) => (cur?.entryId === entryId ? null : cur));
-        setEntries((prev) => prev.map((e) => (e.id === entryId ? { ...e, stampedAt: null } : e)));
+        // Straight back to waiting: the finish line already has their card, and
+        // at the swim/bike stations it returns from the held set to its place.
+        const heldBack = held.find((e) => e.id === entryId);
+        setHeld((prev) => prev.filter((e) => e.id !== entryId));
+        setEntries((prev) =>
+          prev.some((e) => e.id === entryId)
+            ? prev.map((e) => (e.id === entryId ? { ...e, stampedAt: null } : e))
+            : heldBack
+              ? [...prev, { ...heldBack, stampedAt: null }]
+              : prev
+        );
       }
       load();
     });
@@ -321,7 +366,7 @@ export default function StampStationView({ station }: { station: StampStation })
             <div
               key={e.id}
               className={`rounded-2xl p-4 shadow-sm ${isFinish ? `cat-card ${categoryColorClass(e.categoryKey)}` : 'bg-surface'} ${
-                done ? 'opacity-70' : ''
+                done ? (canUndo ? 'ring-2 ring-ink/30' : 'opacity-70') : ''
               }`}
             >
               <div className="text-xs text-ink-light">
@@ -345,14 +390,14 @@ export default function StampStationView({ station }: { station: StampStation })
 
               {done ? (
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-semibold tabular-nums text-ink-light">
+                  <span className={`font-semibold tabular-nums ${canUndo ? 'text-ink' : 'text-ink-light'}`}>
                     ✓ {t('finishedAt', { time: formatClock(new Date(stampedMs as number), locale) })}
                   </span>
                   {canUndo && (
                     <button
                       onClick={() => handleUndo(e.id)}
                       disabled={isPending}
-                      className="text-sm font-semibold text-ink-light underline disabled:opacity-50"
+                      className="rounded-full border-2 border-ink/30 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-ink/5 disabled:opacity-50"
                     >
                       {tc('undo')}
                     </button>
@@ -405,14 +450,14 @@ export default function StampStationView({ station }: { station: StampStation })
         })}
       </div>
 
-      {toast && (
-        <div className="fixed bottom-6 start-6 z-10 flex items-center gap-3 rounded-xl bg-ink px-4 py-3 text-cream shadow-lg">
-          <span>{t('stamped', { name: toast.name, time: toast.time })}</span>
-          <button onClick={() => handleUndo(toast.entryId)} className="font-semibold underline">
-            {tc('undo')}
-          </button>
-        </div>
-      )}
+      {/* The stamp is confirmed on the competitor's own card, where the tap was.
+          Screen readers get the same confirmation here, and nothing is drawn
+          over the list — a banner used to sit across the bottom of the screen
+          and hide whoever was there, so the next competitor to arrive couldn't
+          be found or stamped. */}
+      <p aria-live="polite" role="status" className="sr-only">
+        {announcement}
+      </p>
     </div>
   );
 }
